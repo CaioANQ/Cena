@@ -1,0 +1,1843 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Cena Mobile — Wireframes de Alta Fidelidade</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400&family=Geist:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: {
+          serif: ['Fraunces', 'serif'],
+          sans: ['Geist', 'system-ui', 'sans-serif'],
+          mono: ['"JetBrains Mono"', 'monospace'],
+        },
+        colors: {
+          ink: {
+            950: '#0a0908',
+            900: '#121110',
+            850: '#171614',
+            800: '#1a1817',
+            700: '#2a2724',
+            600: '#3d3934',
+            500: '#5a564f',
+            400: '#8a867e',
+            300: '#b5b1a8',
+            200: '#d6d2c8',
+            100: '#ece8de',
+            50:  '#f6f3ea',
+          },
+          amber: { glow: '#ff7a2e', warm: '#e8c468', soft: '#f5d99a' },
+          film: { green: '#4a6d3f', red: '#c44536', blue: '#2d5d7b' },
+        },
+      }
+    }
+  };
+</script>
+
+<style>
+  html { background: #0a0908; }
+  body {
+    font-family: 'Geist', system-ui, sans-serif;
+    background: #0a0908;
+    color: #ece8de;
+    -webkit-font-smoothing: antialiased;
+  }
+  .serif { font-family: 'Fraunces', serif; font-optical-sizing: auto; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+  .eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+
+  /* Grain overlay */
+  .grain::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0.04;
+    background-image: url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  }
+
+  /* Cine glow */
+  .cine-glow {
+    background: radial-gradient(80% 60% at 50% 0%, rgba(255,122,46,0.12), transparent 60%),
+                radial-gradient(60% 50% at 100% 100%, rgba(232,196,104,0.06), transparent 60%);
+  }
+
+  /* Phone frame */
+  .phone {
+    position: relative;
+    width: 300px;
+    height: 620px;
+    border-radius: 44px;
+    background: #0a0908;
+    padding: 11px;
+    box-shadow:
+      0 0 0 1px #2a2724,
+      0 0 0 3px #17161430,
+      0 40px 80px -20px rgba(0,0,0,0.8),
+      0 0 60px -10px rgba(255,122,46,0.08);
+  }
+  .phone-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-radius: 34px;
+    overflow: hidden;
+    background: #0a0908;
+  }
+  .phone-notch {
+    position: absolute;
+    top: 9px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90px;
+    height: 26px;
+    background: #000;
+    border-radius: 20px;
+    z-index: 30;
+  }
+  .phone-statusbar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 26px 0 26px;
+    font-family: 'Geist', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+    z-index: 20;
+  }
+  .phone-home-indicator {
+    position: absolute;
+    bottom: 6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 110px;
+    height: 4px;
+    background: #ffffff;
+    border-radius: 4px;
+    z-index: 20;
+    opacity: 0.9;
+  }
+  .screen {
+    position: absolute;
+    inset: 0;
+    padding-top: 44px;
+    padding-bottom: 18px;
+    overflow: hidden;
+  }
+  .screen-scroll {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  /* Section decorative elements */
+  .film-strip {
+    height: 2px;
+    background-image: linear-gradient(to right, transparent 0, transparent 4px, #ff7a2e 4px, #ff7a2e 12px, transparent 12px, transparent 20px);
+    background-size: 20px 2px;
+    opacity: 0.5;
+  }
+
+  .diaphragm-anim {
+    animation: diaphragm 6s ease-in-out infinite;
+    transform-origin: center;
+  }
+  @keyframes diaphragm {
+    0%, 100% { transform: rotate(0deg) scale(1); }
+    50% { transform: rotate(60deg) scale(0.92); }
+  }
+
+  /* Fade in on load */
+  .fade-up {
+    animation: fadeUp 0.8s ease-out backwards;
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Hide scrollbars inside phones */
+  .phone ::-webkit-scrollbar { display: none; }
+
+  /* Focus glow */
+  .callout-line {
+    position: absolute;
+    background: linear-gradient(to right, #ff7a2e80, transparent);
+    height: 1px;
+  }
+
+  /* Sticky tick spinner */
+  .pulse-dot {
+    animation: pulseDot 2s ease-in-out infinite;
+  }
+  @keyframes pulseDot {
+    0%, 100% { opacity: 0.3; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.2); }
+  }
+</style>
+</head>
+<body class="grain">
+<div id="root"></div>
+
+<script type="text/babel" data-presets="env,react">
+// ============================================================
+// CENA MOBILE — WIREFRAMES DE ALTA FIDELIDADE
+// ============================================================
+const { useState, useEffect, useRef, useMemo } = React;
+
+// ---------- Icon System ----------
+const Icon = ({ name, size = 16, className = '', stroke = 1.6 }) => {
+  const paths = {
+    search: <><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></>,
+    filter: <><path d="M3 6h18M7 12h10M10 18h4"/></>,
+    sliders: <><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></>,
+    home: <><path d="m3 10 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></>,
+    bag: <><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></>,
+    file: <><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></>,
+    user: <><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></>,
+    bell: <><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></>,
+    camera: <><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></>,
+    lens: <><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></>,
+    light: <><path d="M9 18h6M10 22h4M12 2v2M4.93 4.93l1.41 1.41M19.07 4.93l-1.41 1.41M2 12h2M20 12h2"/><path d="M12 14a5 5 0 0 0 3-9 5 5 0 0 0-6 9"/></>,
+    mic: <><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v4"/></>,
+    wrench: <><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></>,
+    plus: <><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></>,
+    minus: <><line x1="5" y1="12" x2="19" y2="12"/></>,
+    check: <polyline points="20 6 9 17 4 12"/>,
+    checkCircle: <><circle cx="12" cy="12" r="10"/><polyline points="16 10 11 15 8 12"/></>,
+    x: <><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></>,
+    arrowLeft: <><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></>,
+    arrowRight: <><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></>,
+    chevronRight: <polyline points="9 18 15 12 9 6"/>,
+    chevronDown: <polyline points="6 9 12 15 18 9"/>,
+    calendar: <><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></>,
+    clock: <><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></>,
+    mapPin: <><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></>,
+    building: <><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22v-4h6v4M8 6h.01M16 6h.01M12 6h.01M12 10h.01M12 14h.01M16 10h.01M16 14h.01M8 10h.01M8 14h.01"/></>,
+    shield: <><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></>,
+    lock: <><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></>,
+    star: <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>,
+    heart: <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>,
+    trash: <><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></>,
+    qr: <><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3M17 21h4M21 14v3M14 17h0"/></>,
+    scan: <><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" y1="12" x2="17" y2="12"/></>,
+    send: <><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></>,
+    truck: <><rect x="1" y="3" width="15" height="13" rx="1"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></>,
+    phoneCall: <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>,
+    message: <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>,
+    info: <><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></>,
+    sparkles: <><path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5z"/><path d="M19 13l.8 2.4 2.4.8-2.4.8-.8 2.4-.8-2.4-2.4-.8 2.4-.8z"/></>,
+    eye: <><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></>,
+    image: <><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></>,
+    download: <><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></>,
+  };
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth={stroke} strokeLinecap="round" strokeLinejoin="round"
+      className={className}>{paths[name]}</svg>
+  );
+};
+
+// ---------- Phone Frame ----------
+const Phone = ({ children, time = '18:42', label, caption, tone = 'default' }) => (
+  <div className="flex flex-col items-center gap-5 fade-up">
+    <div className="phone">
+      <div className="phone-inner">
+        <div className="phone-notch"></div>
+        <div className="phone-statusbar">
+          <span className="mono">{time}</span>
+          <span className="flex items-center gap-1.5">
+            <svg width="14" height="10" viewBox="0 0 14 10" fill="currentColor"><path d="M1 7h1v2H1V7zm3-1h1v3H4V6zm3-2h1v5H7V4zm3-2h1v7h-1V2z"/></svg>
+            <svg width="14" height="10" viewBox="0 0 14 10" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M1 4c4-4 8-4 12 0M3 6c2.5-2.5 5.5-2.5 8 0M5 8c1.5-1.5 2.5-1.5 4 0"/></svg>
+            <svg width="24" height="12" viewBox="0 0 24 12" fill="none" stroke="currentColor" strokeWidth="1.2"><rect x="1" y="1.5" width="18" height="9" rx="2"/><rect x="3" y="3.5" width="13" height="5" rx="0.5" fill="currentColor"/><rect x="20" y="4" width="2" height="4" rx="0.5" fill="currentColor"/></svg>
+          </span>
+        </div>
+        <div className="screen">
+          {children}
+        </div>
+        <div className="phone-home-indicator"></div>
+      </div>
+    </div>
+    {label && (
+      <div className="text-center max-w-[280px]">
+        <div className="eyebrow text-amber-glow mb-1.5">{label}</div>
+        {caption && <p className="text-[13px] text-ink-300 leading-relaxed">{caption}</p>}
+      </div>
+    )}
+  </div>
+);
+
+// ---------- Bottom Nav (reusable) ----------
+const BottomNav = ({ active = 'home' }) => (
+  <div className="absolute bottom-0 left-0 right-0 bg-ink-900/95 backdrop-blur border-t border-ink-800 px-2 pt-2 pb-5 flex items-center justify-around">
+    {[
+      { id: 'home', icon: 'home', label: 'Catálogo' },
+      { id: 'quotations', icon: 'file', label: 'Cotações' },
+      { id: 'cart', icon: 'bag', label: 'Carrinho', badge: 3 },
+      { id: 'profile', icon: 'user', label: 'Perfil' },
+    ].map(tab => (
+      <div key={tab.id} className={`flex-1 flex flex-col items-center gap-1 py-1 relative ${active === tab.id ? 'text-amber-glow' : 'text-ink-400'}`}>
+        <div className="relative">
+          <Icon name={tab.icon} size={19}/>
+          {tab.badge && <span className="absolute -top-1 -right-2 bg-amber-glow text-ink-950 text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center">{tab.badge}</span>}
+        </div>
+        <span className="text-[9px] font-medium">{tab.label}</span>
+      </div>
+    ))}
+  </div>
+);
+
+// ---------- Status Badge ----------
+const StatusBadge = ({ status }) => {
+  const config = {
+    pending:  { bg: 'bg-amber-warm/15', text: 'text-amber-warm', dot: 'bg-amber-warm', label: 'Em análise' },
+    quoted:   { bg: 'bg-amber-glow/15', text: 'text-amber-glow', dot: 'bg-amber-glow', label: 'Orçamento' },
+    approved: { bg: 'bg-film-green/20', text: 'text-[#8cbf78]', dot: 'bg-[#8cbf78]', label: 'Aprovada' },
+    declined: { bg: 'bg-film-red/20',   text: 'text-[#e87560]', dot: 'bg-[#e87560]', label: 'Recusada' },
+    draft:    { bg: 'bg-ink-700',       text: 'text-ink-300',   dot: 'bg-ink-400',   label: 'Rascunho' },
+    ready:    { bg: 'bg-film-blue/20',  text: 'text-[#6ba3c4]', dot: 'bg-[#6ba3c4]', label: 'Pronta p/ retirada' },
+  }[status] || { bg: 'bg-ink-800', text: 'text-ink-300', dot: 'bg-ink-400', label: status };
+  return (
+    <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium ${config.bg} ${config.text}`}>
+      <span className={`w-1.5 h-1.5 rounded-full ${config.dot}`}></span>
+      {config.label}
+    </span>
+  );
+};
+
+// ---------- Mini equipment illustration ----------
+const EqIcon = ({ type, size = 'md' }) => {
+  const sizes = { sm: 44, md: 60, lg: 80 };
+  const s = sizes[size];
+  const icons = {
+    camera: (
+      <svg viewBox="0 0 100 100" width={s} height={s}>
+        <rect x="22" y="35" width="56" height="38" rx="4" fill="#1a1817" stroke="#3d3934" strokeWidth="1.5"/>
+        <rect x="40" y="28" width="20" height="10" rx="2" fill="#1a1817" stroke="#3d3934" strokeWidth="1.5"/>
+        <circle cx="50" cy="54" r="14" fill="#0a0908" stroke="#ff7a2e" strokeWidth="1.2"/>
+        <circle cx="50" cy="54" r="9" fill="#17161" stroke="#3d3934" strokeWidth="1"/>
+        <circle cx="50" cy="54" r="3" fill="#ff7a2e"/>
+        <rect x="70" y="40" width="6" height="4" rx="1" fill="#e8c468"/>
+      </svg>
+    ),
+    lens: (
+      <svg viewBox="0 0 100 100" width={s} height={s}>
+        <circle cx="50" cy="50" r="32" fill="#1a1817" stroke="#3d3934" strokeWidth="1.5"/>
+        <circle cx="50" cy="50" r="25" fill="none" stroke="#5a564f" strokeWidth="1"/>
+        <circle cx="50" cy="50" r="18" fill="#0a0908" stroke="#ff7a2e" strokeWidth="1"/>
+        <circle cx="50" cy="50" r="10" fill="none" stroke="#5a564f" strokeWidth="0.8"/>
+        <circle cx="50" cy="50" r="4" fill="#e8c468"/>
+      </svg>
+    ),
+    light: (
+      <svg viewBox="0 0 100 100" width={s} height={s}>
+        <rect x="20" y="32" width="60" height="36" rx="3" fill="#1a1817" stroke="#3d3934" strokeWidth="1.5"/>
+        <rect x="26" y="38" width="48" height="24" fill="#e8c468" opacity="0.15"/>
+        <g stroke="#ff7a2e" strokeWidth="0.8" opacity="0.6">
+          {[0,1,2,3,4].map(i => <line key={i} x1={30+i*10} y1="38" x2={30+i*10} y2="62"/>)}
+          {[0,1,2].map(i => <line key={i} x1="26" y1={42+i*8} x2="74" y2={42+i*8}/>)}
+        </g>
+        <rect x="45" y="68" width="10" height="8" fill="#3d3934"/>
+      </svg>
+    ),
+    mic: (
+      <svg viewBox="0 0 100 100" width={s} height={s}>
+        <rect x="40" y="20" width="20" height="50" rx="10" fill="#1a1817" stroke="#3d3934" strokeWidth="1.5"/>
+        <g stroke="#5a564f" strokeWidth="0.6">
+          {[0,1,2,3,4,5].map(i => <line key={i} x1="42" y1={26+i*7} x2="58" y2={26+i*7}/>)}
+        </g>
+        <rect x="48" y="70" width="4" height="14" fill="#3d3934"/>
+        <rect x="38" y="82" width="24" height="3" fill="#3d3934"/>
+      </svg>
+    ),
+    rig: (
+      <svg viewBox="0 0 100 100" width={s} height={s}>
+        <path d="M 30 30 L 70 30 L 70 70 L 30 70 Z" fill="none" stroke="#ff7a2e" strokeWidth="1.5"/>
+        <circle cx="50" cy="50" r="8" fill="#1a1817" stroke="#3d3934" strokeWidth="1.5"/>
+        <circle cx="30" cy="30" r="4" fill="#3d3934"/>
+        <circle cx="70" cy="30" r="4" fill="#3d3934"/>
+        <circle cx="30" cy="70" r="4" fill="#3d3934"/>
+        <circle cx="70" cy="70" r="4" fill="#3d3934"/>
+      </svg>
+    ),
+  };
+  return icons[type] || icons.camera;
+};
+
+// Export to window for other script tags
+window.__CENA_M_BASE__ = { Icon, Phone, BottomNav, StatusBadge, EqIcon };
+</script>
+
+<script type="text/babel" data-presets="env,react">
+// ============================================================
+// PART 2 — SCREENS: ONBOARDING, HOME, BUSCA, PRODUTO, CARRINHO
+// ============================================================
+const { Icon, BottomNav, StatusBadge, EqIcon } = window.__CENA_M_BASE__;
+
+// ---------- 01. SPLASH ----------
+const ScreenSplash = () => (
+  <div className="absolute inset-0 flex flex-col items-center justify-center cine-glow">
+    <div className="relative mb-6">
+      <svg width="68" height="68" viewBox="0 0 100 100" className="diaphragm-anim">
+        <circle cx="50" cy="50" r="44" fill="none" stroke="#2a2724" strokeWidth="1"/>
+        {[0,1,2,3,4,5].map(i => (
+          <path key={i}
+            d={`M 50 50 L ${50 + 30*Math.cos(i*Math.PI/3)} ${50 + 30*Math.sin(i*Math.PI/3)} L ${50 + 30*Math.cos((i+1)*Math.PI/3)} ${50 + 30*Math.sin((i+1)*Math.PI/3)} Z`}
+            fill={i % 2 === 0 ? '#ff7a2e' : '#e8c468'} opacity="0.85"/>
+        ))}
+        <circle cx="50" cy="50" r="8" fill="#0a0908"/>
+      </svg>
+    </div>
+    <h1 className="serif text-5xl font-light tracking-tight text-ink-50 mb-2">Cena</h1>
+    <p className="eyebrow text-amber-glow/80 mb-12">locação inteligente</p>
+    <div className="flex gap-1 mt-6">
+      <span className="w-1.5 h-1.5 bg-amber-glow rounded-full pulse-dot"></span>
+      <span className="w-1.5 h-1.5 bg-amber-glow rounded-full pulse-dot" style={{animationDelay: '0.3s'}}></span>
+      <span className="w-1.5 h-1.5 bg-amber-glow rounded-full pulse-dot" style={{animationDelay: '0.6s'}}></span>
+    </div>
+    <div className="absolute bottom-10 left-0 right-0 text-center">
+      <p className="text-[10px] text-ink-500 mono">v1.0 · BETA</p>
+    </div>
+  </div>
+);
+
+// ---------- 02. LOGIN ----------
+const ScreenLogin = () => (
+  <div className="h-full flex flex-col px-6 pt-8 cine-glow">
+    <div className="flex items-center gap-2 mb-12">
+      <svg width="28" height="28" viewBox="0 0 100 100">
+        {[0,1,2,3,4,5].map(i => (
+          <path key={i}
+            d={`M 50 50 L ${50 + 30*Math.cos(i*Math.PI/3)} ${50 + 30*Math.sin(i*Math.PI/3)} L ${50 + 30*Math.cos((i+1)*Math.PI/3)} ${50 + 30*Math.sin((i+1)*Math.PI/3)} Z`}
+            fill={i % 2 === 0 ? '#ff7a2e' : '#e8c468'} opacity="0.85"/>
+        ))}
+        <circle cx="50" cy="50" r="12" fill="#0a0908"/>
+      </svg>
+      <span className="serif text-2xl text-ink-50">Cena</span>
+    </div>
+
+    <h2 className="serif text-[28px] font-light leading-[1.1] text-ink-50 mb-2">Bem-vindo<br/>de volta.</h2>
+    <p className="text-[13px] text-ink-400 mb-8">Entre para continuar suas cotações.</p>
+
+    <div className="space-y-3 mb-5">
+      <div>
+        <label className="eyebrow text-ink-500 mb-1.5 block">E-mail</label>
+        <div className="bg-ink-900 border border-ink-700 rounded-xl px-4 py-3 text-[13px] text-ink-200">rafael@acdp.com.br</div>
+      </div>
+      <div>
+        <label className="eyebrow text-ink-500 mb-1.5 block">Senha</label>
+        <div className="bg-ink-900 border border-ink-700 rounded-xl px-4 py-3 flex items-center justify-between">
+          <span className="text-[13px] text-ink-200 tracking-widest">••••••••</span>
+          <Icon name="eye" size={14} className="text-ink-500"/>
+        </div>
+      </div>
+    </div>
+
+    <div className="flex items-center justify-between mb-6">
+      <label className="flex items-center gap-2 text-[12px] text-ink-400">
+        <div className="w-4 h-4 border border-ink-600 rounded flex items-center justify-center bg-amber-glow">
+          <Icon name="check" size={10} className="text-ink-950" stroke={3}/>
+        </div>
+        Lembrar neste aparelho
+      </label>
+      <a className="text-[12px] text-amber-warm">Esqueceu?</a>
+    </div>
+
+    <button className="w-full bg-amber-glow text-ink-950 font-semibold py-3.5 rounded-xl text-[14px] mb-4">
+      Entrar
+    </button>
+
+    <div className="flex items-center gap-3 mb-4">
+      <span className="flex-1 h-px bg-ink-800"></span>
+      <span className="text-[10px] text-ink-500">ou</span>
+      <span className="flex-1 h-px bg-ink-800"></span>
+    </div>
+
+    <button className="w-full border border-ink-700 text-ink-200 py-3 rounded-xl text-[13px] flex items-center justify-center gap-2 mb-3">
+      <div className="w-4 h-4 bg-white rounded-full flex items-center justify-center text-black text-[10px] font-bold">G</div>
+      Entrar com Google
+    </button>
+
+    <div className="mt-auto pb-4 text-center">
+      <p className="text-[12px] text-ink-500">
+        Novo aqui? <span className="text-amber-warm font-medium">Criar conta</span>
+      </p>
+    </div>
+  </div>
+);
+
+// ---------- 03. HOME / FEED ----------
+const ScreenHome = () => (
+  <div className="h-full bg-ink-950 overflow-y-auto pb-[72px]">
+    {/* Header */}
+    <div className="px-5 pt-3 pb-4 cine-glow">
+      <div className="flex items-center justify-between mb-5">
+        <div>
+          <p className="text-[11px] text-ink-500">Boa tarde, Rafael</p>
+          <p className="serif text-[18px] text-ink-50 leading-tight">Pronto para a diária?</p>
+        </div>
+        <div className="flex gap-2">
+          <div className="w-9 h-9 bg-ink-900 border border-ink-800 rounded-full flex items-center justify-center relative">
+            <Icon name="bell" size={16} className="text-ink-300"/>
+            <span className="absolute top-1 right-1.5 w-2 h-2 bg-amber-glow rounded-full"></span>
+          </div>
+          <div className="w-9 h-9 bg-gradient-to-br from-amber-warm to-amber-glow rounded-full flex items-center justify-center text-ink-950 text-[12px] font-bold">R</div>
+        </div>
+      </div>
+
+      {/* Active quotation pill */}
+      <div className="bg-gradient-to-r from-amber-glow/10 to-transparent border border-amber-glow/20 rounded-2xl p-3 mb-4">
+        <div className="flex items-center gap-2 mb-1">
+          <StatusBadge status="quoted"/>
+          <span className="text-[10px] text-ink-400 mono">COT-0247</span>
+        </div>
+        <p className="text-[12px] text-ink-100 mb-2">Orçamento recebido da <span className="text-amber-warm">Cinestúdio SP</span></p>
+        <div className="flex items-center justify-between">
+          <span className="text-[10px] text-ink-400">Expira em 18h</span>
+          <span className="text-[11px] text-amber-glow font-medium flex items-center gap-1">Revisar <Icon name="chevronRight" size={10}/></span>
+        </div>
+      </div>
+
+      {/* Search */}
+      <div className="bg-ink-900 border border-ink-800 rounded-full flex items-center px-4 py-2.5 gap-2">
+        <Icon name="search" size={15} className="text-ink-400"/>
+        <span className="text-[12px] text-ink-400 flex-1">Buscar equipamento, locadora…</span>
+        <div className="w-6 h-6 bg-ink-800 rounded-full flex items-center justify-center">
+          <Icon name="sliders" size={12} className="text-ink-300"/>
+        </div>
+      </div>
+    </div>
+
+    {/* Categories */}
+    <div className="px-5 mb-4">
+      <div className="flex items-center justify-between mb-2.5">
+        <h3 className="eyebrow text-ink-400">Categorias</h3>
+        <span className="text-[11px] text-amber-warm">Ver todas</span>
+      </div>
+      <div className="grid grid-cols-4 gap-2">
+        {[
+          { icon: 'camera', label: 'Câmeras' },
+          { icon: 'lens', label: 'Lentes' },
+          { icon: 'light', label: 'Luz' },
+          { icon: 'mic', label: 'Áudio' },
+        ].map((c, i) => (
+          <div key={i} className="bg-ink-900 border border-ink-800 rounded-xl p-2 flex flex-col items-center gap-1.5 aspect-square justify-center">
+            <div className="w-7 h-7 rounded-full bg-amber-glow/10 flex items-center justify-center text-amber-glow">
+              <Icon name={c.icon} size={13}/>
+            </div>
+            <span className="text-[9px] text-ink-300">{c.label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    {/* Featured equipment */}
+    <div className="mb-4">
+      <div className="px-5 flex items-center justify-between mb-2.5">
+        <h3 className="eyebrow text-ink-400">Em alta nesta semana</h3>
+      </div>
+      <div className="overflow-x-auto">
+        <div className="flex gap-2.5 px-5 pb-1 w-max">
+          {[
+            { name: 'ARRI Alexa Mini LF', house: 'Cinestúdio SP', avail: 2, type: 'camera' },
+            { name: 'RED Komodo 6K', house: 'FilmeHouse', avail: 3, type: 'camera' },
+            { name: 'Zeiss Supreme Prime', house: 'Luz & Câmera', avail: 1, type: 'lens' },
+          ].map((eq, i) => (
+            <div key={i} className="w-[150px] bg-ink-900 border border-ink-800 rounded-2xl p-2.5 shrink-0">
+              <div className="bg-ink-850 h-20 rounded-lg mb-2 flex items-center justify-center overflow-hidden">
+                <EqIcon type={eq.type} size="md"/>
+              </div>
+              <p className="text-[11px] font-medium text-ink-100 leading-tight mb-0.5 line-clamp-1">{eq.name}</p>
+              <p className="text-[9px] text-ink-500 mb-1.5">{eq.house}</p>
+              <div className="flex items-center justify-between">
+                <span className="text-[9px] text-[#8cbf78] flex items-center gap-1">
+                  <span className="w-1 h-1 bg-[#8cbf78] rounded-full"></span>
+                  {eq.avail} disp.
+                </span>
+                <div className="w-5 h-5 bg-amber-glow rounded-full flex items-center justify-center">
+                  <Icon name="plus" size={11} className="text-ink-950" stroke={2.5}/>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+
+    {/* Rental houses nearby */}
+    <div className="px-5">
+      <div className="flex items-center justify-between mb-2.5">
+        <h3 className="eyebrow text-ink-400">Locadoras próximas</h3>
+      </div>
+      <div className="space-y-2">
+        {[
+          { name: 'Cinestúdio SP', dist: '3.2 km', rating: 4.9, items: 284 },
+          { name: 'Luz & Câmera Rental', dist: '5.8 km', rating: 4.7, items: 156 },
+        ].map((h, i) => (
+          <div key={i} className="bg-ink-900 border border-ink-800 rounded-xl p-3 flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-ink-700 to-ink-800 rounded-lg flex items-center justify-center">
+              <Icon name="building" size={16} className="text-amber-warm"/>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[12px] text-ink-100 font-medium">{h.name}</p>
+              <div className="flex items-center gap-2 text-[10px] text-ink-500">
+                <span className="flex items-center gap-0.5"><Icon name="mapPin" size={9}/> {h.dist}</span>
+                <span className="flex items-center gap-0.5"><Icon name="star" size={9} className="text-amber-warm"/> {h.rating}</span>
+                <span>{h.items} itens</span>
+              </div>
+            </div>
+            <Icon name="chevronRight" size={14} className="text-ink-500"/>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <BottomNav active="home"/>
+  </div>
+);
+
+// ---------- 04. BUSCA / CATEGORIA ----------
+const ScreenCategory = () => (
+  <div className="h-full bg-ink-950 overflow-y-auto pb-[72px]">
+    <div className="px-5 pt-3 pb-3 border-b border-ink-800/60">
+      <div className="flex items-center gap-3 mb-3">
+        <Icon name="arrowLeft" size={18} className="text-ink-200"/>
+        <h2 className="serif text-[18px] text-ink-50 flex-1">Câmeras</h2>
+        <Icon name="search" size={16} className="text-ink-300"/>
+      </div>
+      {/* Filter chips */}
+      <div className="overflow-x-auto -mx-5 px-5">
+        <div className="flex gap-1.5 w-max">
+          {['Todos', 'Super 35', 'Full Frame', 'Cinema', '< 5kg', 'RAW'].map((f, i) => (
+            <div key={i} className={`px-3 py-1 rounded-full text-[10px] whitespace-nowrap ${i === 0 ? 'bg-amber-glow text-ink-950 font-medium' : 'bg-ink-900 border border-ink-800 text-ink-300'}`}>{f}</div>
+          ))}
+        </div>
+      </div>
+    </div>
+
+    <div className="px-5 py-3">
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-[11px] text-ink-400"><span className="text-ink-100 font-medium">12</span> equipamentos</span>
+        <div className="flex items-center gap-1 text-[11px] text-ink-300">
+          <Icon name="sliders" size={12}/> Relevância
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2.5">
+        {[
+          { name: 'ARRI Alexa Mini LF', house: 'Cinestúdio SP', avail: 2, type: 'camera', spec: '4.5K LF' },
+          { name: 'RED Komodo 6K', house: 'FilmeHouse', avail: 3, type: 'camera', spec: '6K S35' },
+          { name: 'Sony FX6', house: 'Luz & Câmera', avail: 1, type: 'camera', spec: '4K FF' },
+          { name: 'Blackmagic URSA', house: 'Pauta Rental', avail: 0, type: 'camera', spec: '12K S35' },
+          { name: 'ARRI Alexa 35', house: 'Cinestúdio SP', avail: 1, type: 'camera', spec: '4.6K S35' },
+          { name: 'Canon C500 Mark II', house: 'FilmeHouse', avail: 2, type: 'camera', spec: '5.9K FF' },
+        ].map((eq, i) => (
+          <div key={i} className={`bg-ink-900 border border-ink-800 rounded-xl p-2.5 relative ${eq.avail === 0 ? 'opacity-60' : ''}`}>
+            <div className="bg-ink-850 aspect-square rounded-lg mb-2 flex items-center justify-center">
+              <EqIcon type={eq.type} size="md"/>
+            </div>
+            <p className="text-[10.5px] font-medium text-ink-100 leading-tight line-clamp-1">{eq.name}</p>
+            <p className="text-[9px] text-ink-500 mb-1.5">{eq.house}</p>
+            <div className="flex items-center justify-between">
+              <span className="text-[9px] mono text-ink-400">{eq.spec}</span>
+              <span className={`text-[9px] font-medium ${eq.avail > 0 ? 'text-[#8cbf78]' : 'text-ink-600'}`}>
+                {eq.avail > 0 ? `${eq.avail} disp.` : 'Esgotado'}
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <BottomNav active="home"/>
+  </div>
+);
+
+// ---------- 05. DETALHE EQUIPAMENTO ----------
+const ScreenEqDetail = () => (
+  <div className="h-full bg-ink-950 overflow-y-auto pb-[110px] relative">
+    {/* Hero image */}
+    <div className="relative bg-gradient-to-b from-ink-850 to-ink-900 aspect-square flex items-center justify-center cine-glow">
+      <div className="absolute top-3 left-3 right-3 flex items-center justify-between z-10">
+        <div className="w-9 h-9 bg-ink-950/60 backdrop-blur border border-ink-800 rounded-full flex items-center justify-center">
+          <Icon name="arrowLeft" size={16} className="text-ink-100"/>
+        </div>
+        <div className="flex gap-2">
+          <div className="w-9 h-9 bg-ink-950/60 backdrop-blur border border-ink-800 rounded-full flex items-center justify-center">
+            <Icon name="heart" size={14} className="text-ink-200"/>
+          </div>
+          <div className="w-9 h-9 bg-ink-950/60 backdrop-blur border border-ink-800 rounded-full flex items-center justify-center">
+            <Icon name="info" size={14} className="text-ink-200"/>
+          </div>
+        </div>
+      </div>
+      <EqIcon type="camera" size="lg"/>
+      <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-1">
+        <span className="w-5 h-1 bg-amber-glow rounded-full"></span>
+        <span className="w-1 h-1 bg-ink-500 rounded-full"></span>
+        <span className="w-1 h-1 bg-ink-500 rounded-full"></span>
+        <span className="w-1 h-1 bg-ink-500 rounded-full"></span>
+      </div>
+    </div>
+
+    <div className="px-5 pt-4">
+      <div className="flex items-start justify-between gap-3 mb-1">
+        <h1 className="serif text-[22px] leading-tight text-ink-50">ARRI Alexa<br/>Mini LF</h1>
+        <StatusBadge status="ready"/>
+      </div>
+      <p className="text-[11px] text-ink-400 mb-3">Câmera Cinema · Large Format</p>
+
+      <div className="flex items-center gap-2 p-2.5 bg-ink-900 border border-ink-800 rounded-xl mb-4">
+        <div className="w-8 h-8 bg-gradient-to-br from-ink-700 to-ink-800 rounded-lg flex items-center justify-center">
+          <Icon name="building" size={13} className="text-amber-warm"/>
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-[11px] text-ink-100 font-medium leading-none">Cinestúdio SP</p>
+          <p className="text-[9px] text-ink-500 mt-0.5">Vila Leopoldina · 3.2 km</p>
+        </div>
+        <Icon name="chevronRight" size={13} className="text-ink-500"/>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex gap-4 border-b border-ink-800 mb-3">
+        {['Geral', 'Técnica', 'Inclusos'].map((t, i) => (
+          <div key={i} className={`pb-2.5 text-[12px] relative ${i === 1 ? 'text-ink-50 font-medium' : 'text-ink-400'}`}>
+            {t}
+            {i === 1 && <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-amber-glow"></span>}
+          </div>
+        ))}
+      </div>
+
+      <div className="space-y-2 mb-4">
+        {[
+          ['Sensor', 'Super 35mm ALEV 3'],
+          ['Resolução máx.', '4.5K ARRIRAW'],
+          ['Mount', 'LPL (adaptador PL)'],
+          ['Frame rate', 'até 90 fps em 4.5K'],
+          ['Codecs', 'ARRIRAW · ProRes 4444'],
+          ['Peso', '2.6 kg (corpo)'],
+        ].map(([k, v], i) => (
+          <div key={i} className="flex items-center justify-between py-1.5 border-b border-ink-800/50">
+            <span className="text-[11px] text-ink-400">{k}</span>
+            <span className="text-[11px] text-ink-100 mono">{v}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Quantity stepper */}
+      <div className="flex items-center justify-between p-3 bg-ink-900 border border-ink-800 rounded-xl mb-3">
+        <div>
+          <p className="text-[11px] text-ink-400">Quantidade</p>
+          <p className="text-[9px] text-[#8cbf78]">2 disponíveis</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="w-7 h-7 border border-ink-700 rounded-full flex items-center justify-center">
+            <Icon name="minus" size={12} className="text-ink-300"/>
+          </div>
+          <span className="serif text-[18px] text-ink-50 w-5 text-center">1</span>
+          <div className="w-7 h-7 bg-amber-glow rounded-full flex items-center justify-center">
+            <Icon name="plus" size={12} className="text-ink-950" stroke={2.5}/>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {/* Sticky add-to-cart */}
+    <div className="absolute bottom-0 left-0 right-0 bg-ink-950/95 backdrop-blur border-t border-ink-800 px-4 pt-3 pb-5">
+      <button className="w-full bg-amber-glow text-ink-950 font-semibold py-3.5 rounded-xl text-[13px] flex items-center justify-center gap-2">
+        <Icon name="bag" size={14}/> Adicionar ao carrinho
+      </button>
+    </div>
+  </div>
+);
+
+// ---------- 06. CARRINHO (agrupado por locadora) ----------
+const ScreenCart = () => (
+  <div className="h-full bg-ink-950 overflow-y-auto pb-[110px]">
+    <div className="px-5 pt-3 pb-3 border-b border-ink-800/60 flex items-center gap-3">
+      <Icon name="arrowLeft" size={18} className="text-ink-200"/>
+      <h2 className="serif text-[18px] text-ink-50 flex-1">Carrinho</h2>
+      <span className="text-[10px] text-ink-400 mono">5 itens</span>
+    </div>
+
+    <div className="px-5 py-3 space-y-3">
+      {/* Locadora 1 */}
+      <div className="bg-ink-900 border border-ink-800 rounded-2xl overflow-hidden">
+        <div className="p-3 border-b border-ink-800 flex items-center gap-2">
+          <div className="w-7 h-7 bg-gradient-to-br from-ink-700 to-ink-800 rounded-lg flex items-center justify-center">
+            <Icon name="building" size={12} className="text-amber-warm"/>
+          </div>
+          <div className="flex-1">
+            <p className="text-[11px] text-ink-100 font-medium leading-none">Cinestúdio SP</p>
+            <p className="text-[9px] text-ink-500 mt-0.5">3 itens</p>
+          </div>
+          <span className="eyebrow text-amber-glow/80">COT 1</span>
+        </div>
+        {[
+          { name: 'ARRI Alexa Mini LF', qty: 1, type: 'camera' },
+          { name: 'Zeiss Supreme Prime 40mm', qty: 1, type: 'lens' },
+          { name: 'ARRI SkyPanel S60-C', qty: 2, type: 'light' },
+        ].map((item, i) => (
+          <div key={i} className="p-3 flex items-center gap-2.5 border-b border-ink-800/40 last:border-0">
+            <div className="w-10 h-10 bg-ink-850 rounded-lg flex items-center justify-center shrink-0">
+              <EqIcon type={item.type} size="sm"/>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[11px] text-ink-100 font-medium line-clamp-1">{item.name}</p>
+              <p className="text-[9px] text-ink-500">Qtd {item.qty}</p>
+            </div>
+            <Icon name="trash" size={13} className="text-ink-500"/>
+          </div>
+        ))}
+      </div>
+
+      {/* Locadora 2 */}
+      <div className="bg-ink-900 border border-ink-800 rounded-2xl overflow-hidden">
+        <div className="p-3 border-b border-ink-800 flex items-center gap-2">
+          <div className="w-7 h-7 bg-gradient-to-br from-ink-700 to-ink-800 rounded-lg flex items-center justify-center">
+            <Icon name="building" size={12} className="text-amber-warm"/>
+          </div>
+          <div className="flex-1">
+            <p className="text-[11px] text-ink-100 font-medium leading-none">FilmeHouse</p>
+            <p className="text-[9px] text-ink-500 mt-0.5">2 itens</p>
+          </div>
+          <span className="eyebrow text-amber-glow/80">COT 2</span>
+        </div>
+        {[
+          { name: 'DJI Ronin 2', qty: 1, type: 'rig' },
+          { name: 'Sennheiser MKH 416', qty: 1, type: 'mic' },
+        ].map((item, i) => (
+          <div key={i} className="p-3 flex items-center gap-2.5 border-b border-ink-800/40 last:border-0">
+            <div className="w-10 h-10 bg-ink-850 rounded-lg flex items-center justify-center shrink-0">
+              <EqIcon type={item.type} size="sm"/>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[11px] text-ink-100 font-medium line-clamp-1">{item.name}</p>
+              <p className="text-[9px] text-ink-500">Qtd {item.qty}</p>
+            </div>
+            <Icon name="trash" size={13} className="text-ink-500"/>
+          </div>
+        ))}
+      </div>
+
+      <div className="flex items-start gap-2 p-2.5 bg-amber-glow/5 border border-amber-glow/20 rounded-xl">
+        <Icon name="info" size={12} className="text-amber-warm mt-0.5 shrink-0"/>
+        <p className="text-[10px] text-ink-300 leading-snug">Cada locadora receberá sua cotação separadamente. Você aprova individualmente.</p>
+      </div>
+    </div>
+
+    {/* Sticky CTA */}
+    <div className="absolute bottom-0 left-0 right-0 bg-ink-950/95 backdrop-blur border-t border-ink-800 px-4 pt-3 pb-5">
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-[10px] text-ink-400">Você receberá</span>
+        <span className="text-[12px] text-ink-100 font-medium">2 orçamentos</span>
+      </div>
+      <button className="w-full bg-amber-glow text-ink-950 font-semibold py-3.5 rounded-xl text-[13px] flex items-center justify-center gap-2">
+        Continuar <Icon name="arrowRight" size={13}/>
+      </button>
+    </div>
+  </div>
+);
+
+window.__CENA_M_P2__ = { ScreenSplash, ScreenLogin, ScreenHome, ScreenCategory, ScreenEqDetail, ScreenCart };
+</script>
+
+<script type="text/babel" data-presets="env,react">
+// ============================================================
+// PART 3 — SCREENS: CHECKOUT, COTAÇÕES, TRACKING, CHECK-OUT SET, PERFIL
+// ============================================================
+const { Icon, BottomNav, StatusBadge, EqIcon } = window.__CENA_M_BASE__;
+
+// ---------- 07. DATAS / PROJETO (Checkout step 2) ----------
+const ScreenDates = () => (
+  <div className="h-full bg-ink-950 overflow-y-auto pb-[110px]">
+    <div className="px-5 pt-3 pb-3 border-b border-ink-800/60">
+      <div className="flex items-center gap-3 mb-3">
+        <Icon name="arrowLeft" size={18} className="text-ink-200"/>
+        <h2 className="serif text-[17px] text-ink-50 flex-1">Datas & projeto</h2>
+      </div>
+      {/* Progress */}
+      <div className="flex items-center gap-1.5">
+        <div className="flex-1 h-1 bg-amber-glow rounded-full"></div>
+        <div className="flex-1 h-1 bg-amber-glow rounded-full"></div>
+        <div className="flex-1 h-1 bg-ink-800 rounded-full"></div>
+      </div>
+      <p className="text-[10px] text-ink-500 mt-1.5">Passo 2 de 3</p>
+    </div>
+
+    <div className="px-5 py-4 space-y-4">
+      {/* Nome projeto */}
+      <div>
+        <label className="eyebrow text-ink-500 mb-1.5 block">Nome do projeto</label>
+        <div className="bg-ink-900 border border-ink-700 rounded-xl px-4 py-3 text-[12px] text-ink-100">PC "Raízes" — Ep. 03</div>
+      </div>
+
+      {/* Calendar */}
+      <div>
+        <label className="eyebrow text-ink-500 mb-1.5 block">Período de locação</label>
+        <div className="bg-ink-900 border border-ink-800 rounded-2xl p-3">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-[11px] text-ink-100 font-medium">Abril 2026</span>
+            <div className="flex gap-1">
+              <div className="w-5 h-5 bg-ink-800 rounded flex items-center justify-center">
+                <Icon name="arrowLeft" size={10} className="text-ink-300"/>
+              </div>
+              <div className="w-5 h-5 bg-ink-800 rounded flex items-center justify-center">
+                <Icon name="arrowRight" size={10} className="text-ink-300"/>
+              </div>
+            </div>
+          </div>
+          <div className="grid grid-cols-7 gap-0.5 text-center mb-1">
+            {['D','S','T','Q','Q','S','S'].map((d, i) => <div key={i} className="text-[8px] text-ink-500 py-0.5">{d}</div>)}
+          </div>
+          <div className="grid grid-cols-7 gap-0.5 text-center">
+            {Array.from({length: 30}, (_, i) => {
+              const day = i + 1;
+              const inRange = day >= 22 && day <= 25;
+              const isStart = day === 22;
+              const isEnd = day === 25;
+              return (
+                <div key={day} className={`py-1 text-[10px] relative ${
+                  isStart || isEnd ? 'bg-amber-glow text-ink-950 font-semibold rounded-full' :
+                  inRange ? 'bg-amber-glow/20 text-amber-glow' :
+                  day < 20 ? 'text-ink-600' : 'text-ink-200'
+                }`}>{day}</div>
+              );
+            })}
+          </div>
+        </div>
+        <div className="flex items-center justify-between mt-2 px-1">
+          <div>
+            <p className="text-[9px] text-ink-500 mono">RETIRADA</p>
+            <p className="text-[11px] text-ink-100">Qua, 22/abr · 07:00</p>
+          </div>
+          <Icon name="arrowRight" size={14} className="text-amber-warm"/>
+          <div className="text-right">
+            <p className="text-[9px] text-ink-500 mono">DEVOLUÇÃO</p>
+            <p className="text-[11px] text-ink-100">Sáb, 25/abr · 19:00</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Observações */}
+      <div>
+        <label className="eyebrow text-ink-500 mb-1.5 block">Observações (opcional)</label>
+        <div className="bg-ink-900 border border-ink-700 rounded-xl px-4 py-3 text-[11px] text-ink-400 leading-relaxed min-h-[60px]">
+          Diária externa em Paraty. DoP solicitou 2x SkyPanel para backlight. Gravação RAW.
+        </div>
+      </div>
+    </div>
+
+    <div className="absolute bottom-0 left-0 right-0 bg-ink-950/95 backdrop-blur border-t border-ink-800 px-4 pt-3 pb-5">
+      <button className="w-full bg-amber-glow text-ink-950 font-semibold py-3.5 rounded-xl text-[13px] flex items-center justify-center gap-2">
+        Revisar <Icon name="arrowRight" size={13}/>
+      </button>
+    </div>
+  </div>
+);
+
+// ---------- 08. REVISÃO (Checkout step 3) ----------
+const ScreenReview = () => (
+  <div className="h-full bg-ink-950 overflow-y-auto pb-[110px]">
+    <div className="px-5 pt-3 pb-3 border-b border-ink-800/60">
+      <div className="flex items-center gap-3 mb-3">
+        <Icon name="arrowLeft" size={18} className="text-ink-200"/>
+        <h2 className="serif text-[17px] text-ink-50 flex-1">Revisar & enviar</h2>
+      </div>
+      <div className="flex items-center gap-1.5">
+        <div className="flex-1 h-1 bg-amber-glow rounded-full"></div>
+        <div className="flex-1 h-1 bg-amber-glow rounded-full"></div>
+        <div className="flex-1 h-1 bg-amber-glow rounded-full"></div>
+      </div>
+      <p className="text-[10px] text-ink-500 mt-1.5">Passo 3 de 3</p>
+    </div>
+
+    <div className="px-5 py-4 space-y-3">
+      <div className="bg-ink-900 border border-ink-800 rounded-xl p-3">
+        <p className="eyebrow text-ink-500 mb-1.5">Projeto</p>
+        <p className="text-[12px] text-ink-100 font-medium">PC "Raízes" — Ep. 03</p>
+        <p className="text-[10px] text-ink-400 mt-1">22/abr 07:00 → 25/abr 19:00 · <span className="text-amber-warm">3 diárias</span></p>
+      </div>
+
+      <div className="bg-ink-900 border border-ink-800 rounded-xl overflow-hidden">
+        <div className="p-3 border-b border-ink-800 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Icon name="building" size={12} className="text-amber-warm"/>
+            <span className="text-[11px] text-ink-100 font-medium">Cinestúdio SP</span>
+          </div>
+          <span className="text-[9px] text-ink-400 mono">3 itens</span>
+        </div>
+        <div className="p-3 space-y-1.5">
+          <p className="text-[10px] text-ink-300">· ARRI Alexa Mini LF (1)</p>
+          <p className="text-[10px] text-ink-300">· Zeiss Supreme Prime 40mm (1)</p>
+          <p className="text-[10px] text-ink-300">· ARRI SkyPanel S60-C (2)</p>
+        </div>
+      </div>
+
+      <div className="bg-ink-900 border border-ink-800 rounded-xl overflow-hidden">
+        <div className="p-3 border-b border-ink-800 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Icon name="building" size={12} className="text-amber-warm"/>
+            <span className="text-[11px] text-ink-100 font-medium">FilmeHouse</span>
+          </div>
+          <span className="text-[9px] text-ink-400 mono">2 itens</span>
+        </div>
+        <div className="p-3 space-y-1.5">
+          <p className="text-[10px] text-ink-300">· DJI Ronin 2 (1)</p>
+          <p className="text-[10px] text-ink-300">· Sennheiser MKH 416 (1)</p>
+        </div>
+      </div>
+
+      <div className="bg-ink-900 border border-ink-800 rounded-xl p-3">
+        <div className="flex items-center justify-between mb-1.5">
+          <p className="eyebrow text-ink-500">Solicitante</p>
+          <Icon name="shield" size={11} className="text-[#8cbf78]"/>
+        </div>
+        <p className="text-[12px] text-ink-100 font-medium">Rafael Moretti</p>
+        <p className="text-[10px] text-ink-400 mono">CPF ••• .456.789-•• · (11) ••••• -4321</p>
+      </div>
+
+      <div className="bg-film-green/10 border border-[#8cbf78]/30 rounded-xl p-2.5 flex items-start gap-2">
+        <Icon name="lock" size={11} className="text-[#8cbf78] mt-0.5"/>
+        <p className="text-[10px] text-ink-300 leading-snug">Seus dados são criptografados e seguem a <span className="text-[#8cbf78]">LGPD</span>. Valores não são expostos entre locadoras.</p>
+      </div>
+    </div>
+
+    <div className="absolute bottom-0 left-0 right-0 bg-ink-950/95 backdrop-blur border-t border-ink-800 px-4 pt-3 pb-5">
+      <button className="w-full bg-amber-glow text-ink-950 font-semibold py-3.5 rounded-xl text-[13px] flex items-center justify-center gap-2">
+        <Icon name="send" size={13}/> Enviar cotações
+      </button>
+    </div>
+  </div>
+);
+
+// ---------- 09. CONFIRMAÇÃO ----------
+const ScreenSuccess = () => (
+  <div className="absolute inset-0 flex flex-col items-center justify-center px-6 cine-glow">
+    <div className="relative mb-6">
+      <div className="absolute inset-0 bg-amber-glow/30 rounded-full blur-2xl"></div>
+      <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-amber-glow to-amber-warm flex items-center justify-center">
+        <Icon name="check" size={36} className="text-ink-950" stroke={3}/>
+      </div>
+    </div>
+    <p className="eyebrow text-amber-glow mb-2">Cotações enviadas</p>
+    <h2 className="serif text-[26px] text-ink-50 text-center leading-[1.15] mb-3">
+      Pedido registrado<br/>com sucesso.
+    </h2>
+    <p className="text-[12px] text-ink-400 text-center leading-relaxed mb-6 max-w-[240px]">
+      2 locadoras receberam sua solicitação. Você será notificado assim que os orçamentos chegarem.
+    </p>
+
+    <div className="w-full bg-ink-900 border border-ink-800 rounded-xl p-3 mb-2">
+      <div className="flex items-center justify-between mb-1">
+        <span className="text-[10px] text-ink-500 mono">PROTOCOLO</span>
+        <Icon name="download" size={10} className="text-ink-400"/>
+      </div>
+      <p className="text-[14px] text-ink-100 mono">COT-0248 · COT-0249</p>
+    </div>
+
+    <div className="flex items-center gap-2 mb-8 text-[10px] text-ink-400">
+      <Icon name="clock" size={10}/>
+      <span>Prazo médio de resposta: <span className="text-amber-warm">~2h</span></span>
+    </div>
+
+    <button className="w-full bg-amber-glow text-ink-950 font-semibold py-3.5 rounded-xl text-[13px] mb-2">
+      Acompanhar cotações
+    </button>
+    <button className="w-full text-ink-400 text-[12px] py-2">
+      Voltar ao catálogo
+    </button>
+  </div>
+);
+
+// ---------- 10. LISTA DE COTAÇÕES ----------
+const ScreenQuotations = () => (
+  <div className="h-full bg-ink-950 overflow-y-auto pb-[72px]">
+    <div className="px-5 pt-3 pb-3">
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="serif text-[20px] text-ink-50">Minhas cotações</h2>
+        <div className="w-9 h-9 bg-ink-900 border border-ink-800 rounded-full flex items-center justify-center">
+          <Icon name="search" size={14} className="text-ink-300"/>
+        </div>
+      </div>
+      <div className="flex gap-1.5 overflow-x-auto -mx-5 px-5">
+        {[
+          { label: 'Todas', count: 12, active: true },
+          { label: 'Em análise', count: 3 },
+          { label: 'Cotadas', count: 2 },
+          { label: 'Aprovadas', count: 5 },
+        ].map((f, i) => (
+          <div key={i} className={`px-3 py-1.5 rounded-full text-[10.5px] whitespace-nowrap flex items-center gap-1.5 ${f.active ? 'bg-amber-glow text-ink-950 font-medium' : 'bg-ink-900 border border-ink-800 text-ink-300'}`}>
+            {f.label}
+            <span className={`text-[9px] ${f.active ? 'text-ink-950/70' : 'text-ink-500'}`}>{f.count}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <div className="px-5 space-y-2.5">
+      {[
+        { id: 'COT-0248', house: 'Cinestúdio SP', status: 'quoted', project: 'PC "Raízes" — Ep. 03', date: 'Hoje · 14:32', items: 3 },
+        { id: 'COT-0249', house: 'FilmeHouse',    status: 'pending', project: 'PC "Raízes" — Ep. 03', date: 'Hoje · 14:32', items: 2 },
+        { id: 'COT-0247', house: 'Luz & Câmera',  status: 'approved', project: 'Comercial Itaú Lab', date: 'Ontem · 09:15', items: 5 },
+        { id: 'COT-0245', house: 'Cinestúdio SP', status: 'ready', project: 'Doc "Margens"', date: '18/abr · 16:40', items: 8 },
+        { id: 'COT-0241', house: 'Pauta Rental',  status: 'declined', project: 'Videoclipe Marisa', date: '15/abr · 11:20', items: 4 },
+      ].map((q, i) => (
+        <div key={i} className="bg-ink-900 border border-ink-800 rounded-xl p-3">
+          <div className="flex items-start justify-between mb-2">
+            <div>
+              <p className="text-[11px] text-ink-100 font-medium leading-tight">{q.project}</p>
+              <p className="text-[9px] text-ink-500 mt-0.5">{q.house} · <span className="mono">{q.id}</span></p>
+            </div>
+            <StatusBadge status={q.status}/>
+          </div>
+          <div className="flex items-center justify-between pt-2 border-t border-ink-800/60">
+            <span className="text-[9px] text-ink-500">{q.items} itens · {q.date}</span>
+            <Icon name="chevronRight" size={12} className="text-ink-500"/>
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <BottomNav active="quotations"/>
+  </div>
+);
+
+// ---------- 11. DETALHE COTAÇÃO (com tracker) ----------
+const ScreenQuotationDetail = () => (
+  <div className="h-full bg-ink-950 overflow-y-auto pb-[110px]">
+    <div className="px-5 pt-3 pb-3 border-b border-ink-800/60 flex items-center gap-3">
+      <Icon name="arrowLeft" size={18} className="text-ink-200"/>
+      <div className="flex-1">
+        <h2 className="serif text-[15px] text-ink-50">PC "Raízes" — Ep. 03</h2>
+        <p className="text-[9px] text-ink-500 mono mt-0.5">COT-0248 · Cinestúdio SP</p>
+      </div>
+      <StatusBadge status="quoted"/>
+    </div>
+
+    <div className="px-5 py-4">
+      {/* Vertical tracker */}
+      <p className="eyebrow text-ink-500 mb-3">Andamento</p>
+      <div className="space-y-0 mb-5">
+        {[
+          { label: 'Enviada', time: 'Hoje · 14:32', done: true },
+          { label: 'Em análise', time: 'Hoje · 14:48', done: true },
+          { label: 'Orçamento recebido', time: 'Hoje · 16:12', done: true, current: true },
+          { label: 'Aprovada pelo cliente', time: 'Aguardando', done: false },
+          { label: 'Retirada agendada', time: '—', done: false },
+        ].map((s, i, arr) => (
+          <div key={i} className="flex gap-3 relative">
+            <div className="flex flex-col items-center">
+              <div className={`w-6 h-6 rounded-full flex items-center justify-center z-10 ${
+                s.current ? 'bg-amber-glow text-ink-950 ring-4 ring-amber-glow/20' :
+                s.done ? 'bg-amber-glow/30 border border-amber-glow text-amber-glow' :
+                'bg-ink-900 border border-ink-700 text-ink-600'
+              }`}>
+                {s.done && !s.current && <Icon name="check" size={10} stroke={3}/>}
+                {s.current && <span className="w-1.5 h-1.5 bg-ink-950 rounded-full"></span>}
+                {!s.done && <span className="text-[9px]">{i+1}</span>}
+              </div>
+              {i < arr.length - 1 && <div className={`w-0.5 flex-1 ${s.done ? 'bg-amber-glow/40' : 'bg-ink-800'}`}></div>}
+            </div>
+            <div className="flex-1 pb-4 pt-0.5">
+              <p className={`text-[12px] ${s.current ? 'text-ink-50 font-medium' : s.done ? 'text-ink-200' : 'text-ink-500'}`}>{s.label}</p>
+              <p className="text-[9px] text-ink-500 mt-0.5">{s.time}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Orçamento recebido */}
+      <div className="bg-gradient-to-br from-amber-glow/10 to-transparent border border-amber-glow/30 rounded-2xl p-4 mb-3">
+        <div className="flex items-center gap-2 mb-2">
+          <Icon name="sparkles" size={13} className="text-amber-warm"/>
+          <p className="eyebrow text-amber-warm">Orçamento recebido</p>
+        </div>
+        <div className="space-y-1.5 mb-3 pb-3 border-b border-amber-glow/20">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] text-ink-300">3 diárias · 3 itens</span>
+            <span className="text-[11px] text-ink-100 mono">R$ ••.•••,••</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] text-ink-300">Desconto série</span>
+            <span className="text-[11px] text-[#8cbf78] mono">− R$ ••.•••,••</span>
+          </div>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="eyebrow text-ink-400">Total</span>
+          <span className="serif text-[18px] text-amber-glow">R$ ••.•••,••</span>
+        </div>
+        <p className="text-[9px] text-ink-500 mt-2 flex items-center gap-1"><Icon name="clock" size={9}/> Orçamento expira em 18h</p>
+      </div>
+
+      <div className="flex gap-2 mb-3">
+        <button className="flex-1 border border-ink-700 text-ink-200 py-3 rounded-xl text-[12px]">
+          Recusar
+        </button>
+        <button className="flex-1 bg-amber-glow text-ink-950 font-semibold py-3 rounded-xl text-[12px]">
+          Aprovar
+        </button>
+      </div>
+
+      <div className="flex items-center justify-center gap-4 text-[10px] text-ink-400">
+        <span className="flex items-center gap-1"><Icon name="message" size={11}/> Mensagem</span>
+        <span className="w-1 h-1 bg-ink-700 rounded-full"></span>
+        <span className="flex items-center gap-1"><Icon name="phoneCall" size={11}/> Ligar</span>
+        <span className="w-1 h-1 bg-ink-700 rounded-full"></span>
+        <span className="flex items-center gap-1"><Icon name="file" size={11}/> PDF</span>
+      </div>
+    </div>
+  </div>
+);
+
+// ---------- 12. NOTIFICAÇÃO PUSH ----------
+const ScreenPushNotif = () => (
+  <div className="h-full relative overflow-hidden">
+    {/* Lock screen background */}
+    <div className="absolute inset-0 bg-gradient-to-b from-ink-900 via-ink-950 to-black"></div>
+    <div className="absolute inset-0 cine-glow opacity-50"></div>
+
+    {/* Time */}
+    <div className="absolute top-16 left-0 right-0 text-center">
+      <p className="text-[12px] text-ink-300 mono tracking-widest">QUA · 22 ABRIL</p>
+      <p className="serif text-[72px] font-extralight text-ink-50 leading-none mt-1">18:42</p>
+    </div>
+
+    {/* Notification stack */}
+    <div className="absolute top-[210px] left-3 right-3 space-y-2">
+      <div className="bg-ink-900/80 backdrop-blur-xl border border-ink-700/60 rounded-2xl p-3 shadow-xl">
+        <div className="flex items-center gap-2 mb-1.5">
+          <div className="w-5 h-5 rounded-md bg-gradient-to-br from-amber-glow to-amber-warm flex items-center justify-center">
+            <svg width="10" height="10" viewBox="0 0 100 100">
+              {[0,1,2].map(i => (
+                <path key={i} d={`M 50 50 L ${50 + 30*Math.cos(i*Math.PI/1.5)} ${50 + 30*Math.sin(i*Math.PI/1.5)} L ${50 + 30*Math.cos((i+1)*Math.PI/1.5)} ${50 + 30*Math.sin((i+1)*Math.PI/1.5)} Z`} fill="#0a0908"/>
+              ))}
+            </svg>
+          </div>
+          <span className="text-[10px] text-ink-300 font-medium">CENA</span>
+          <span className="text-[9px] text-ink-500 ml-auto">agora</span>
+        </div>
+        <p className="text-[12px] text-ink-50 font-semibold mb-0.5">Orçamento recebido 📸</p>
+        <p className="text-[11px] text-ink-300 leading-snug">Cinestúdio SP enviou o orçamento para PC "Raízes" — Ep. 03. Toque para revisar.</p>
+      </div>
+
+      <div className="bg-ink-900/60 backdrop-blur-xl border border-ink-700/40 rounded-2xl p-2.5 shadow-lg">
+        <div className="flex items-center gap-2 mb-1">
+          <div className="w-4 h-4 rounded bg-gradient-to-br from-amber-glow to-amber-warm"></div>
+          <span className="text-[9px] text-ink-400 font-medium">CENA</span>
+          <span className="text-[9px] text-ink-500 ml-auto">2h atrás</span>
+        </div>
+        <p className="text-[10.5px] text-ink-200">FilmeHouse começou a analisar sua cotação</p>
+      </div>
+
+      <div className="bg-ink-900/40 backdrop-blur-xl border border-ink-700/30 rounded-2xl p-2 shadow">
+        <p className="text-[10px] text-ink-400 text-center">2 notificações mais cedo</p>
+      </div>
+    </div>
+
+    {/* Bottom flashlight / camera */}
+    <div className="absolute bottom-12 left-0 right-0 flex justify-between px-10">
+      <div className="w-10 h-10 bg-ink-800/60 backdrop-blur rounded-full flex items-center justify-center">
+        <Icon name="light" size={16} className="text-ink-100"/>
+      </div>
+      <div className="w-10 h-10 bg-ink-800/60 backdrop-blur rounded-full flex items-center justify-center">
+        <Icon name="camera" size={16} className="text-ink-100"/>
+      </div>
+    </div>
+  </div>
+);
+
+// ---------- 13. CHECK-OUT NO SET (feature diferencial) ----------
+const ScreenSetCheckout = () => (
+  <div className="h-full bg-ink-950 overflow-y-auto pb-[110px]">
+    <div className="px-5 pt-3 pb-3 border-b border-ink-800/60 flex items-center gap-3">
+      <Icon name="arrowLeft" size={18} className="text-ink-200"/>
+      <div className="flex-1">
+        <h2 className="serif text-[15px] text-ink-50">Check-out no set</h2>
+        <p className="text-[9px] text-ink-500 mt-0.5">Retirada · Cinestúdio SP</p>
+      </div>
+      <div className="px-2 py-0.5 bg-amber-glow/20 rounded text-[9px] text-amber-glow font-medium mono">NOVO</div>
+    </div>
+
+    <div className="px-5 py-4">
+      {/* QR scanner preview */}
+      <div className="bg-gradient-to-br from-ink-900 to-ink-850 border border-ink-800 rounded-2xl p-4 mb-4 relative overflow-hidden">
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <p className="eyebrow text-amber-warm mb-0.5">Etapa 1</p>
+            <p className="text-[12px] text-ink-100 font-medium">Escaneie o QR do equipamento</p>
+          </div>
+          <Icon name="qr" size={22} className="text-amber-glow"/>
+        </div>
+
+        <div className="bg-ink-950 border border-ink-800 rounded-xl aspect-video flex items-center justify-center relative overflow-hidden">
+          {/* Scan reticle */}
+          <div className="w-28 h-28 border border-amber-glow/50 rounded-lg relative">
+            <div className="absolute -top-1 -left-1 w-4 h-4 border-t-2 border-l-2 border-amber-glow rounded-tl-lg"></div>
+            <div className="absolute -top-1 -right-1 w-4 h-4 border-t-2 border-r-2 border-amber-glow rounded-tr-lg"></div>
+            <div className="absolute -bottom-1 -left-1 w-4 h-4 border-b-2 border-l-2 border-amber-glow rounded-bl-lg"></div>
+            <div className="absolute -bottom-1 -right-1 w-4 h-4 border-b-2 border-r-2 border-amber-glow rounded-br-lg"></div>
+            <div className="absolute left-0 right-0 h-[2px] bg-amber-glow shadow-[0_0_8px_#ff7a2e] top-1/2"></div>
+          </div>
+        </div>
+        <p className="text-[9px] text-ink-500 text-center mt-2">Aponte a câmera para a etiqueta</p>
+      </div>
+
+      {/* Checklist */}
+      <p className="eyebrow text-ink-500 mb-2">Checklist da retirada · 2/3</p>
+      <div className="space-y-2 mb-4">
+        {[
+          { name: 'ARRI Alexa Mini LF', sn: 'SN-MLF-0042', done: true, photo: true },
+          { name: 'Zeiss Supreme Prime 40mm', sn: 'SN-ZSP-1140', done: true, photo: true },
+          { name: 'ARRI SkyPanel S60-C (2)', sn: 'SN-SK60-••••', done: false, photo: false },
+        ].map((it, i) => (
+          <div key={i} className={`border rounded-xl p-2.5 flex items-center gap-2.5 ${it.done ? 'bg-film-green/5 border-[#8cbf78]/30' : 'bg-ink-900 border-ink-800'}`}>
+            <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${it.done ? 'bg-[#8cbf78] text-ink-950' : 'border border-ink-600'}`}>
+              {it.done && <Icon name="check" size={11} stroke={3}/>}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[11px] text-ink-100 font-medium">{it.name}</p>
+              <p className="text-[9px] text-ink-500 mono">{it.sn}</p>
+            </div>
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${it.photo ? 'bg-[#8cbf78]/10 text-[#8cbf78]' : 'bg-ink-800 text-ink-500'}`}>
+              <Icon name={it.photo ? 'image' : 'camera'} size={13}/>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Info */}
+      <div className="bg-film-blue/10 border border-[#6ba3c4]/30 rounded-xl p-3 flex items-start gap-2">
+        <Icon name="info" size={12} className="text-[#6ba3c4] mt-0.5"/>
+        <p className="text-[10px] text-ink-300 leading-snug">
+          Fotos e assinatura digital substituem o check-list em papel. O responsável da locadora recebe o relatório automaticamente.
+        </p>
+      </div>
+    </div>
+
+    <div className="absolute bottom-0 left-0 right-0 bg-ink-950/95 backdrop-blur border-t border-ink-800 px-4 pt-3 pb-5">
+      <button className="w-full bg-amber-glow text-ink-950 font-semibold py-3.5 rounded-xl text-[13px] flex items-center justify-center gap-2">
+        <Icon name="scan" size={14}/> Escanear próximo item
+      </button>
+    </div>
+  </div>
+);
+
+// ---------- 14. PERFIL & SEGURANÇA ----------
+const ScreenProfile = () => (
+  <div className="h-full bg-ink-950 overflow-y-auto pb-[72px]">
+    <div className="px-5 pt-3 pb-4 cine-glow">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="serif text-[20px] text-ink-50">Perfil</h2>
+        <Icon name="sliders" size={16} className="text-ink-300"/>
+      </div>
+
+      <div className="flex items-center gap-3 mb-3">
+        <div className="w-14 h-14 bg-gradient-to-br from-amber-warm to-amber-glow rounded-full flex items-center justify-center text-ink-950 text-[22px] serif font-medium">R</div>
+        <div className="flex-1 min-w-0">
+          <p className="text-[14px] text-ink-50 font-medium">Rafael Moretti</p>
+          <p className="text-[11px] text-ink-400">1º Assistente de Câmera</p>
+          <p className="text-[10px] text-amber-warm mt-0.5 flex items-center gap-1"><Icon name="shield" size={10}/> Verificado</p>
+        </div>
+      </div>
+    </div>
+
+    {/* Form fields */}
+    <div className="px-5 space-y-2 mb-5">
+      {[
+        { label: 'Nome completo', value: 'Rafael Moretti' },
+        { label: 'CPF', value: '•••.456.789-••', masked: true },
+        { label: 'Telefone', value: '(11) •••••-4321', masked: true },
+        { label: 'E-mail', value: 'rafael@acdp.com.br' },
+      ].map((f, i) => (
+        <div key={i} className="bg-ink-900 border border-ink-800 rounded-xl px-4 py-2.5 flex items-center justify-between">
+          <div className="flex-1 min-w-0">
+            <p className="eyebrow text-ink-500 mb-0.5">{f.label}</p>
+            <p className="text-[12px] text-ink-100 mono">{f.value}</p>
+          </div>
+          {f.masked && <Icon name="lock" size={12} className="text-[#8cbf78]"/>}
+        </div>
+      ))}
+    </div>
+
+    {/* Security section */}
+    <div className="px-5 mb-5">
+      <p className="eyebrow text-ink-500 mb-2">Segurança & privacidade</p>
+      <div className="bg-ink-900 border border-ink-800 rounded-2xl overflow-hidden">
+        {[
+          { icon: 'shield', label: 'Autenticação em 2 fatores', sub: 'Ativado via SMS', good: true },
+          { icon: 'lock', label: 'Dados criptografados', sub: 'AES-256 em repouso', good: true },
+          { icon: 'file', label: 'Conformidade LGPD', sub: 'Gerenciar consentimentos', good: true },
+          { icon: 'eye', label: 'Quem vê meus dados', sub: 'Apenas locadoras contratadas', good: true },
+        ].map((item, i, arr) => (
+          <div key={i} className={`p-3 flex items-center gap-3 ${i < arr.length - 1 ? 'border-b border-ink-800/60' : ''}`}>
+            <div className="w-8 h-8 bg-film-green/15 rounded-lg flex items-center justify-center text-[#8cbf78]">
+              <Icon name={item.icon} size={13}/>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[11px] text-ink-100 font-medium">{item.label}</p>
+              <p className="text-[9px] text-ink-500">{item.sub}</p>
+            </div>
+            <Icon name="chevronRight" size={13} className="text-ink-500"/>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <div className="px-5 mb-4">
+      <button className="w-full border border-ink-800 text-ink-400 py-2.5 rounded-xl text-[12px]">
+        Sair
+      </button>
+    </div>
+
+    <BottomNav active="profile"/>
+  </div>
+);
+
+// ---------- 15. AGENDA DO FUNCIONÁRIO (mobile staff) ----------
+const ScreenStaffAgenda = () => (
+  <div className="h-full bg-ink-950 overflow-y-auto pb-[72px]">
+    <div className="px-5 pt-3 pb-3 border-b border-ink-800/60">
+      <div className="flex items-center justify-between mb-2">
+        <div>
+          <p className="eyebrow text-amber-glow">Cinestúdio SP</p>
+          <h2 className="serif text-[18px] text-ink-50">Agenda de hoje</h2>
+        </div>
+        <div className="w-9 h-9 bg-ink-900 border border-ink-800 rounded-full flex items-center justify-center">
+          <Icon name="calendar" size={14} className="text-ink-300"/>
+        </div>
+      </div>
+      <p className="text-[11px] text-ink-400">Quarta · 22 de abril · <span className="text-amber-warm">8 retiradas</span></p>
+    </div>
+
+    <div className="px-5 py-4">
+      <div className="space-y-2.5">
+        {[
+          { time: '07:00', project: 'PC "Raízes"', client: 'R. Moretti', items: 3, status: 'ready', now: true },
+          { time: '09:30', project: 'Comercial Nubank', client: 'A. Silveira', items: 5, status: 'ready' },
+          { time: '11:00', project: 'Videoclipe MC Tha', client: 'L. Duarte', items: 2, status: 'pending' },
+          { time: '14:00', project: 'Doc "Margens"', client: 'J. Ribeiro', items: 8, status: 'ready' },
+          { time: '16:30', project: 'Corporativo Natura', client: 'P. Amaral', items: 4, status: 'pending' },
+        ].map((job, i) => (
+          <div key={i} className="flex gap-3">
+            <div className="flex flex-col items-center">
+              <span className={`text-[11px] mono ${job.now ? 'text-amber-glow font-semibold' : 'text-ink-400'}`}>{job.time}</span>
+              {i < 4 && <div className="w-px flex-1 bg-ink-800 mt-1"></div>}
+            </div>
+            <div className={`flex-1 rounded-xl p-3 mb-1 ${job.now ? 'bg-gradient-to-br from-amber-glow/15 to-transparent border border-amber-glow/30' : 'bg-ink-900 border border-ink-800'}`}>
+              <div className="flex items-start justify-between mb-1">
+                <div className="flex-1 min-w-0">
+                  <p className="text-[11.5px] text-ink-100 font-medium leading-tight">{job.project}</p>
+                  <p className="text-[9.5px] text-ink-500 mt-0.5">{job.client} · {job.items} itens</p>
+                </div>
+                {job.now && <span className="text-[9px] text-amber-glow font-semibold mono animate-pulse">AGORA</span>}
+              </div>
+              <div className="flex items-center justify-between mt-2">
+                <StatusBadge status={job.status}/>
+                <span className="text-[10px] text-amber-warm font-medium flex items-center gap-1">Detalhes <Icon name="chevronRight" size={10}/></span>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <div className="absolute bottom-0 left-0 right-0 bg-ink-900/95 backdrop-blur border-t border-ink-800 px-2 pt-2 pb-5 flex items-center justify-around">
+      {[
+        { id: 'dashboard', icon: 'home', label: 'Hoje', active: true },
+        { id: 'quotations', icon: 'file', label: 'Cotações' },
+        { id: 'equipment', icon: 'camera', label: 'Acervo' },
+        { id: 'profile', icon: 'user', label: 'Perfil' },
+      ].map(tab => (
+        <div key={tab.id} className={`flex-1 flex flex-col items-center gap-1 py-1 ${tab.active ? 'text-amber-glow' : 'text-ink-400'}`}>
+          <Icon name={tab.icon} size={19}/>
+          <span className="text-[9px] font-medium">{tab.label}</span>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+window.__CENA_M_P3__ = {
+  ScreenDates, ScreenReview, ScreenSuccess,
+  ScreenQuotations, ScreenQuotationDetail, ScreenPushNotif,
+  ScreenSetCheckout, ScreenProfile, ScreenStaffAgenda,
+};
+</script>
+
+<script type="text/babel" data-presets="env,react">
+// ============================================================
+// MAIN APP — Composição em seções narrativas
+// ============================================================
+const { Icon, Phone } = window.__CENA_M_BASE__;
+const { ScreenSplash, ScreenLogin, ScreenHome, ScreenCategory, ScreenEqDetail, ScreenCart } = window.__CENA_M_P2__;
+const {
+  ScreenDates, ScreenReview, ScreenSuccess,
+  ScreenQuotations, ScreenQuotationDetail, ScreenPushNotif,
+  ScreenSetCheckout, ScreenProfile, ScreenStaffAgenda,
+} = window.__CENA_M_P3__;
+
+// ---------- Section header ----------
+const Section = ({ number, eyebrow, title, description, children }) => (
+  <section className="px-6 md:px-10 py-16 md:py-20 border-b border-ink-900 relative">
+    <div className="max-w-6xl mx-auto relative z-10">
+      <div className="flex items-start gap-6 mb-10">
+        <div className="eyebrow text-amber-glow/70 mono shrink-0">{number}</div>
+        <div>
+          <div className="eyebrow text-amber-warm mb-2">{eyebrow}</div>
+          <h2 className="serif text-3xl md:text-5xl font-light leading-[1.05] text-ink-50 mb-3 tracking-tight">{title}</h2>
+          {description && <p className="text-[14px] md:text-[15px] text-ink-300 leading-relaxed max-w-2xl">{description}</p>}
+        </div>
+      </div>
+      {children}
+    </div>
+  </section>
+);
+
+// ---------- Feature callout ----------
+const FeatureCallout = ({ title, items }) => (
+  <div className="mt-8 bg-ink-900/40 border border-ink-800 rounded-2xl p-5 md:p-6 max-w-3xl">
+    <div className="eyebrow text-amber-glow mb-3">{title}</div>
+    <ul className="space-y-2">
+      {items.map((item, i) => (
+        <li key={i} className="flex items-start gap-3 text-[13px] text-ink-200 leading-relaxed">
+          <span className="text-amber-warm mt-1">·</span>
+          <span>{item}</span>
+        </li>
+      ))}
+    </ul>
+  </div>
+);
+
+// ---------- App ----------
+const App = () => (
+  <div className="relative min-h-screen">
+    {/* HERO */}
+    <header className="relative overflow-hidden border-b border-ink-900">
+      <div className="absolute inset-0 cine-glow pointer-events-none"></div>
+      <div className="absolute top-0 left-0 right-0 film-strip"></div>
+      <div className="absolute bottom-0 left-0 right-0 film-strip"></div>
+
+      <div className="max-w-6xl mx-auto px-6 md:px-10 pt-20 md:pt-28 pb-20 md:pb-24 relative">
+        <div className="flex items-center gap-3 mb-8">
+          <svg width="40" height="40" viewBox="0 0 100 100" className="diaphragm-anim">
+            {[0,1,2,3,4,5].map(i => (
+              <path key={i}
+                d={`M 50 50 L ${50 + 30*Math.cos(i*Math.PI/3)} ${50 + 30*Math.sin(i*Math.PI/3)} L ${50 + 30*Math.cos((i+1)*Math.PI/3)} ${50 + 30*Math.sin((i+1)*Math.PI/3)} Z`}
+                fill={i % 2 === 0 ? '#ff7a2e' : '#e8c468'} opacity="0.85"/>
+            ))}
+            <circle cx="50" cy="50" r="12" fill="#0a0908"/>
+          </svg>
+          <span className="serif text-2xl text-ink-50">Cena</span>
+          <span className="text-ink-700">·</span>
+          <span className="eyebrow text-ink-400">Wireframes Mobile</span>
+        </div>
+
+        <h1 className="serif text-5xl md:text-7xl lg:text-8xl font-light leading-[0.98] tracking-[-0.02em] text-ink-50 mb-6 max-w-4xl">
+          O aplicativo que<br/>
+          <span className="italic text-amber-glow">vai ao set</span> com você.
+        </h1>
+        <p className="text-[15px] md:text-[17px] text-ink-300 leading-relaxed max-w-2xl mb-10">
+          Wireframes de alta fidelidade para o fluxo mobile do Cena — pensado para o celular do 1º AC entre takes, na van, no set. A jornada completa em 15 telas, do primeiro contato com o app até o check-out do equipamento no dia da diária.
+        </p>
+
+        <div className="flex flex-wrap gap-x-10 gap-y-3 pt-6 border-t border-ink-800/80">
+          {[
+            { label: '15 telas', sub: 'fluxo completo' },
+            { label: '3 perfis', sub: 'cliente foco · staff bônus' },
+            { label: 'Dark-first', sub: 'otimizado para set' },
+            { label: 'LGPD', sub: 'segurança visível' },
+          ].map((stat, i) => (
+            <div key={i}>
+              <div className="serif text-xl text-amber-glow">{stat.label}</div>
+              <div className="text-[11px] text-ink-500 mono uppercase tracking-wider mt-0.5">{stat.sub}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </header>
+
+    {/* SECTION 01 — ONBOARDING */}
+    <Section
+      number="01"
+      eyebrow="Onboarding"
+      title="Primeira impressão."
+      description="O app abre com um diafragma animado — uma referência direta à linguagem da câmera. O login foi desenhado para ser resolvido numa mão só, com Face ID e SSO como opções rápidas."
+    >
+      <div className="flex flex-wrap gap-12 justify-center">
+        <Phone label="01 · Splash" caption="Abertura com logo animada. Identidade cinematográfica desde o primeiro segundo.">
+          <ScreenSplash/>
+        </Phone>
+        <Phone label="02 · Login" caption="Campos minimalistas, 2FA opcional, SSO com Google para reduzir atrito.">
+          <ScreenLogin/>
+        </Phone>
+      </div>
+    </Section>
+
+    {/* SECTION 02 — DESCOBERTA */}
+    <Section
+      number="02"
+      eyebrow="Descoberta & catálogo"
+      title="O que o AC vê ao abrir."
+      description="Home priorizando o contexto ativo (cotações em andamento), busca proeminente, categorias visuais e locadoras próximas por geolocalização. Sem distrações: zero anúncios, zero gamificação."
+    >
+      <div className="flex flex-wrap gap-12 justify-center">
+        <Phone label="03 · Home / Feed" caption="Cotação ativa fica no topo — o que importa agora. Categorias em grid de ícones.">
+          <ScreenHome/>
+        </Phone>
+        <Phone label="04 · Categoria" caption="Chips de filtro horizontais (sensor, peso, codec). Grid 2-col mostra disponibilidade clara.">
+          <ScreenCategory/>
+        </Phone>
+        <Phone label="05 · Produto" caption="Specs em abas, quantity stepper e sticky CTA. Botão de adicionar sempre no polegar.">
+          <ScreenEqDetail/>
+        </Phone>
+      </div>
+
+      <FeatureCallout
+        title="Decisões de UX"
+        items={[
+          'Nenhum preço exposto no catálogo — evita comparação superficial e protege margem das locadoras.',
+          'Thumbnails em SVG geométrico em vez de fotos: consistência visual + tamanho reduzido para 3G/4G no set.',
+          'Filtros são persistidos entre sessões (o AC normalmente filtra pelas mesmas marcas).',
+          'Indicador de disponibilidade em tempo real ("2 disp.") evita carrinho com item esgotado.',
+        ]}
+      />
+    </Section>
+
+    {/* SECTION 03 — COTAÇÃO */}
+    <Section
+      number="03"
+      eyebrow="Cotação multi-locadora"
+      title="O grande problema resolvido."
+      description="Hoje o AC envia WhatsApp para 3-4 locadoras e cola listas em cada uma. O Cena agrupa o carrinho automaticamente e gera cotações separadas com um toque. O checkout é um fluxo de 3 passos curtos."
+    >
+      <div className="flex flex-wrap gap-12 justify-center">
+        <Phone label="06 · Carrinho" caption="Agrupado por locadora — cada grupo vira uma cotação separada. Evita comparação indevida.">
+          <ScreenCart/>
+        </Phone>
+        <Phone label="07 · Datas & projeto" caption="Calendário range-picker, nome do projeto e observações técnicas para o DoP.">
+          <ScreenDates/>
+        </Phone>
+        <Phone label="08 · Revisão" caption="Resumo por locadora, dados mascarados por padrão, badge LGPD visível.">
+          <ScreenReview/>
+        </Phone>
+      </div>
+
+      <FeatureCallout
+        title="Por que agrupar por locadora?"
+        items={[
+          'Cada locadora recebe somente os itens dela — não vê o que você está pedindo em outras casas.',
+          'Valores não são cruzados: o AC aprova cada orçamento individualmente.',
+          'Fluxo de aprovação paralelo: você pode fechar com a Cinestúdio enquanto ainda negocia com a FilmeHouse.',
+          'Se uma locadora não tem todos os itens, as outras cobrem — sem bloqueio de fluxo.',
+        ]}
+      />
+    </Section>
+
+    {/* SECTION 04 — ACOMPANHAMENTO */}
+    <Section
+      number="04"
+      eyebrow="Confirmação & acompanhamento"
+      title="Do envio até a retirada."
+      description="Após o envio, o AC precisa saber onde cada cotação está. O tracker vertical de 5 etapas dá visibilidade total. Orçamentos chegam via push e aparecem destacados."
+    >
+      <div className="flex flex-wrap gap-12 justify-center">
+        <Phone label="09 · Confirmação" caption="Sem confete gratuito. Apenas o essencial: protocolos, prazo médio, próxima ação.">
+          <ScreenSuccess/>
+        </Phone>
+        <Phone label="10 · Minhas cotações" caption="Lista filtrável por status. Badges coloridos para scan rápido em ambientes escuros.">
+          <ScreenQuotations/>
+        </Phone>
+        <Phone label="11 · Detalhe com tracker" caption="5 etapas visuais + orçamento com valores mascarados. Aprovar / recusar direto.">
+          <ScreenQuotationDetail/>
+        </Phone>
+      </div>
+    </Section>
+
+    {/* SECTION 05 — PUSH */}
+    <Section
+      number="05"
+      eyebrow="Engajamento"
+      title="A notificação certa, na hora certa."
+      description="O AC não vai abrir o app a cada 10 minutos — o app vem até ele. Notificações push bem desenhadas são o coração da retenção."
+    >
+      <div className="flex flex-wrap gap-12 justify-center items-center">
+        <Phone label="12 · Push na lock screen" caption="Notificação clara com call-to-action. Toque → vai direto para o detalhe da cotação.">
+          <ScreenPushNotif/>
+        </Phone>
+
+        <div className="max-w-sm text-[13px] text-ink-300 leading-relaxed space-y-4">
+          <p className="text-ink-100"><span className="serif text-xl text-amber-glow">Tipos de push previstos:</span></p>
+          <ul className="space-y-3">
+            <li className="flex gap-3"><span className="text-amber-warm mono text-[10px] mt-1">01</span> <span><strong className="text-ink-100">Orçamento recebido</strong> — locadora respondeu à cotação.</span></li>
+            <li className="flex gap-3"><span className="text-amber-warm mono text-[10px] mt-1">02</span> <span><strong className="text-ink-100">Cotação aprovada</strong> — confirmação para o AC + alerta para o staff.</span></li>
+            <li className="flex gap-3"><span className="text-amber-warm mono text-[10px] mt-1">03</span> <span><strong className="text-ink-100">Retirada amanhã</strong> — lembrete 18h antes da diária.</span></li>
+            <li className="flex gap-3"><span className="text-amber-warm mono text-[10px] mt-1">04</span> <span><strong className="text-ink-100">Expira em Xh</strong> — orçamento com prazo perdido em breve.</span></li>
+            <li className="flex gap-3"><span className="text-amber-warm mono text-[10px] mt-1">05</span> <span><strong className="text-ink-100">Mensagem da locadora</strong> — canal direto dentro do app, sem WhatsApp.</span></li>
+          </ul>
+        </div>
+      </div>
+    </Section>
+
+    {/* SECTION 06 — CHECK-OUT NO SET (FEATURE DIFERENCIAL) */}
+    <Section
+      number="06"
+      eyebrow="Feature diferencial"
+      title={<>O <span className="italic text-amber-glow">check-out digital</span> no set.</>}
+      description="Hoje, o AC retira o equipamento na locadora e faz fotos manuais em cima da mesa — processo que leva 30-45 minutos e gera atrito. Com QR code em cada item e câmera do celular, o check-out vira uma operação de 5 minutos com registro auditável."
+    >
+      <div className="flex flex-wrap gap-12 justify-center items-center">
+        <Phone label="13 · Check-out no set" caption="Scanner de QR + checklist fotográfico. Assinatura digital substitui o termo em papel.">
+          <ScreenSetCheckout/>
+        </Phone>
+
+        <div className="max-w-sm space-y-5">
+          <div>
+            <div className="eyebrow text-amber-glow mb-2">Antes</div>
+            <p className="text-[13px] text-ink-300 leading-relaxed">
+              Lista impressa → fotografar cada item sobre a mesa → assinar termo em papel → conferir serial number manual → 30-45 min.
+            </p>
+          </div>
+          <div className="border-l-2 border-amber-glow pl-4 py-1">
+            <div className="eyebrow text-amber-warm mb-2">Com Cena</div>
+            <p className="text-[13px] text-ink-100 leading-relaxed">
+              Aponta câmera → QR lê serial automaticamente → foto do item → assinatura no touch → PDF vai para ambos os lados. <strong className="text-amber-glow">5 minutos.</strong>
+            </p>
+          </div>
+          <div className="bg-film-green/10 border border-[#8cbf78]/30 rounded-xl p-3">
+            <p className="text-[12px] text-[#8cbf78] font-medium mb-1 flex items-center gap-1.5"><Icon name="shield" size={12}/> Auditoria sem papel</p>
+            <p className="text-[11px] text-ink-300 leading-snug">
+              Em caso de dano, o histórico fotográfico está timestampado e assinado. Prova jurídica pronta.
+            </p>
+          </div>
+        </div>
+      </div>
+    </Section>
+
+    {/* SECTION 07 — PERFIL & LGPD */}
+    <Section
+      number="07"
+      eyebrow="Perfil & privacidade"
+      title="Segurança que se vê."
+      description="O AC precisa informar CPF e telefone, que são dados pessoais sensíveis. A tela de perfil mostra visivelmente que os dados estão protegidos — não como letra miúda escondida."
+    >
+      <div className="flex flex-wrap gap-12 justify-center">
+        <Phone label="14 · Perfil & LGPD" caption="Dados mascarados por padrão. Seção dedicada de segurança com status de 2FA, criptografia e consentimentos.">
+          <ScreenProfile/>
+        </Phone>
+
+        <div className="max-w-sm space-y-4 self-center">
+          <div className="eyebrow text-amber-glow">Princípios de privacidade</div>
+          <div className="space-y-3">
+            {[
+              { icon: 'lock', title: 'Dados mascarados por padrão', text: 'CPF e telefone só aparecem completos mediante autenticação.' },
+              { icon: 'shield', title: '2FA visível e ativo', text: 'Status de segurança como parte da UI, não enterrado em menu.' },
+              { icon: 'eye', title: 'Quem vê meus dados', text: 'Lista explícita de quais locadoras têm acesso aos dados do AC.' },
+              { icon: 'file', title: 'Portabilidade LGPD', text: 'Exportar todos os dados em 1 toque. Excluir conta idem.' },
+            ].map((p, i) => (
+              <div key={i} className="flex gap-3 p-3 bg-ink-900/50 border border-ink-800 rounded-xl">
+                <div className="w-8 h-8 rounded-lg bg-[#8cbf78]/10 text-[#8cbf78] flex items-center justify-center shrink-0">
+                  <Icon name={p.icon} size={14}/>
+                </div>
+                <div>
+                  <p className="text-[12px] text-ink-100 font-medium">{p.title}</p>
+                  <p className="text-[11px] text-ink-400 leading-snug mt-0.5">{p.text}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </Section>
+
+    {/* SECTION 08 — STAFF MOBILE */}
+    <Section
+      number="08"
+      eyebrow="Bônus · mobile para locadora"
+      title="O balconista também é mobile."
+      description="O funcionário que organiza retiradas no balcão não vive no desktop — vive no galpão, entre equipamentos. Uma versão mobile enxuta foca em 'o que preciso separar agora'."
+    >
+      <div className="flex flex-wrap gap-12 justify-center items-center">
+        <Phone label="15 · Agenda do dia" caption="Timeline de retiradas do dia. Item 'AGORA' em destaque. Staff ecke o check-in quando o AC chega.">
+          <ScreenStaffAgenda/>
+        </Phone>
+
+        <div className="max-w-sm space-y-4 self-center">
+          <p className="text-[13px] text-ink-300 leading-relaxed">
+            A versão mobile da locadora é <strong className="text-ink-100">intencionalmente enxuta</strong>. O dashboard completo (KPIs, relatórios, gestão de equipe) fica no desktop do administrador. No mobile do staff, só o essencial:
+          </p>
+          <ul className="space-y-2.5 text-[12px] text-ink-300">
+            <li className="flex items-start gap-2.5"><Icon name="check" size={14} className="text-amber-glow mt-0.5 shrink-0"/> Agenda de retiradas/devoluções do dia</li>
+            <li className="flex items-start gap-2.5"><Icon name="check" size={14} className="text-amber-glow mt-0.5 shrink-0"/> Consulta rápida ao acervo por QR code</li>
+            <li className="flex items-start gap-2.5"><Icon name="check" size={14} className="text-amber-glow mt-0.5 shrink-0"/> Aprovação de cotações urgentes</li>
+            <li className="flex items-start gap-2.5"><Icon name="check" size={14} className="text-amber-glow mt-0.5 shrink-0"/> Mensagem direta com o AC</li>
+          </ul>
+        </div>
+      </div>
+    </Section>
+
+    {/* CLOSING */}
+    <section className="px-6 md:px-10 py-20 md:py-28 border-t border-ink-800 relative overflow-hidden">
+      <div className="absolute inset-0 cine-glow pointer-events-none"></div>
+      <div className="max-w-4xl mx-auto relative">
+        <div className="eyebrow text-amber-warm mb-4">Próximos passos</div>
+        <h2 className="serif text-3xl md:text-5xl font-light leading-tight text-ink-50 mb-8 tracking-tight">
+          De wireframe para produto.
+        </h2>
+        <div className="grid md:grid-cols-2 gap-5 mb-12">
+          {[
+            { n: '01', title: 'Validar com 3 ACs', text: 'Teste de usabilidade com ACs ativos no mercado. Sessões de 30 min observando o uso real das telas.' },
+            { n: '02', title: 'Protótipo clicável', text: 'Converter estas telas em Figma interativo para demos. Manter identidade visual.' },
+            { n: '03', title: 'Design system', text: 'Formalizar tokens (cores, tipografia, espaçamento, radii) antes do desenvolvimento.' },
+            { n: '04', title: 'Development kickoff', text: 'React Native + Expo para iOS/Android simultâneos. Backend Node/NestJS + Postgres.' },
+          ].map((n, i) => (
+            <div key={i} className="p-5 bg-ink-900/40 border border-ink-800 rounded-2xl">
+              <div className="flex items-center gap-3 mb-2">
+                <span className="eyebrow text-amber-glow mono">{n.n}</span>
+                <h3 className="serif text-xl text-ink-50">{n.title}</h3>
+              </div>
+              <p className="text-[13px] text-ink-400 leading-relaxed">{n.text}</p>
+            </div>
+          ))}
+        </div>
+        <div className="flex items-center gap-3 pt-8 border-t border-ink-800 text-[11px] text-ink-500">
+          <span className="mono">CENA MOBILE · v0.1 · WIREFRAMES</span>
+          <span>·</span>
+          <span>Desenhado para o 1º AC brasileiro</span>
+        </div>
+      </div>
+    </section>
+
+    <footer className="film-strip"></footer>
+  </div>
+);
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+
+</body>
+</html>

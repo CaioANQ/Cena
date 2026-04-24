@@ -1,0 +1,136 @@
+{
+  "project": "Cena",
+  "version": "0.1.0",
+  "description": "Design tokens do sistema de locação audiovisual Cena",
+  "updated": "2026-04-23",
+
+  "colors": {
+    "ink": {
+      "50":  "#f6f3ea",
+      "100": "#ece8de",
+      "200": "#d6d2c8",
+      "300": "#b5b1a8",
+      "400": "#8a867e",
+      "500": "#5a564f",
+      "600": "#3d3934",
+      "700": "#2a2724",
+      "800": "#1a1817",
+      "850": "#171614",
+      "900": "#121110",
+      "950": "#0a0908"
+    },
+    "amber": {
+      "glow": "#ff7a2e",
+      "warm": "#e8c468",
+      "soft": "#f5d99a"
+    },
+    "film": {
+      "green":     "#4a6d3f",
+      "greenSoft": "#8cbf78",
+      "red":       "#c44536",
+      "redSoft":   "#e87560",
+      "blue":      "#2d5d7b",
+      "blueSoft":  "#6ba3c4"
+    }
+  },
+
+  "typography": {
+    "families": {
+      "serif":     "'Fraunces', serif",
+      "sans":      "'Geist', system-ui, sans-serif",
+      "mono":      "'JetBrains Mono', monospace"
+    },
+    "usage": {
+      "display":   { "family": "serif", "weights": [300, 400, 500], "notes": "Títulos, números destacados, momentos editoriais" },
+      "body":      { "family": "sans",  "weights": [400, 500, 600], "notes": "UI body, labels, botões, navegação" },
+      "technical": { "family": "mono",  "weights": [400, 500],      "notes": "IDs, timestamps, specs técnicas, eyebrow labels" }
+    },
+    "eyebrow": {
+      "family": "mono",
+      "size": "10px",
+      "letterSpacing": "0.22em",
+      "textTransform": "uppercase",
+      "fontWeight": 500,
+      "notes": "Label pequeno em caps para sections/categorias"
+    }
+  },
+
+  "spacing": {
+    "unit": "4px",
+    "scale": [0, 2, 4, 6, 8, 12, 16, 20, 24, 32, 40, 48, 56, 64, 80, 96, 128],
+    "notes": "Baseado em Tailwind default; use múltiplos de 4px"
+  },
+
+  "radii": {
+    "xs": "4px",
+    "sm": "6px",
+    "md": "8px",
+    "lg": "12px",
+    "xl": "16px",
+    "2xl": "20px",
+    "3xl": "24px",
+    "full": "9999px",
+    "phone": "38px",
+    "phoneOuter": "50px"
+  },
+
+  "shadows": {
+    "phone": "0 0 0 1px #2a2724, 0 0 0 3px #17161430, 0 40px 100px -20px rgba(0,0,0,0.9), 0 0 80px -10px rgba(255,122,46,0.1)",
+    "card":  "0 4px 12px -4px rgba(0,0,0,0.4)",
+    "toast": "0 20px 40px -10px rgba(0,0,0,0.6)"
+  },
+
+  "animations": {
+    "routeIn":     { "duration": "0.32s", "easing": "cubic-bezier(0.4, 0, 0.2, 1)", "notes": "Entrada de tela (forward)" },
+    "routeBack":   { "duration": "0.32s", "easing": "cubic-bezier(0.4, 0, 0.2, 1)", "notes": "Entrada de tela (back)" },
+    "routeFade":   { "duration": "0.5s",  "easing": "ease-out", "notes": "Fade suave (splash, sucesso)" },
+    "diaphragm":   { "duration": "6s",    "easing": "ease-in-out", "iteration": "infinite", "notes": "Logo animado" },
+    "pulseDot":    { "duration": "2s",    "easing": "ease-in-out", "iteration": "infinite", "notes": "Loading dots, live indicators" },
+    "toastIn":     { "duration": "0.35s", "easing": "cubic-bezier(0.4, 0, 0.2, 1)", "notes": "Toast slide up" },
+    "drawerIn":    { "duration": "0.35s", "easing": "cubic-bezier(0.4, 0, 0.2, 1)", "notes": "Bottom sheet drawer" },
+    "pushDrop":    { "duration": "0.4s",  "easing": "cubic-bezier(0.4, 0, 0.2, 1)", "notes": "Notificação push vinda de cima" }
+  },
+
+  "components": {
+    "statusBadges": {
+      "pending":  { "bg": "bg-amber-warm/15", "text": "text-amber-warm",  "dot": "bg-amber-warm",  "label": "Em análise" },
+      "quoted":   { "bg": "bg-amber-glow/15", "text": "text-amber-glow",  "dot": "bg-amber-glow",  "label": "Orçamento" },
+      "approved": { "bg": "bg-film-green/20", "text": "text-film-green",  "dot": "bg-film-green",  "label": "Aprovada" },
+      "declined": { "bg": "bg-film-red/20",   "text": "text-film-red",    "dot": "bg-film-red",    "label": "Recusada" },
+      "draft":    { "bg": "bg-ink-700",       "text": "text-ink-300",     "dot": "bg-ink-400",     "label": "Rascunho" },
+      "ready":    { "bg": "bg-film-blue/20",  "text": "text-film-blue",   "dot": "bg-film-blue",   "label": "Pronta p/ retirada" }
+    },
+    "equipmentCategories": [
+      { "id": "camera", "label": "Câmeras",     "icon": "camera" },
+      { "id": "lens",   "label": "Lentes",      "icon": "lens" },
+      { "id": "light",  "label": "Luz",         "icon": "light" },
+      { "id": "mic",    "label": "Áudio",       "icon": "mic" },
+      { "id": "rig",    "label": "Maquinaria",  "icon": "wrench" },
+      { "id": "acc",    "label": "Acessórios",  "icon": "bag" }
+    ]
+  },
+
+  "breakpoints": {
+    "mobile":  "< 640px",
+    "tablet":  "640px-1024px",
+    "desktop": "> 1024px",
+    "notes": "Cliente é mobile-first. Staff tem versão mobile + desktop. Admin é desktop-only."
+  },
+
+  "userProfiles": [
+    { "id": "ac",    "label": "Cliente AC/DoP",        "platform": "mobile-first, tem desktop", "priority": 1 },
+    { "id": "staff", "label": "Funcionário locadora",  "platform": "mobile (enxuto) + desktop", "priority": 2 },
+    { "id": "admin", "label": "Administrador",         "platform": "desktop-only",              "priority": 3 }
+  ],
+
+  "designPrinciples": [
+    "Preços mascarados no catálogo — protege margem das locadoras",
+    "Carrinho agrupado por locadora — cada grupo = 1 cotação separada",
+    "Dados pessoais mascarados por padrão (CPF, telefone)",
+    "Badges de segurança em verde (2FA, criptografia, LGPD)",
+    "Thumbnails em SVG geométrico (performance 3G/4G + consistência)",
+    "Tracker vertical de 5 etapas para cotações",
+    "Check-out no set como feature diferencial (QR + foto + assinatura)",
+    "Dark-first para uso em ambientes escuros de filmagem"
+  ]
+}

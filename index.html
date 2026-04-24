@@ -1,0 +1,2519 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Cena — Locação Inteligente de Equipamentos Audiovisuais</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400&family=Geist:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: {
+          serif: ['Fraunces', 'serif'],
+          sans: ['Geist', 'system-ui', 'sans-serif'],
+          mono: ['"JetBrains Mono"', 'monospace'],
+        },
+        colors: {
+          ink: {
+            950: '#0a0908',
+            900: '#121110',
+            800: '#1a1817',
+            700: '#24221f',
+            600: '#2e2b27',
+            500: '#3a3731',
+            400: '#6b6760',
+            300: '#9c978f',
+            200: '#c9c4bb',
+            100: '#e8e4dc',
+            50:  '#f5f1e8',
+          },
+          amber: {
+            glow: '#ff7a2e',
+            warm: '#f5a24b',
+            gold: '#e8c468',
+            cream:'#f5e6c4',
+          },
+        },
+      },
+    },
+  };
+</script>
+
+<style>
+  html, body { background: #0a0908; color: #e8e4dc; font-family: 'Geist', system-ui, sans-serif; }
+  * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+
+  /* Grain texture overlay */
+  .grain::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 100;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+    mix-blend-mode: overlay;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: #0a0908; }
+  ::-webkit-scrollbar-thumb { background: #2e2b27; border-radius: 10px; border: 2px solid #0a0908; }
+  ::-webkit-scrollbar-thumb:hover { background: #3a3731; }
+
+  /* Typography classes */
+  .serif-display { font-family: 'Fraunces', serif; font-optical-sizing: auto; letter-spacing: -0.02em; }
+  .serif-italic { font-family: 'Fraunces', serif; font-style: italic; }
+
+  /* Glow accent */
+  .amber-glow { box-shadow: 0 0 40px -10px rgba(255, 122, 46, 0.4); }
+  .amber-glow-strong { box-shadow: 0 0 60px -5px rgba(255, 122, 46, 0.55); }
+
+  /* Soft spotlight background */
+  .spotlight-bg {
+    background:
+      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(255, 122, 46, 0.12), transparent 60%),
+      radial-gradient(ellipse 60% 40% at 90% 100%, rgba(232, 196, 104, 0.06), transparent 60%),
+      #0a0908;
+  }
+
+  /* Subtle card hover lift */
+  .card-hover { transition: transform .25s ease, border-color .25s ease, background-color .25s ease; }
+  .card-hover:hover { transform: translateY(-2px); border-color: rgba(255, 122, 46, 0.4); }
+
+  /* Fade in up */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .fade-up { animation: fadeUp .5s cubic-bezier(.2,.8,.2,1) backwards; }
+  .fade-up-1 { animation-delay: .05s; }
+  .fade-up-2 { animation-delay: .1s; }
+  .fade-up-3 { animation-delay: .15s; }
+  .fade-up-4 { animation-delay: .2s; }
+  .fade-up-5 { animation-delay: .25s; }
+  .fade-up-6 { animation-delay: .3s; }
+
+  @keyframes pulseSoft {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+  .pulse-soft { animation: pulseSoft 2s ease-in-out infinite; }
+
+  /* Scanning line effect for cinematic feel */
+  .scan-line {
+    background: linear-gradient(180deg, transparent 0%, rgba(255,122,46,0.05) 50%, transparent 100%);
+    background-size: 100% 8px;
+  }
+
+  /* Button base */
+  .btn-primary {
+    background: linear-gradient(180deg, #ff8a42, #ff6b1e);
+    color: #0a0908;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    transition: all .2s ease;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.25), 0 1px 2px rgba(0,0,0,0.3);
+  }
+  .btn-primary:hover { filter: brightness(1.08); transform: translateY(-1px); }
+  .btn-primary:active { transform: translateY(0); }
+
+  .btn-ghost {
+    border: 1px solid rgba(255,255,255,0.12);
+    color: #e8e4dc;
+    background: rgba(255,255,255,0.02);
+    transition: all .2s ease;
+  }
+  .btn-ghost:hover { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.2); }
+
+  /* Input styles */
+  .input-field {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: #e8e4dc;
+    transition: all .2s ease;
+  }
+  .input-field:focus {
+    outline: none;
+    border-color: rgba(255,122,46,0.6);
+    background: rgba(255,255,255,0.05);
+    box-shadow: 0 0 0 3px rgba(255,122,46,0.12);
+  }
+  .input-field::placeholder { color: #6b6760; }
+
+  /* Status dots */
+  .status-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    display: inline-block; margin-right: 8px;
+  }
+
+  /* Tiny uppercase label */
+  .eyebrow { font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; font-weight: 500; }
+
+  /* Aperture spin */
+  @keyframes apertureSpin { to { transform: rotate(360deg); } }
+  .aperture-spin { animation: apertureSpin 20s linear infinite; transform-origin: center; }
+
+  /* Film strip decoration */
+  .film-strip {
+    background-image:
+      linear-gradient(90deg, transparent 49%, rgba(255,255,255,0.04) 49%, rgba(255,255,255,0.04) 51%, transparent 51%);
+    background-size: 24px 100%;
+  }
+
+  /* Selection */
+  ::selection { background: rgba(255, 122, 46, 0.35); color: #fff; }
+</style>
+</head>
+<body class="grain">
+<div id="root"></div>
+
+<script type="text/babel" data-type="module">
+/*  ================================================================
+    CENA — MVP Interativo
+    Sistema de locação de equipamentos audiovisuais
+    ================================================================ */
+const { useState, useEffect, useMemo, useRef, createContext, useContext } = React;
+
+/* ==========================================================
+   ICONS (inline SVG — cleaner than any library dependency)
+   ========================================================== */
+const Icon = ({ name, className = "w-5 h-5", strokeWidth = 1.5 }) => {
+  const paths = {
+    search: <><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></>,
+    cart: <><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M3 4h2l2.4 12.3a2 2 0 0 0 2 1.7h8.7a2 2 0 0 0 2-1.6L22 8H6"/></>,
+    camera: <><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="4"/></>,
+    user: <><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></>,
+    users: <><circle cx="9" cy="8" r="4"/><path d="M3 21a6 6 0 0 1 12 0"/><path d="M16 3.5a4 4 0 0 1 0 7.8"/><path d="M22 21a6 6 0 0 0-5-5.9"/></>,
+    bell: <><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10 21a2 2 0 0 0 4 0"/></>,
+    plus: <><path d="M12 5v14M5 12h14"/></>,
+    minus: <><path d="M5 12h14"/></>,
+    check: <><path d="m5 12 5 5L20 7"/></>,
+    x: <><path d="M18 6 6 18M6 6l12 12"/></>,
+    menu: <><path d="M4 6h16M4 12h16M4 18h16"/></>,
+    dashboard: <><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></>,
+    box: <><path d="M21 8 12 3 3 8l9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v9"/></>,
+    clipboard: <><rect x="7" y="3" width="10" height="4" rx="1"/><path d="M9 5H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3"/></>,
+    chart: <><path d="M3 3v18h18"/><path d="M7 16V9M12 16v-5M17 16v-9"/></>,
+    clock: <><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></>,
+    calendar: <><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></>,
+    mapPin: <><path d="M20 10c0 7-8 12-8 12s-8-5-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></>,
+    truck: <><path d="M1 7h13v10H1zM14 10h4l3 3v4h-7"/><circle cx="5.5" cy="17.5" r="2"/><circle cx="17.5" cy="17.5" r="2"/></>,
+    shield: <><path d="M12 2 4 5v7c0 5 3.5 9 8 10 4.5-1 8-5 8-10V5l-8-3z"/></>,
+    chevronRight: <><path d="m9 6 6 6-6 6"/></>,
+    chevronLeft: <><path d="m15 6-6 6 6 6"/></>,
+    chevronDown: <><path d="m6 9 6 6 6-6"/></>,
+    arrowRight: <><path d="M5 12h14M13 5l7 7-7 7"/></>,
+    arrowUp: <><path d="m5 10 7-7 7 7M12 3v18"/></>,
+    phone: <><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7a2 2 0 0 1 1.72 2z"/></>,
+    mail: <><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 6 10-6"/></>,
+    filter: <><path d="M3 6h18M6 12h12M10 18h4"/></>,
+    settings: <><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3h.1a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8v.1a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></>,
+    logout: <><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5M21 12H9"/></>,
+    eye: <><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></>,
+    edit: <><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></>,
+    trash: <><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></>,
+    star: <><path d="m12 2 3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1z"/></>,
+    package: <><path d="M16 3h5v5M21 3l-7 7M8 21H3v-5M3 21l7-7"/></>,
+    send: <><path d="m22 2-7 20-4-9-9-4 20-7z"/></>,
+    fileText: <><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h4"/></>,
+    sparkles: <><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8"/></>,
+    aperture: <><circle cx="12" cy="12" r="9"/><path d="m9.7 14.4 5.4-9.4M7 10.3h10.9M12.6 22.9 8.2 13m7.5 2.2L7.3 17.1m13.4-5.3L9.8 11.3m7.5 2.2-6.9 7.6"/></>,
+  };
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className}>
+      {paths[name]}
+    </svg>
+  );
+};
+
+/* ==========================================================
+   LOGO
+   ========================================================== */
+const Logo = ({ size = "md", showText = true }) => {
+  const sizes = { sm: 24, md: 32, lg: 48 };
+  const s = sizes[size];
+  return (
+    <div className="flex items-center gap-2.5">
+      <svg width={s} height={s} viewBox="0 0 32 32" fill="none" className="text-amber-glow">
+        <g className="aperture-spin" style={{ transformOrigin: '16px 16px' }}>
+          <circle cx="16" cy="16" r="13" stroke="currentColor" strokeWidth="1.2" opacity="0.4"/>
+          <path d="M16 5 L24 12 L21 22 L11 22 L8 12 Z" stroke="currentColor" strokeWidth="1.5" fill="currentColor" fillOpacity="0.15"/>
+        </g>
+        <circle cx="16" cy="16" r="3" fill="currentColor"/>
+      </svg>
+      {showText && (
+        <div className="flex flex-col leading-none">
+          <span className="serif-display text-[22px] text-ink-50 font-medium">Cena</span>
+          <span className="eyebrow text-ink-400 -mt-0.5" style={{fontSize: '9px'}}>LOCAÇÃO · 2026</span>
+        </div>
+      )}
+    </div>
+  );
+};
+
+/* ==========================================================
+   MOCK DATA
+   ========================================================== */
+const RENTAL_HOUSES = [
+  { id: 'rh1', name: 'Cinestúdio SP', city: 'São Paulo · SP', rating: 4.9, reviews: 312 },
+  { id: 'rh2', name: 'Luz & Câmera Rental', city: 'Rio de Janeiro · RJ', rating: 4.7, reviews: 187 },
+  { id: 'rh3', name: 'FilmeHouse', city: 'São Paulo · SP', rating: 4.8, reviews: 224 },
+  { id: 'rh4', name: 'Pauta Rental', city: 'Curitiba · PR', rating: 4.6, reviews: 98 },
+];
+
+const CATEGORIES = [
+  { id: 'cam', name: 'Câmeras', icon: 'camera' },
+  { id: 'lens', name: 'Lentes', icon: 'aperture' },
+  { id: 'light', name: 'Iluminação', icon: 'sparkles' },
+  { id: 'audio', name: 'Áudio', icon: 'bell' },
+  { id: 'grip', name: 'Maquinaria', icon: 'settings' },
+  { id: 'acc', name: 'Acessórios', icon: 'box' },
+];
+
+const EQUIPMENT = [
+  { id: 'e1', cat: 'cam', name: 'ARRI Alexa Mini LF', desc: 'Câmera digital full-frame profissional', tech: 'Sensor LF 4.5K · ProRes/ARRIRAW · ND interno · Base ISO 800', qty: 2, qtyAvail: 2, rhId: 'rh1', tag: 'Premium' },
+  { id: 'e2', cat: 'cam', name: 'RED Komodo 6K', desc: 'Câmera cinema compacta Super35', tech: 'Sensor S35 6K · R3D RAW · Global Shutter · RF Mount', qty: 3, qtyAvail: 2, rhId: 'rh1' },
+  { id: 'e3', cat: 'cam', name: 'Sony FX6', desc: 'Câmera cinema full-frame compacta', tech: 'Sensor FF 4K · XAVC · ND elétrico · E-Mount', qty: 4, qtyAvail: 4, rhId: 'rh3' },
+  { id: 'e4', cat: 'cam', name: 'Blackmagic URSA Mini Pro 12K', desc: 'Câmera cinema 12K Super35', tech: 'Sensor S35 12K · BRAW · PL/EF Mount', qty: 1, qtyAvail: 1, rhId: 'rh2' },
+  { id: 'e5', cat: 'lens', name: 'Zeiss Supreme Prime 50mm T1.5', desc: 'Lente prime full-frame cinema', tech: 'Full-Frame · T1.5 · PL Mount · Foco 0.45m', qty: 2, qtyAvail: 1, rhId: 'rh1', tag: 'Premium' },
+  { id: 'e6', cat: 'lens', name: 'Sigma Cine 18-35mm T2', desc: 'Zoom cinema Super35', tech: 'Super35 · T2 constante · EF/PL/E Mount', qty: 3, qtyAvail: 3, rhId: 'rh3' },
+  { id: 'e7', cat: 'lens', name: 'Cooke S4/i 32mm T2', desc: 'Lente prime cinema Cooke Look', tech: 'S35 · T2 · PL Mount · /i Technology', qty: 2, qtyAvail: 2, rhId: 'rh2' },
+  { id: 'e8', cat: 'light', name: 'ARRI SkyPanel S60-C', desc: 'Painel LED RGBW profissional', tech: '2.800–10.000K · RGBW · DMX · 450W', qty: 4, qtyAvail: 3, rhId: 'rh1' },
+  { id: 'e9', cat: 'light', name: 'Aputure LS 600d Pro', desc: 'Fresnel LED daylight 600W', tech: '5600K · 600W · Bowens Mount · Wireless DMX', qty: 6, qtyAvail: 5, rhId: 'rh3' },
+  { id: 'e10', cat: 'light', name: 'Astera Titan Tube', desc: 'Tubo LED wireless RGB', tech: 'Bateria interna · Wireless DMX · RGB+MintLime+Amber', qty: 8, qtyAvail: 8, rhId: 'rh2' },
+  { id: 'e11', cat: 'audio', name: 'Sennheiser MKH 416', desc: 'Microfone shotgun de estúdio', tech: 'Condensador · Supercardioide · XLR · Phantom 48V', qty: 4, qtyAvail: 4, rhId: 'rh1' },
+  { id: 'e12', cat: 'audio', name: 'Zoom F8n Pro', desc: 'Gravador de áudio multitrack', tech: '8 canais · 32-bit float · Timecode · Dual SD', qty: 2, qtyAvail: 2, rhId: 'rh3' },
+  { id: 'e13', cat: 'grip', name: 'DJI Ronin 2', desc: 'Gimbal profissional para cinema', tech: 'Payload 13.6kg · SmoothTrack · Bluetooth', qty: 2, qtyAvail: 1, rhId: 'rh1' },
+  { id: 'e14', cat: 'grip', name: 'Easyrig Vario 5', desc: 'Suporte corporal para câmera', tech: 'Capacidade 18kg · Ajuste de altura · Cinch', qty: 3, qtyAvail: 3, rhId: 'rh4' },
+  { id: 'e15', cat: 'acc', name: 'Teradek Bolt 4K LT 750', desc: 'Transmissor wireless de vídeo', tech: '4K HDR · 230m · SDI/HDMI · Zero-delay', qty: 4, qtyAvail: 2, rhId: 'rh1' },
+  { id: 'e16', cat: 'acc', name: 'Small HD 703 Bolt', desc: 'Monitor direcional 7" 3000 nits', tech: '7" · 3000 nits · RX Bolt integrado · Daylight', qty: 3, qtyAvail: 3, rhId: 'rh3' },
+];
+
+const MOCK_QUOTATIONS = [
+  {
+    id: 'COT-2041',
+    client: 'Carlos Menezes',
+    clientRole: '1º Assistente de Câmera',
+    rhId: 'rh1',
+    rhName: 'Cinestúdio SP',
+    items: [{ id: 'e1', qty: 1 }, { id: 'e5', qty: 1 }, { id: 'e8', qty: 2 }],
+    pickupDate: '2026-04-28',
+    pickupTime: '08:30',
+    returnDate: '2026-05-02',
+    status: 'aguardando',
+    createdAt: '2026-04-18',
+    project: 'Curta "Horizonte Azul"',
+    total: null,
+  },
+  {
+    id: 'COT-2038',
+    client: 'Mariana Ribeiro',
+    clientRole: 'Diretora de Fotografia',
+    rhId: 'rh1',
+    rhName: 'Cinestúdio SP',
+    items: [{ id: 'e2', qty: 1 }, { id: 'e6', qty: 1 }, { id: 'e13', qty: 1 }],
+    pickupDate: '2026-04-25',
+    pickupTime: '09:00',
+    returnDate: '2026-04-27',
+    status: 'aprovada',
+    createdAt: '2026-04-15',
+    project: 'Comercial Natura — Solstício',
+    total: 18450,
+  },
+  {
+    id: 'COT-2034',
+    client: 'Pedro Alvim',
+    clientRole: '1º Assistente de Câmera',
+    rhId: 'rh1',
+    rhName: 'Cinestúdio SP',
+    items: [{ id: 'e3', qty: 2 }, { id: 'e9', qty: 3 }],
+    pickupDate: '2026-04-22',
+    pickupTime: '07:00',
+    returnDate: '2026-04-24',
+    status: 'confirmada',
+    createdAt: '2026-04-12',
+    project: 'Série Documental "Raízes"',
+    total: 12200,
+  },
+  {
+    id: 'COT-2029',
+    client: 'Luiza Fontes',
+    clientRole: 'Diretora de Fotografia',
+    rhId: 'rh1',
+    rhName: 'Cinestúdio SP',
+    items: [{ id: 'e4', qty: 1 }, { id: 'e7', qty: 3 }],
+    pickupDate: '2026-04-10',
+    pickupTime: '10:00',
+    returnDate: '2026-04-13',
+    status: 'finalizada',
+    createdAt: '2026-04-02',
+    project: 'Longa "Entre Marés"',
+    total: 24500,
+  },
+];
+
+const TEAM_MEMBERS = [
+  { id: 'u1', name: 'André Silveira', role: 'Gerente', email: 'andre@cinestudiosp.com.br', active: true },
+  { id: 'u2', name: 'Beatriz Oliveira', role: 'Check-out', email: 'bia@cinestudiosp.com.br', active: true },
+  { id: 'u3', name: 'Ricardo Tanaka', role: 'Check-out', email: 'ricardo@cinestudiosp.com.br', active: true },
+  { id: 'u4', name: 'Camila Santos', role: 'Financeiro', email: 'camila@cinestudiosp.com.br', active: false },
+];
+
+/* ==========================================================
+   UTILS
+   ========================================================== */
+const currency = (v) => v == null ? '—' : v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+const fmtDate = (s) => new Date(s + 'T00:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
+const fmtDateShort = (s) => new Date(s + 'T00:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
+
+const formatPhone = (v) => {
+  const d = v.replace(/\D/g, '').slice(0, 11);
+  if (d.length <= 2) return d;
+  if (d.length <= 7) return `(${d.slice(0,2)}) ${d.slice(2)}`;
+  return `(${d.slice(0,2)}) ${d.slice(2,7)}-${d.slice(7)}`;
+};
+const formatCPF = (v) => {
+  const d = v.replace(/\D/g, '').slice(0, 11);
+  if (d.length <= 3) return d;
+  if (d.length <= 6) return `${d.slice(0,3)}.${d.slice(3)}`;
+  if (d.length <= 9) return `${d.slice(0,3)}.${d.slice(3,6)}.${d.slice(6)}`;
+  return `${d.slice(0,3)}.${d.slice(3,6)}.${d.slice(6,9)}-${d.slice(9)}`;
+};
+const isValidPhone = (v) => v.replace(/\D/g, '').length === 11;
+const isValidCPF = (v) => v.replace(/\D/g, '').length === 11;
+
+const statusConfig = {
+  aguardando:  { label: 'Aguardando cotação', color: '#e8c468', bg: 'rgba(232,196,104,0.1)' },
+  cotada:      { label: 'Cotação enviada',    color: '#6ba8ff', bg: 'rgba(107,168,255,0.1)' },
+  aprovada:    { label: 'Aprovada',            color: '#8ee37c', bg: 'rgba(142,227,124,0.12)' },
+  confirmada:  { label: 'Confirmada',          color: '#ff7a2e', bg: 'rgba(255,122,46,0.12)' },
+  finalizada:  { label: 'Finalizada',          color: '#9c978f', bg: 'rgba(156,151,143,0.12)' },
+  recusada:    { label: 'Recusada',            color: '#ff6b6b', bg: 'rgba(255,107,107,0.12)' },
+};
+
+const StatusBadge = ({ status }) => {
+  const s = statusConfig[status] || statusConfig.aguardando;
+  return (
+    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium" style={{ background: s.bg, color: s.color }}>
+      <span className="status-dot pulse-soft" style={{ background: s.color, marginRight: 6 }}></span>
+      {s.label}
+    </span>
+  );
+};
+
+/* ==========================================================
+   APP STATE (light context)
+   ========================================================== */
+const AppContext = createContext(null);
+const useApp = () => useContext(AppContext);
+
+/* ==========================================================
+   EQUIPMENT CARD
+   ========================================================== */
+const EquipmentCard = ({ eq, onClick, onAdd, compact = false }) => {
+  const rh = RENTAL_HOUSES.find(r => r.id === eq.rhId);
+  return (
+    <div
+      onClick={onClick}
+      className="group relative bg-ink-900 border border-ink-700 rounded-2xl p-5 card-hover cursor-pointer overflow-hidden"
+    >
+      {eq.tag && (
+        <div className="absolute top-4 right-4 z-10 text-[10px] font-medium tracking-widest uppercase px-2 py-1 rounded-full bg-amber-glow/10 text-amber-glow border border-amber-glow/30">
+          {eq.tag}
+        </div>
+      )}
+
+      {/* Equipment visual - abstract geometric representation */}
+      <div className="relative h-40 -mx-5 -mt-5 mb-5 bg-gradient-to-br from-ink-800 to-ink-950 overflow-hidden border-b border-ink-700">
+        <div className="absolute inset-0 flex items-center justify-center opacity-30 group-hover:opacity-50 transition-opacity">
+          <svg width="100" height="100" viewBox="0 0 100 100" className="text-amber-glow">
+            {eq.cat === 'cam' && <g stroke="currentColor" strokeWidth="1.2" fill="none">
+              <rect x="15" y="30" width="55" height="40" rx="3"/>
+              <rect x="70" y="40" width="18" height="20"/>
+              <circle cx="42" cy="50" r="12"/>
+              <circle cx="42" cy="50" r="8" opacity="0.5"/>
+              <rect x="20" y="22" width="20" height="8" rx="1"/>
+            </g>}
+            {eq.cat === 'lens' && <g stroke="currentColor" strokeWidth="1.2" fill="none">
+              <circle cx="50" cy="50" r="32"/>
+              <circle cx="50" cy="50" r="24"/>
+              <circle cx="50" cy="50" r="16" opacity="0.6"/>
+              <circle cx="50" cy="50" r="8" opacity="0.4"/>
+              <path d="M20 50h60M50 20v60" opacity="0.2"/>
+            </g>}
+            {eq.cat === 'light' && <g stroke="currentColor" strokeWidth="1.2" fill="none">
+              <rect x="22" y="35" width="56" height="30" rx="2"/>
+              <path d="M30 42h40M30 50h40M30 58h40" opacity="0.5"/>
+              <path d="M50 20v12M30 22l6 10M70 22l-6 10" strokeWidth="1"/>
+              <circle cx="50" cy="50" r="38" opacity="0.15"/>
+            </g>}
+            {eq.cat === 'audio' && <g stroke="currentColor" strokeWidth="1.2" fill="none">
+              <rect x="44" y="20" width="12" height="50" rx="6"/>
+              <path d="M50 70v10M40 78h20"/>
+              <path d="M32 35c0 12 8 20 18 20s18-8 18-20" opacity="0.5"/>
+            </g>}
+            {eq.cat === 'grip' && <g stroke="currentColor" strokeWidth="1.2" fill="none">
+              <circle cx="50" cy="40" r="18"/>
+              <path d="M50 58v22M35 80h30M38 46l24-12M62 46l-24-12" opacity="0.6"/>
+            </g>}
+            {eq.cat === 'acc' && <g stroke="currentColor" strokeWidth="1.2" fill="none">
+              <rect x="25" y="30" width="50" height="35" rx="3"/>
+              <rect x="32" y="38" width="36" height="20"/>
+              <circle cx="68" cy="35" r="2" fill="currentColor"/>
+            </g>}
+          </svg>
+        </div>
+        {/* film strip sides */}
+        <div className="absolute top-0 bottom-0 left-0 w-3 film-strip"></div>
+        <div className="absolute top-0 bottom-0 right-0 w-3 film-strip"></div>
+      </div>
+
+      <div className="space-y-2">
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex-1 min-w-0">
+            <h3 className="serif-display text-lg text-ink-50 leading-tight">{eq.name}</h3>
+            <p className="text-sm text-ink-300 mt-0.5">{eq.desc}</p>
+          </div>
+        </div>
+
+        {!compact && (
+          <p className="text-xs text-ink-400 font-mono leading-relaxed pt-1">{eq.tech}</p>
+        )}
+
+        <div className="flex items-center justify-between pt-3 border-t border-ink-700/60 mt-3">
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded-full bg-ink-700 flex items-center justify-center text-[10px] font-semibold text-amber-gold">
+              {rh?.name.charAt(0)}
+            </div>
+            <span className="text-xs text-ink-300">{rh?.name}</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className={`text-xs font-mono ${eq.qtyAvail > 0 ? 'text-ink-300' : 'text-red-400'}`}>
+              {eq.qtyAvail > 0 ? `${eq.qtyAvail} disp.` : 'indisponível'}
+            </span>
+            {onAdd && eq.qtyAvail > 0 && (
+              <button
+                onClick={(e) => { e.stopPropagation(); onAdd(eq); }}
+                className="w-8 h-8 rounded-full btn-primary flex items-center justify-center"
+                title="Adicionar ao carrinho"
+              >
+                <Icon name="plus" className="w-4 h-4" strokeWidth={2.2} />
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* placeholder for the rest of the app - loaded by next chunks */
+window.__CENA_BASE__ = { Icon, Logo, EquipmentCard, RENTAL_HOUSES, CATEGORIES, EQUIPMENT, MOCK_QUOTATIONS, TEAM_MEMBERS, currency, fmtDate, fmtDateShort, formatPhone, formatCPF, isValidPhone, isValidCPF, StatusBadge, statusConfig, AppContext, useApp };
+</script>
+
+<script type="text/babel" data-type="module">
+/* ============================================================
+   PART 2 — Screens & App
+   ============================================================ */
+const { useState, useEffect, useMemo, useRef, createContext, useContext } = React;
+const { Icon, Logo, EquipmentCard, RENTAL_HOUSES, CATEGORIES, EQUIPMENT, MOCK_QUOTATIONS, TEAM_MEMBERS, currency, fmtDate, fmtDateShort, formatPhone, formatCPF, isValidPhone, isValidCPF, StatusBadge, statusConfig, AppContext, useApp } = window.__CENA_BASE__;
+
+/* ==========================================================
+   DEMO SELECTOR (entry)
+   ========================================================== */
+const DemoSelector = ({ onSelect }) => {
+  const roles = [
+    {
+      id: 'ac',
+      title: 'Assistente / DoP',
+      subtitle: 'Quem aluga equipamento',
+      desc: 'Buscar catálogo, montar carrinho, solicitar cotação, acompanhar status e retirada.',
+      icon: 'camera',
+      accent: '#ff7a2e',
+    },
+    {
+      id: 'staff',
+      title: 'Locadora',
+      subtitle: 'Funcionário da casa de locação',
+      desc: 'Cadastrar equipamentos, responder cotações, gerenciar retiradas e devoluções.',
+      icon: 'box',
+      accent: '#e8c468',
+    },
+    {
+      id: 'admin',
+      title: 'Administrador',
+      subtitle: 'Gestor da locadora',
+      desc: 'Relatórios, métricas, gestão de equipe, visão geral de todas as locações.',
+      icon: 'dashboard',
+      accent: '#6ba8ff',
+    },
+  ];
+  return (
+    <div className="min-h-screen spotlight-bg flex flex-col">
+      <header className="px-8 py-6 flex items-center justify-between">
+        <Logo />
+        <div className="eyebrow text-ink-400">MVP · Protótipo interativo</div>
+      </header>
+
+      <main className="flex-1 flex items-center justify-center px-8 py-12">
+        <div className="max-w-6xl w-full">
+          <div className="text-center max-w-2xl mx-auto mb-16 fade-up">
+            <div className="eyebrow text-amber-glow mb-4">Apresentação · Validação de fluxo</div>
+            <h1 className="serif-display text-5xl md:text-6xl text-ink-50 leading-[1.05] mb-5">
+              Locação audiovisual <span className="serif-italic text-amber-warm">sem fricção.</span>
+            </h1>
+            <p className="text-ink-300 text-lg leading-relaxed">
+              Do catálogo à retirada, um único fluxo digital entre assistentes de câmera, diretores de fotografia e locadoras. Selecione abaixo o perfil para iniciar a jornada.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-5">
+            {roles.map((r, i) => (
+              <button
+                key={r.id}
+                onClick={() => onSelect(r.id)}
+                className={`fade-up fade-up-${i+1} text-left bg-ink-900 border border-ink-700 rounded-3xl p-7 card-hover group relative overflow-hidden`}
+              >
+                <div
+                  className="absolute top-0 right-0 w-40 h-40 rounded-full blur-3xl opacity-0 group-hover:opacity-30 transition-opacity"
+                  style={{ background: r.accent, transform: 'translate(30%, -30%)' }}
+                />
+                <div className="relative">
+                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-6" style={{ background: `${r.accent}15`, color: r.accent }}>
+                    <Icon name={r.icon} className="w-6 h-6" strokeWidth={1.6}/>
+                  </div>
+                  <div className="eyebrow text-ink-400 mb-2">{r.subtitle}</div>
+                  <h3 className="serif-display text-2xl text-ink-50 mb-3">{r.title}</h3>
+                  <p className="text-ink-300 text-sm leading-relaxed mb-6">{r.desc}</p>
+                  <div className="flex items-center gap-2 text-ink-200 group-hover:text-amber-glow transition-colors">
+                    <span className="text-sm font-medium">Acessar demonstração</span>
+                    <Icon name="arrowRight" className="w-4 h-4 group-hover:translate-x-1 transition-transform" strokeWidth={2}/>
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+
+          <div className="mt-16 flex items-center justify-center gap-8 text-ink-400 text-xs fade-up fade-up-5">
+            <div className="flex items-center gap-2"><Icon name="shield" className="w-4 h-4"/> LGPD compliant</div>
+            <div className="h-3 w-px bg-ink-700"></div>
+            <div className="flex items-center gap-2"><Icon name="clock" className="w-4 h-4"/> Tempo médio de cotação: 4h → 15 min</div>
+            <div className="h-3 w-px bg-ink-700"></div>
+            <div className="flex items-center gap-2"><Icon name="aperture" className="w-4 h-4"/> 4 locadoras conectadas</div>
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+};
+
+/* ==========================================================
+   LOGIN
+   ========================================================== */
+const LoginScreen = ({ role, onLogin, onBack }) => {
+  const presets = {
+    ac:    { email: 'carlos.menezes@filmes.br', label: 'Assistente / DoP', sub: 'Acesso para quem aluga equipamento' },
+    staff: { email: 'bia@cinestudiosp.com.br',  label: 'Locadora',         sub: 'Funcionário da casa de locação' },
+    admin: { email: 'andre@cinestudiosp.com.br', label: 'Administrador',   sub: 'Gestão completa da locadora' },
+  };
+  const p = presets[role];
+  const [email, setEmail] = useState(p.email);
+  const [pwd, setPwd] = useState('demo2026');
+  const [loading, setLoading] = useState(false);
+
+  const submit = (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setTimeout(() => onLogin(), 600);
+  };
+
+  return (
+    <div className="min-h-screen spotlight-bg flex items-center justify-center p-6">
+      <div className="w-full max-w-md">
+        <button onClick={onBack} className="text-ink-400 hover:text-ink-100 text-sm mb-8 flex items-center gap-2 fade-up">
+          <Icon name="chevronLeft" className="w-4 h-4"/> Voltar
+        </button>
+
+        <div className="bg-ink-900 border border-ink-700 rounded-3xl p-10 fade-up fade-up-1">
+          <div className="flex items-center justify-between mb-8">
+            <Logo />
+          </div>
+
+          <div className="eyebrow text-amber-glow mb-2">{p.label}</div>
+          <h1 className="serif-display text-3xl text-ink-50 mb-2">Bem-vindo de volta</h1>
+          <p className="text-ink-300 text-sm mb-8">{p.sub}</p>
+
+          <form onSubmit={submit} className="space-y-4">
+            <div>
+              <label className="eyebrow text-ink-400 block mb-2">E-mail</label>
+              <input
+                type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+                className="input-field w-full px-4 py-3 rounded-xl font-mono text-sm"
+                required
+              />
+            </div>
+            <div>
+              <label className="eyebrow text-ink-400 block mb-2">Senha</label>
+              <input
+                type="password" value={pwd} onChange={(e) => setPwd(e.target.value)}
+                className="input-field w-full px-4 py-3 rounded-xl font-mono text-sm"
+                required
+              />
+            </div>
+            <div className="flex items-center justify-between text-xs pt-1">
+              <label className="flex items-center gap-2 text-ink-300 cursor-pointer">
+                <input type="checkbox" className="accent-amber-glow"/> Lembrar-me
+              </label>
+              <a className="text-amber-glow hover:underline">Esqueci a senha</a>
+            </div>
+
+            <button type="submit" disabled={loading} className="btn-primary w-full py-3.5 rounded-xl mt-2 flex items-center justify-center gap-2">
+              {loading ? <span className="pulse-soft">Entrando...</span> : <>Entrar <Icon name="arrowRight" className="w-4 h-4" strokeWidth={2.2}/></>}
+            </button>
+          </form>
+
+          <div className="mt-8 pt-6 border-t border-ink-700 text-center">
+            <p className="text-xs text-ink-400">
+              Não tem conta? <a className="text-amber-glow hover:underline cursor-pointer">Cadastre-se</a>
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-center gap-4 mt-6 text-ink-400 text-[11px] fade-up fade-up-2">
+          <span className="flex items-center gap-1.5"><Icon name="shield" className="w-3.5 h-3.5"/> 2FA · Criptografia AES-256</span>
+          <span>·</span>
+          <span>LGPD</span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ==========================================================
+   LAYOUT (app shell with sidebar + top bar)
+   ========================================================== */
+const AppShell = ({ role, currentView, onNav, cartCount, onLogout, user, children }) => {
+  const navConfig = {
+    ac: [
+      { id: 'home',       label: 'Explorar',      icon: 'search' },
+      { id: 'quotations', label: 'Minhas cotações', icon: 'fileText' },
+      { id: 'profile',    label: 'Meu perfil',    icon: 'user' },
+    ],
+    staff: [
+      { id: 'dashboard',  label: 'Dashboard',     icon: 'dashboard' },
+      { id: 'equipment',  label: 'Equipamentos',  icon: 'box' },
+      { id: 'quotations', label: 'Cotações',      icon: 'fileText' },
+      { id: 'schedule',   label: 'Agenda',        icon: 'calendar' },
+    ],
+    admin: [
+      { id: 'dashboard',  label: 'Dashboard',     icon: 'dashboard' },
+      { id: 'rentals',    label: 'Locações',      icon: 'clipboard' },
+      { id: 'equipment',  label: 'Inventário',    icon: 'box' },
+      { id: 'team',       label: 'Equipe',        icon: 'users' },
+      { id: 'reports',    label: 'Relatórios',    icon: 'chart' },
+    ],
+  };
+  const nav = navConfig[role] || [];
+
+  return (
+    <div className="min-h-screen flex bg-ink-950">
+      {/* Sidebar */}
+      <aside className="w-64 border-r border-ink-800 flex flex-col sticky top-0 h-screen">
+        <div className="px-6 py-6 border-b border-ink-800">
+          <Logo />
+        </div>
+
+        <div className="flex-1 px-3 py-6 overflow-y-auto">
+          <div className="eyebrow text-ink-400 px-3 mb-3">Navegação</div>
+          <nav className="space-y-1">
+            {nav.map(item => (
+              <button
+                key={item.id}
+                onClick={() => onNav(item.id)}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all ${
+                  currentView === item.id
+                    ? 'bg-amber-glow/10 text-amber-glow border border-amber-glow/20'
+                    : 'text-ink-200 hover:bg-ink-800 border border-transparent'
+                }`}
+              >
+                <Icon name={item.icon} className="w-4 h-4" strokeWidth={1.6}/>
+                <span className="font-medium">{item.label}</span>
+              </button>
+            ))}
+          </nav>
+
+          {role === 'ac' && (
+            <>
+              <div className="eyebrow text-ink-400 px-3 mt-8 mb-3">Categorias</div>
+              <div className="space-y-1">
+                {CATEGORIES.map(cat => (
+                  <button key={cat.id} onClick={() => onNav('home:' + cat.id)} className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs text-ink-300 hover:bg-ink-800 hover:text-ink-50 transition-colors">
+                    <Icon name={cat.icon} className="w-3.5 h-3.5" strokeWidth={1.6}/> {cat.name}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+
+        <div className="px-3 py-4 border-t border-ink-800">
+          <button onClick={onLogout} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-ink-300 hover:bg-ink-800 hover:text-ink-50">
+            <Icon name="logout" className="w-4 h-4" strokeWidth={1.6}/> Sair
+          </button>
+        </div>
+      </aside>
+
+      {/* Main area */}
+      <div className="flex-1 flex flex-col min-w-0">
+        <header className="h-16 border-b border-ink-800 px-8 flex items-center justify-between bg-ink-950/80 backdrop-blur sticky top-0 z-20">
+          <div className="flex items-center gap-4 text-sm">
+            <span className="text-ink-400">{user?.company || 'Cena'}</span>
+            <span className="text-ink-600">/</span>
+            <span className="text-ink-100 font-medium capitalize">
+              {nav.find(n => n.id === (currentView.split(':')[0]))?.label || currentView}
+            </span>
+          </div>
+          <div className="flex items-center gap-3">
+            {role === 'ac' && (
+              <button onClick={() => onNav('cart')} className="relative btn-ghost h-10 px-4 rounded-xl flex items-center gap-2 text-sm">
+                <Icon name="cart" className="w-4 h-4" strokeWidth={1.6}/>
+                <span>Carrinho</span>
+                {cartCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-amber-glow text-ink-950 text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">{cartCount}</span>
+                )}
+              </button>
+            )}
+            <button className="btn-ghost w-10 h-10 rounded-xl flex items-center justify-center relative">
+              <Icon name="bell" className="w-4 h-4" strokeWidth={1.6}/>
+              <span className="absolute top-2 right-2.5 w-1.5 h-1.5 rounded-full bg-amber-glow"></span>
+            </button>
+            <div className="h-8 w-px bg-ink-800"></div>
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-amber-glow to-amber-gold flex items-center justify-center text-ink-950 font-semibold text-sm">
+                {user?.name?.charAt(0) || 'U'}
+              </div>
+              <div className="leading-tight">
+                <div className="text-sm text-ink-100 font-medium">{user?.name}</div>
+                <div className="text-[11px] text-ink-400">{user?.role}</div>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <main className="flex-1 overflow-auto">
+          {children}
+        </main>
+      </div>
+    </div>
+  );
+};
+
+window.__CENA_PART2__ = { DemoSelector, LoginScreen, AppShell };
+</script>
+
+<script type="text/babel" data-type="module">
+/* ============================================================
+   PART 3 — AC / Client screens
+   ============================================================ */
+const { useState, useEffect, useMemo, useRef } = React;
+const { Icon, Logo, EquipmentCard, RENTAL_HOUSES, CATEGORIES, EQUIPMENT, MOCK_QUOTATIONS, currency, fmtDate, fmtDateShort, formatPhone, formatCPF, isValidPhone, isValidCPF, StatusBadge, statusConfig } = window.__CENA_BASE__;
+
+/* ==========================================================
+   AC - EXPLORAR / HOME
+   ========================================================== */
+const ACExplore = ({ onOpenItem, onAdd, initialCat = null }) => {
+  const [search, setSearch] = useState('');
+  const [cat, setCat] = useState(initialCat);
+  const [rhFilter, setRhFilter] = useState(null);
+
+  useEffect(() => { if (initialCat) setCat(initialCat); }, [initialCat]);
+
+  const filtered = useMemo(() => {
+    return EQUIPMENT.filter(eq => {
+      if (cat && eq.cat !== cat) return false;
+      if (rhFilter && eq.rhId !== rhFilter) return false;
+      if (search) {
+        const s = search.toLowerCase();
+        return eq.name.toLowerCase().includes(s) || eq.desc.toLowerCase().includes(s) || eq.tech.toLowerCase().includes(s);
+      }
+      return true;
+    });
+  }, [search, cat, rhFilter]);
+
+  return (
+    <div className="p-8 max-w-7xl">
+      {/* Hero */}
+      <section className="mb-10 fade-up">
+        <div className="eyebrow text-amber-glow mb-3">Catálogo aberto</div>
+        <h1 className="serif-display text-5xl md:text-6xl text-ink-50 leading-[1.05] mb-4 max-w-3xl">
+          O que você vai precisar <span className="serif-italic text-amber-warm">nesse set?</span>
+        </h1>
+        <p className="text-ink-300 max-w-2xl text-lg">
+          Busque, compare e monte seu pedido em minutos. Equipamentos de 4 locadoras parceiras, disponibilidade em tempo real.
+        </p>
+      </section>
+
+      {/* Search bar */}
+      <div className="bg-ink-900 border border-ink-700 rounded-2xl p-2 flex items-center gap-2 mb-8 fade-up fade-up-1">
+        <div className="flex-1 flex items-center gap-3 px-4">
+          <Icon name="search" className="w-5 h-5 text-ink-400" strokeWidth={1.6}/>
+          <input
+            placeholder="Busque por Alexa Mini, SkyPanel, MKH 416..."
+            value={search} onChange={(e) => setSearch(e.target.value)}
+            className="flex-1 bg-transparent border-0 outline-none py-3 text-ink-100 placeholder:text-ink-400"
+          />
+        </div>
+        <button className="btn-ghost h-12 px-4 rounded-xl flex items-center gap-2 text-sm">
+          <Icon name="filter" className="w-4 h-4" strokeWidth={1.6}/> Filtros
+        </button>
+        <button className="btn-primary h-12 px-6 rounded-xl text-sm">Buscar</button>
+      </div>
+
+      {/* Categories */}
+      <div className="flex gap-2 flex-wrap mb-8 fade-up fade-up-2">
+        <button
+          onClick={() => setCat(null)}
+          className={`px-4 py-2 rounded-full text-sm border transition-all ${!cat ? 'bg-ink-100 text-ink-950 border-ink-100' : 'border-ink-700 text-ink-200 hover:border-ink-500'}`}
+        >Todos</button>
+        {CATEGORIES.map(c => (
+          <button
+            key={c.id} onClick={() => setCat(c.id)}
+            className={`px-4 py-2 rounded-full text-sm border transition-all flex items-center gap-2 ${cat === c.id ? 'bg-ink-100 text-ink-950 border-ink-100' : 'border-ink-700 text-ink-200 hover:border-ink-500'}`}
+          >
+            <Icon name={c.icon} className="w-4 h-4" strokeWidth={1.6}/> {c.name}
+          </button>
+        ))}
+      </div>
+
+      {/* Rental houses */}
+      <div className="mb-10 fade-up fade-up-3">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="serif-display text-xl text-ink-50">Locadoras parceiras</h2>
+          <button className="text-sm text-amber-glow hover:underline">Ver todas</button>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {RENTAL_HOUSES.map(rh => (
+            <button
+              key={rh.id}
+              onClick={() => setRhFilter(rhFilter === rh.id ? null : rh.id)}
+              className={`bg-ink-900 border rounded-2xl p-5 text-left card-hover ${rhFilter === rh.id ? 'border-amber-glow/40 amber-glow' : 'border-ink-700'}`}
+            >
+              <div className="flex items-start justify-between mb-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-glow to-amber-gold flex items-center justify-center text-ink-950 font-semibold">
+                  {rh.name.charAt(0)}
+                </div>
+                <div className="flex items-center gap-1 text-xs">
+                  <Icon name="star" className="w-3.5 h-3.5 text-amber-gold" strokeWidth={0}/>
+                  <span className="text-ink-200">{rh.rating}</span>
+                </div>
+              </div>
+              <div className="serif-display text-ink-50 text-base leading-tight mb-1">{rh.name}</div>
+              <div className="text-xs text-ink-400">{rh.city}</div>
+              <div className="text-[11px] text-ink-500 mt-1">{rh.reviews} avaliações</div>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Equipment grid */}
+      <div className="fade-up fade-up-4">
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="serif-display text-xl text-ink-50">
+            {cat ? CATEGORIES.find(c => c.id === cat)?.name : 'Todos equipamentos'}
+            <span className="text-ink-400 ml-3 text-base font-normal">{filtered.length} itens</span>
+          </h2>
+          <div className="flex items-center gap-2 text-xs text-ink-400">
+            <Icon name="arrowUp" className="w-3.5 h-3.5"/> Mais relevantes
+          </div>
+        </div>
+        {filtered.length === 0 ? (
+          <div className="bg-ink-900 border border-ink-700 rounded-2xl p-16 text-center">
+            <p className="text-ink-300">Nenhum equipamento encontrado com esses filtros.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {filtered.map((eq, i) => (
+              <div key={eq.id} style={{ animationDelay: `${i * 0.04}s` }} className="fade-up">
+                <EquipmentCard eq={eq} onClick={() => onOpenItem(eq)} onAdd={onAdd}/>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+/* ==========================================================
+   AC - EQUIPMENT DETAIL MODAL
+   ========================================================== */
+const EquipmentDetail = ({ eq, onClose, onAdd }) => {
+  if (!eq) return null;
+  const rh = RENTAL_HOUSES.find(r => r.id === eq.rhId);
+  const [qty, setQty] = useState(1);
+  const cat = CATEGORIES.find(c => c.id === eq.cat);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink-950/85 backdrop-blur-sm fade-up">
+      <div className="bg-ink-900 border border-ink-700 rounded-3xl max-w-3xl w-full max-h-[90vh] overflow-auto">
+        <div className="sticky top-0 bg-ink-900 border-b border-ink-700 px-8 py-5 flex items-center justify-between z-10">
+          <div className="flex items-center gap-3">
+            <div className="eyebrow text-ink-400">{cat?.name}</div>
+            {eq.tag && <div className="text-[10px] font-medium tracking-widest uppercase px-2 py-0.5 rounded-full bg-amber-glow/10 text-amber-glow border border-amber-glow/30">{eq.tag}</div>}
+          </div>
+          <button onClick={onClose} className="w-9 h-9 rounded-full hover:bg-ink-800 flex items-center justify-center text-ink-300">
+            <Icon name="x" className="w-5 h-5" strokeWidth={1.8}/>
+          </button>
+        </div>
+
+        <div className="p-8">
+          {/* Hero visual */}
+          <div className="h-64 bg-gradient-to-br from-ink-800 to-ink-950 rounded-2xl mb-8 relative overflow-hidden border border-ink-700">
+            <div className="absolute inset-0 flex items-center justify-center opacity-40">
+              <svg width="200" height="200" viewBox="0 0 100 100" className="text-amber-glow">
+                {eq.cat === 'cam' && <g stroke="currentColor" strokeWidth="1" fill="none">
+                  <rect x="15" y="30" width="55" height="40" rx="3"/>
+                  <rect x="70" y="40" width="18" height="20"/>
+                  <circle cx="42" cy="50" r="12"/>
+                  <circle cx="42" cy="50" r="8" opacity="0.5"/>
+                  <rect x="20" y="22" width="20" height="8" rx="1"/>
+                </g>}
+                {eq.cat === 'lens' && <g stroke="currentColor" strokeWidth="1" fill="none">
+                  <circle cx="50" cy="50" r="32"/><circle cx="50" cy="50" r="24"/>
+                  <circle cx="50" cy="50" r="16" opacity="0.6"/><circle cx="50" cy="50" r="8" opacity="0.4"/>
+                </g>}
+                {eq.cat !== 'cam' && eq.cat !== 'lens' && <circle cx="50" cy="50" r="30" stroke="currentColor" strokeWidth="1" fill="none"/>}
+              </svg>
+            </div>
+            <div className="absolute top-0 bottom-0 left-0 w-4 film-strip"></div>
+            <div className="absolute top-0 bottom-0 right-0 w-4 film-strip"></div>
+          </div>
+
+          <h1 className="serif-display text-4xl text-ink-50 mb-2 leading-tight">{eq.name}</h1>
+          <p className="text-ink-300 text-lg mb-6">{eq.desc}</p>
+
+          <div className="grid md:grid-cols-2 gap-8">
+            <div>
+              <h3 className="eyebrow text-ink-400 mb-3">Especificações técnicas</h3>
+              <div className="bg-ink-950 border border-ink-700 rounded-xl p-4 font-mono text-sm text-ink-200 leading-relaxed">
+                {eq.tech}
+              </div>
+
+              <h3 className="eyebrow text-ink-400 mb-3 mt-6">Disponibilidade</h3>
+              <div className="space-y-2 text-sm">
+                <div className="flex items-center justify-between py-2 border-b border-ink-800">
+                  <span className="text-ink-300">No estoque</span>
+                  <span className="text-ink-100 font-mono">{eq.qty} unidades</span>
+                </div>
+                <div className="flex items-center justify-between py-2 border-b border-ink-800">
+                  <span className="text-ink-300">Disponível agora</span>
+                  <span className="font-mono font-medium text-amber-warm">{eq.qtyAvail} unidades</span>
+                </div>
+                <div className="flex items-center justify-between py-2">
+                  <span className="text-ink-300">Próxima retirada</span>
+                  <span className="text-ink-100 font-mono text-sm">hoje às 14:00</span>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="eyebrow text-ink-400 mb-3">Locadora</h3>
+              <div className="bg-ink-950 border border-ink-700 rounded-xl p-4">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-glow to-amber-gold flex items-center justify-center text-ink-950 font-semibold text-lg">
+                    {rh.name.charAt(0)}
+                  </div>
+                  <div>
+                    <div className="text-ink-50 font-medium">{rh.name}</div>
+                    <div className="text-xs text-ink-400 flex items-center gap-1.5 mt-0.5">
+                      <Icon name="mapPin" className="w-3 h-3"/> {rh.city}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4 text-xs pt-3 border-t border-ink-800">
+                  <div className="flex items-center gap-1 text-ink-300"><Icon name="star" className="w-3.5 h-3.5 text-amber-gold" strokeWidth={0}/> {rh.rating} · {rh.reviews} avaliações</div>
+                </div>
+              </div>
+
+              <h3 className="eyebrow text-ink-400 mb-3 mt-6">Quantidade para cotação</h3>
+              <div className="flex items-center gap-3">
+                <button onClick={() => setQty(Math.max(1, qty - 1))} className="w-11 h-11 rounded-xl btn-ghost flex items-center justify-center">
+                  <Icon name="minus" className="w-4 h-4" strokeWidth={2}/>
+                </button>
+                <div className="flex-1 h-11 bg-ink-950 border border-ink-700 rounded-xl flex items-center justify-center text-xl serif-display text-ink-50">{qty}</div>
+                <button onClick={() => setQty(Math.min(eq.qtyAvail, qty + 1))} className="w-11 h-11 rounded-xl btn-ghost flex items-center justify-center">
+                  <Icon name="plus" className="w-4 h-4" strokeWidth={2}/>
+                </button>
+              </div>
+
+              <button
+                onClick={() => { onAdd(eq, qty); onClose(); }}
+                className="btn-primary w-full py-4 rounded-xl mt-6 flex items-center justify-center gap-2"
+              >
+                <Icon name="cart" className="w-4 h-4" strokeWidth={1.8}/> Adicionar ao carrinho
+              </button>
+
+              <p className="text-xs text-ink-400 mt-3 text-center">
+                Valor será definido ao solicitar cotação
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ==========================================================
+   AC - CART + QUOTATION FLOW
+   ========================================================== */
+const ACCart = ({ cart, onUpdate, onRemove, onSubmit, onBack }) => {
+  const [pickupDate, setPickupDate] = useState('2026-04-28');
+  const [pickupTime, setPickupTime] = useState('08:30');
+  const [returnDate, setReturnDate] = useState('2026-05-02');
+  const [project, setProject] = useState('');
+  const [notes, setNotes] = useState('');
+  const [step, setStep] = useState(1);
+
+  // Group by rental house
+  const groups = useMemo(() => {
+    const m = new Map();
+    cart.forEach(item => {
+      const eq = EQUIPMENT.find(e => e.id === item.id);
+      if (!m.has(eq.rhId)) m.set(eq.rhId, []);
+      m.get(eq.rhId).push({ ...item, eq });
+    });
+    return Array.from(m.entries()).map(([rhId, items]) => ({ rh: RENTAL_HOUSES.find(r => r.id === rhId), items }));
+  }, [cart]);
+
+  const totalItems = cart.reduce((s, c) => s + c.qty, 0);
+
+  if (cart.length === 0) {
+    return (
+      <div className="p-8 max-w-4xl">
+        <h1 className="serif-display text-4xl text-ink-50 mb-2">Carrinho</h1>
+        <p className="text-ink-300 mb-10">Seu carrinho está vazio.</p>
+        <div className="bg-ink-900 border border-ink-700 rounded-3xl p-16 text-center">
+          <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-ink-800 flex items-center justify-center">
+            <Icon name="cart" className="w-8 h-8 text-ink-400" strokeWidth={1.2}/>
+          </div>
+          <h2 className="serif-display text-2xl text-ink-50 mb-2">Nada por aqui ainda</h2>
+          <p className="text-ink-300 text-sm mb-6">Explore o catálogo e adicione equipamentos para solicitar uma cotação.</p>
+          <button onClick={onBack} className="btn-primary px-6 py-3 rounded-xl inline-flex items-center gap-2">
+            Explorar catálogo <Icon name="arrowRight" className="w-4 h-4" strokeWidth={2}/>
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-8 max-w-6xl">
+      <div className="mb-8">
+        <button onClick={onBack} className="text-ink-400 hover:text-ink-100 text-sm mb-4 flex items-center gap-2">
+          <Icon name="chevronLeft" className="w-4 h-4"/> Continuar comprando
+        </button>
+        <h1 className="serif-display text-4xl text-ink-50 mb-2">Carrinho e cotação</h1>
+        <p className="text-ink-300">{totalItems} itens · {groups.length} {groups.length === 1 ? 'locadora' : 'locadoras'}</p>
+      </div>
+
+      {/* Stepper */}
+      <div className="flex items-center gap-3 mb-10">
+        {['Itens', 'Datas', 'Revisão'].map((label, i) => (
+          <React.Fragment key={label}>
+            <div className={`flex items-center gap-2 ${step >= i + 1 ? 'text-amber-glow' : 'text-ink-400'}`}>
+              <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold ${step >= i + 1 ? 'bg-amber-glow text-ink-950' : 'bg-ink-800 text-ink-300'}`}>
+                {step > i + 1 ? <Icon name="check" className="w-3.5 h-3.5" strokeWidth={2.5}/> : i + 1}
+              </div>
+              <span className="text-sm font-medium">{label}</span>
+            </div>
+            {i < 2 && <div className={`flex-1 max-w-[80px] h-px ${step > i + 1 ? 'bg-amber-glow' : 'bg-ink-700'}`}></div>}
+          </React.Fragment>
+        ))}
+      </div>
+
+      <div className="grid lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-6">
+          {step === 1 && groups.map(({ rh, items }) => (
+            <div key={rh.id} className="bg-ink-900 border border-ink-700 rounded-2xl overflow-hidden fade-up">
+              <div className="px-5 py-4 border-b border-ink-700 flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-glow to-amber-gold flex items-center justify-center text-ink-950 font-semibold text-sm">{rh.name.charAt(0)}</div>
+                <div>
+                  <div className="text-ink-50 font-medium text-sm">{rh.name}</div>
+                  <div className="text-xs text-ink-400">{rh.city}</div>
+                </div>
+                <div className="ml-auto text-xs text-ink-400">{items.length} {items.length === 1 ? 'item' : 'itens'}</div>
+              </div>
+              <div className="divide-y divide-ink-800">
+                {items.map(item => (
+                  <div key={item.id} className="p-5 flex items-center gap-4">
+                    <div className="w-14 h-14 rounded-xl bg-ink-800 flex items-center justify-center flex-shrink-0">
+                      <Icon name={CATEGORIES.find(c => c.id === item.eq.cat)?.icon} className="w-6 h-6 text-amber-warm" strokeWidth={1.3}/>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="serif-display text-base text-ink-50 leading-tight">{item.eq.name}</div>
+                      <div className="text-xs text-ink-400 mt-1">{item.eq.desc}</div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button onClick={() => onUpdate(item.id, Math.max(1, item.qty - 1))} className="w-8 h-8 rounded-lg btn-ghost flex items-center justify-center">
+                        <Icon name="minus" className="w-3.5 h-3.5" strokeWidth={2}/>
+                      </button>
+                      <div className="w-10 text-center text-ink-100 font-mono">{item.qty}</div>
+                      <button onClick={() => onUpdate(item.id, Math.min(item.eq.qtyAvail, item.qty + 1))} className="w-8 h-8 rounded-lg btn-ghost flex items-center justify-center">
+                        <Icon name="plus" className="w-3.5 h-3.5" strokeWidth={2}/>
+                      </button>
+                    </div>
+                    <button onClick={() => onRemove(item.id)} className="text-ink-400 hover:text-red-400 p-2" title="Remover">
+                      <Icon name="trash" className="w-4 h-4"/>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+
+          {step === 2 && (
+            <div className="bg-ink-900 border border-ink-700 rounded-2xl p-6 fade-up">
+              <h3 className="serif-display text-xl text-ink-50 mb-1">Agendamento</h3>
+              <p className="text-ink-300 text-sm mb-6">Defina retirada, devolução e informações do projeto.</p>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <label className="eyebrow text-ink-400 block mb-2">Data de retirada</label>
+                  <input type="date" value={pickupDate} onChange={(e) => setPickupDate(e.target.value)} className="input-field w-full px-4 py-3 rounded-xl"/>
+                </div>
+                <div>
+                  <label className="eyebrow text-ink-400 block mb-2">Horário de retirada</label>
+                  <input type="time" value={pickupTime} onChange={(e) => setPickupTime(e.target.value)} className="input-field w-full px-4 py-3 rounded-xl"/>
+                </div>
+                <div>
+                  <label className="eyebrow text-ink-400 block mb-2">Data de devolução</label>
+                  <input type="date" value={returnDate} onChange={(e) => setReturnDate(e.target.value)} className="input-field w-full px-4 py-3 rounded-xl"/>
+                </div>
+                <div>
+                  <label className="eyebrow text-ink-400 block mb-2">Dias de locação</label>
+                  <div className="input-field w-full px-4 py-3 rounded-xl text-ink-300 font-mono">
+                    {Math.max(1, Math.ceil((new Date(returnDate) - new Date(pickupDate)) / 86400000))} dia(s)
+                  </div>
+                </div>
+                <div className="md:col-span-2">
+                  <label className="eyebrow text-ink-400 block mb-2">Projeto / Produção</label>
+                  <input type="text" placeholder="Ex: Curta Horizonte Azul" value={project} onChange={(e) => setProject(e.target.value)} className="input-field w-full px-4 py-3 rounded-xl"/>
+                </div>
+                <div className="md:col-span-2">
+                  <label className="eyebrow text-ink-400 block mb-2">Observações (opcional)</label>
+                  <textarea rows="3" placeholder="Ex: necessário kit de filtros, check-out na quinta-feira" value={notes} onChange={(e) => setNotes(e.target.value)} className="input-field w-full px-4 py-3 rounded-xl resize-none"></textarea>
+                </div>
+              </div>
+
+              <div className="bg-ink-950 border border-ink-700 rounded-xl p-4 mt-6 flex items-start gap-3">
+                <Icon name="shield" className="w-5 h-5 text-amber-glow flex-shrink-0 mt-0.5" strokeWidth={1.5}/>
+                <div>
+                  <div className="text-sm text-ink-100 font-medium mb-1">Confirmação segura</div>
+                  <div className="text-xs text-ink-400 leading-relaxed">Sua cotação é enviada diretamente para a locadora com todos os dados criptografados. Valores e informações pessoais permanecem privados (LGPD).</div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {step === 3 && (
+            <div className="bg-ink-900 border border-ink-700 rounded-2xl p-6 fade-up">
+              <h3 className="serif-display text-xl text-ink-50 mb-4">Revisão final</h3>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between py-3 border-b border-ink-800">
+                  <span className="text-sm text-ink-300">Projeto</span>
+                  <span className="text-sm text-ink-100 font-medium">{project || '—'}</span>
+                </div>
+                <div className="flex items-center justify-between py-3 border-b border-ink-800">
+                  <span className="text-sm text-ink-300">Retirada</span>
+                  <span className="text-sm text-ink-100 font-mono">{fmtDate(pickupDate)} · {pickupTime}</span>
+                </div>
+                <div className="flex items-center justify-between py-3 border-b border-ink-800">
+                  <span className="text-sm text-ink-300">Devolução</span>
+                  <span className="text-sm text-ink-100 font-mono">{fmtDate(returnDate)}</span>
+                </div>
+                <div className="flex items-center justify-between py-3 border-b border-ink-800">
+                  <span className="text-sm text-ink-300">Itens totais</span>
+                  <span className="text-sm text-ink-100 font-mono">{totalItems}</span>
+                </div>
+                <div className="flex items-center justify-between py-3 border-b border-ink-800">
+                  <span className="text-sm text-ink-300">Locadoras envolvidas</span>
+                  <span className="text-sm text-ink-100 font-mono">{groups.length}</span>
+                </div>
+                {notes && (
+                  <div>
+                    <span className="text-sm text-ink-300 block mb-1">Observações</span>
+                    <span className="text-sm text-ink-100">{notes}</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="bg-amber-glow/5 border border-amber-glow/20 rounded-xl p-4 mt-6 flex items-start gap-3">
+                <Icon name="sparkles" className="w-5 h-5 text-amber-glow flex-shrink-0 mt-0.5" strokeWidth={1.5}/>
+                <div className="text-sm text-ink-200 leading-relaxed">
+                  Sua solicitação será enviada para <span className="font-medium text-ink-50">{groups.length} {groups.length === 1 ? 'locadora' : 'locadoras'}</span>. Cada uma retornará com a cotação em até 2 horas úteis.
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Sticky summary */}
+        <div className="lg:col-span-1">
+          <div className="bg-ink-900 border border-ink-700 rounded-2xl p-6 sticky top-20">
+            <h3 className="eyebrow text-ink-400 mb-4">Resumo</h3>
+            <div className="space-y-3 mb-6">
+              <div className="flex justify-between text-sm">
+                <span className="text-ink-300">Itens</span>
+                <span className="text-ink-100 font-mono">{totalItems}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-ink-300">Locadoras</span>
+                <span className="text-ink-100 font-mono">{groups.length}</span>
+              </div>
+              {step >= 2 && (
+                <>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-ink-300">Período</span>
+                    <span className="text-ink-100 font-mono">{Math.max(1, Math.ceil((new Date(returnDate) - new Date(pickupDate)) / 86400000))} dia(s)</span>
+                  </div>
+                </>
+              )}
+            </div>
+
+            <div className="border-t border-ink-700 pt-4 mb-6">
+              <div className="flex justify-between text-sm">
+                <span className="text-ink-300">Valor estimado</span>
+                <span className="text-amber-warm font-medium">a cotar</span>
+              </div>
+              <p className="text-[11px] text-ink-400 mt-2 leading-relaxed">
+                Valores serão enviados pelas locadoras após análise da disponibilidade.
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              {step < 3 ? (
+                <button onClick={() => setStep(step + 1)} className="btn-primary w-full py-3.5 rounded-xl flex items-center justify-center gap-2">
+                  {step === 1 ? 'Definir datas' : 'Revisar pedido'} <Icon name="arrowRight" className="w-4 h-4" strokeWidth={2}/>
+                </button>
+              ) : (
+                <button onClick={() => onSubmit({ pickupDate, pickupTime, returnDate, project, notes })} className="btn-primary w-full py-3.5 rounded-xl flex items-center justify-center gap-2">
+                  <Icon name="send" className="w-4 h-4" strokeWidth={1.8}/> Solicitar cotação
+                </button>
+              )}
+              {step > 1 && (
+                <button onClick={() => setStep(step - 1)} className="btn-ghost w-full py-3 rounded-xl text-sm">
+                  Voltar
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ==========================================================
+   AC - MY QUOTATIONS
+   ========================================================== */
+const ACQuotations = ({ quotations, onOpen }) => {
+  const [filter, setFilter] = useState('todas');
+  const filters = [
+    { id: 'todas', label: 'Todas' },
+    { id: 'aguardando', label: 'Aguardando' },
+    { id: 'cotada', label: 'Cotadas' },
+    { id: 'aprovada', label: 'Aprovadas' },
+    { id: 'confirmada', label: 'Confirmadas' },
+    { id: 'finalizada', label: 'Finalizadas' },
+  ];
+
+  const filtered = quotations.filter(q => filter === 'todas' || q.status === filter);
+
+  return (
+    <div className="p-8 max-w-6xl">
+      <div className="mb-8">
+        <h1 className="serif-display text-4xl text-ink-50 mb-2">Minhas cotações</h1>
+        <p className="text-ink-300">Acompanhe todas as solicitações enviadas às locadoras.</p>
+      </div>
+
+      <div className="flex gap-2 flex-wrap mb-6">
+        {filters.map(f => (
+          <button key={f.id} onClick={() => setFilter(f.id)}
+            className={`px-4 py-2 rounded-full text-sm border transition-all ${filter === f.id ? 'bg-ink-100 text-ink-950 border-ink-100' : 'border-ink-700 text-ink-200 hover:border-ink-500'}`}>
+            {f.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="space-y-3">
+        {filtered.map((q, i) => {
+          const totalItems = q.items.reduce((s, i) => s + i.qty, 0);
+          return (
+            <button key={q.id} onClick={() => onOpen(q)} style={{ animationDelay: `${i * 0.04}s` }}
+              className="fade-up w-full bg-ink-900 border border-ink-700 rounded-2xl p-5 card-hover text-left">
+              <div className="flex items-center gap-5">
+                <div className="flex-shrink-0">
+                  <div className="eyebrow text-ink-400 mb-1">{q.id}</div>
+                  <StatusBadge status={q.status}/>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="serif-display text-lg text-ink-50 leading-tight mb-0.5">{q.project}</div>
+                  <div className="text-xs text-ink-400">{q.rhName} · {totalItems} itens</div>
+                </div>
+                <div className="hidden md:flex flex-col items-end gap-1 min-w-[140px]">
+                  <div className="text-xs text-ink-400">Retirada</div>
+                  <div className="text-sm text-ink-100 font-mono">{fmtDateShort(q.pickupDate)} · {q.pickupTime}</div>
+                </div>
+                <div className="hidden md:block text-right min-w-[120px]">
+                  <div className="text-xs text-ink-400">Valor</div>
+                  <div className="text-sm font-medium text-ink-50">{currency(q.total)}</div>
+                </div>
+                <Icon name="chevronRight" className="w-5 h-5 text-ink-400"/>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+
+      {filtered.length === 0 && (
+        <div className="bg-ink-900 border border-ink-700 rounded-2xl p-16 text-center">
+          <p className="text-ink-300">Nenhuma cotação nesse filtro.</p>
+        </div>
+      )}
+    </div>
+  );
+};
+
+/* ==========================================================
+   AC - QUOTATION DETAIL
+   ========================================================== */
+const QuotationDetail = ({ quot, onClose, onAction, viewerRole = 'ac' }) => {
+  if (!quot) return null;
+  const steps = ['aguardando', 'cotada', 'aprovada', 'confirmada', 'finalizada'];
+  const currentStep = steps.indexOf(quot.status);
+  const totalItems = quot.items.reduce((s, i) => s + i.qty, 0);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink-950/85 backdrop-blur-sm fade-up">
+      <div className="bg-ink-900 border border-ink-700 rounded-3xl max-w-4xl w-full max-h-[92vh] overflow-auto">
+        <div className="sticky top-0 bg-ink-900 border-b border-ink-700 px-8 py-5 flex items-center justify-between z-10">
+          <div className="flex items-center gap-4">
+            <div className="eyebrow text-ink-400">{quot.id}</div>
+            <StatusBadge status={quot.status}/>
+          </div>
+          <button onClick={onClose} className="w-9 h-9 rounded-full hover:bg-ink-800 flex items-center justify-center text-ink-300">
+            <Icon name="x" className="w-5 h-5" strokeWidth={1.8}/>
+          </button>
+        </div>
+
+        <div className="p-8">
+          <h2 className="serif-display text-3xl text-ink-50 mb-2">{quot.project}</h2>
+          <p className="text-ink-300 mb-8">{quot.rhName}</p>
+
+          {/* Progress tracker */}
+          <div className="bg-ink-950 border border-ink-700 rounded-2xl p-5 mb-8">
+            <div className="flex items-center justify-between relative">
+              <div className="absolute top-4 left-4 right-4 h-px bg-ink-700"></div>
+              <div className="absolute top-4 left-4 h-px bg-amber-glow transition-all" style={{ width: `calc((100% - 32px) * ${currentStep / (steps.length - 1)})` }}></div>
+              {steps.map((s, i) => (
+                <div key={s} className="relative z-10 flex flex-col items-center">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold ${i <= currentStep ? 'bg-amber-glow text-ink-950' : 'bg-ink-800 text-ink-400 border border-ink-700'}`}>
+                    {i < currentStep ? <Icon name="check" className="w-4 h-4" strokeWidth={2.5}/> : i + 1}
+                  </div>
+                  <div className={`text-[11px] mt-2 ${i <= currentStep ? 'text-ink-100' : 'text-ink-400'} capitalize`}>
+                    {statusConfig[s]?.label?.split(' ')[0] || s}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-6 mb-8">
+            <div>
+              <h3 className="eyebrow text-ink-400 mb-3">Informações</h3>
+              <div className="bg-ink-950 border border-ink-700 rounded-xl p-4 space-y-3 text-sm">
+                <div className="flex justify-between"><span className="text-ink-300">Solicitante</span><span className="text-ink-100">{quot.client}</span></div>
+                <div className="flex justify-between"><span className="text-ink-300">Função</span><span className="text-ink-100">{quot.clientRole}</span></div>
+                <div className="flex justify-between"><span className="text-ink-300">Criada em</span><span className="text-ink-100 font-mono">{fmtDate(quot.createdAt)}</span></div>
+                <div className="flex justify-between"><span className="text-ink-300">Locadora</span><span className="text-ink-100">{quot.rhName}</span></div>
+              </div>
+            </div>
+            <div>
+              <h3 className="eyebrow text-ink-400 mb-3">Agendamento</h3>
+              <div className="bg-ink-950 border border-ink-700 rounded-xl p-4 space-y-3 text-sm">
+                <div className="flex justify-between"><span className="text-ink-300">Retirada</span><span className="text-ink-100 font-mono">{fmtDate(quot.pickupDate)} · {quot.pickupTime}</span></div>
+                <div className="flex justify-between"><span className="text-ink-300">Devolução</span><span className="text-ink-100 font-mono">{fmtDate(quot.returnDate)}</span></div>
+                <div className="flex justify-between"><span className="text-ink-300">Duração</span><span className="text-ink-100 font-mono">{Math.max(1, Math.ceil((new Date(quot.returnDate) - new Date(quot.pickupDate)) / 86400000))} dia(s)</span></div>
+                <div className="flex justify-between"><span className="text-ink-300">Itens</span><span className="text-ink-100 font-mono">{totalItems}</span></div>
+              </div>
+            </div>
+          </div>
+
+          <h3 className="eyebrow text-ink-400 mb-3">Equipamentos solicitados</h3>
+          <div className="bg-ink-950 border border-ink-700 rounded-xl overflow-hidden mb-8">
+            {quot.items.map((it, i) => {
+              const eq = EQUIPMENT.find(e => e.id === it.id);
+              return (
+                <div key={it.id} className={`p-4 flex items-center gap-4 ${i > 0 ? 'border-t border-ink-800' : ''}`}>
+                  <div className="w-10 h-10 rounded-lg bg-ink-800 flex items-center justify-center flex-shrink-0">
+                    <Icon name={CATEGORIES.find(c => c.id === eq.cat)?.icon} className="w-5 h-5 text-amber-warm" strokeWidth={1.3}/>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm text-ink-50 font-medium">{eq.name}</div>
+                    <div className="text-xs text-ink-400 mt-0.5 font-mono">{eq.tech}</div>
+                  </div>
+                  <div className="text-sm text-ink-100 font-mono flex-shrink-0">× {it.qty}</div>
+                </div>
+              );
+            })}
+          </div>
+
+          {quot.total != null && (
+            <div className="bg-amber-glow/5 border border-amber-glow/20 rounded-xl p-5 mb-8 flex items-center justify-between">
+              <div>
+                <div className="eyebrow text-amber-glow mb-1">Valor da cotação</div>
+                <div className="text-xs text-ink-300">Proposta enviada pela locadora</div>
+              </div>
+              <div className="serif-display text-3xl text-amber-warm">{currency(quot.total)}</div>
+            </div>
+          )}
+
+          {/* Actions */}
+          {viewerRole === 'ac' && quot.status === 'cotada' && (
+            <div className="flex items-center gap-3">
+              <button onClick={() => onAction?.('approve', quot)} className="btn-primary flex-1 py-3.5 rounded-xl flex items-center justify-center gap-2">
+                <Icon name="check" className="w-4 h-4" strokeWidth={2}/> Aprovar cotação
+              </button>
+              <button onClick={() => onAction?.('reject', quot)} className="btn-ghost flex-1 py-3.5 rounded-xl">Recusar</button>
+            </div>
+          )}
+          {viewerRole === 'staff' && quot.status === 'aguardando' && (
+            <div className="space-y-3">
+              <div>
+                <label className="eyebrow text-ink-400 block mb-2">Valor da cotação (R$)</label>
+                <input type="number" placeholder="0,00" className="input-field w-full px-4 py-3 rounded-xl font-mono"/>
+              </div>
+              <div className="flex gap-3">
+                <button onClick={() => onAction?.('quote', quot)} className="btn-primary flex-1 py-3.5 rounded-xl flex items-center justify-center gap-2">
+                  <Icon name="send" className="w-4 h-4" strokeWidth={1.8}/> Enviar cotação ao cliente
+                </button>
+                <button onClick={() => onAction?.('reject', quot)} className="btn-ghost py-3.5 px-6 rounded-xl">Recusar</button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ==========================================================
+   AC - PROFILE
+   ========================================================== */
+const ACProfile = () => {
+  const [name, setName] = useState('Carlos Menezes');
+  const [cpf, setCpf] = useState('123.456.789-00');
+  const [phone, setPhone] = useState('(11) 98765-4321');
+  const [phoneVerified, setPhoneVerified] = useState(true);
+  const [email, setEmail] = useState('carlos.menezes@filmes.br');
+  const [role, setRole] = useState('1º Assistente de Câmera');
+
+  return (
+    <div className="p-8 max-w-3xl">
+      <div className="mb-8">
+        <h1 className="serif-display text-4xl text-ink-50 mb-2">Meu perfil</h1>
+        <p className="text-ink-300">Dados necessários para cotações seguras. Protegidos pela LGPD.</p>
+      </div>
+
+      <div className="bg-ink-900 border border-ink-700 rounded-3xl p-8 mb-6 fade-up">
+        <div className="flex items-center gap-5 mb-8">
+          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-amber-glow to-amber-gold flex items-center justify-center text-ink-950 font-semibold text-3xl serif-display">
+            {name.charAt(0)}
+          </div>
+          <div>
+            <h2 className="serif-display text-2xl text-ink-50">{name}</h2>
+            <p className="text-ink-300 text-sm">{role}</p>
+            <div className="flex items-center gap-2 mt-1">
+              <Icon name="shield" className="w-3.5 h-3.5 text-green-400"/>
+              <span className="text-xs text-green-400">Perfil verificado</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-4">
+          <div>
+            <label className="eyebrow text-ink-400 block mb-2">Nome completo</label>
+            <input value={name} onChange={(e) => setName(e.target.value)} className="input-field w-full px-4 py-3 rounded-xl"/>
+          </div>
+          <div>
+            <label className="eyebrow text-ink-400 block mb-2">Função</label>
+            <input value={role} onChange={(e) => setRole(e.target.value)} className="input-field w-full px-4 py-3 rounded-xl"/>
+          </div>
+          <div>
+            <label className="eyebrow text-ink-400 block mb-2">CPF</label>
+            <div className="relative">
+              <input value={cpf} onChange={(e) => setCpf(formatCPF(e.target.value))} className="input-field w-full px-4 py-3 rounded-xl font-mono"/>
+              {isValidCPF(cpf) && <Icon name="check" className="w-4 h-4 text-green-400 absolute right-3 top-1/2 -translate-y-1/2" strokeWidth={2.5}/>}
+            </div>
+          </div>
+          <div>
+            <label className="eyebrow text-ink-400 block mb-2">Telefone {phoneVerified && <span className="text-green-400 ml-1">✓ verificado</span>}</label>
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <input value={phone} onChange={(e) => { setPhone(formatPhone(e.target.value)); setPhoneVerified(false); }} className="input-field w-full px-4 py-3 rounded-xl font-mono"/>
+              </div>
+              {!phoneVerified && isValidPhone(phone) && (
+                <button onClick={() => setPhoneVerified(true)} className="btn-primary px-4 rounded-xl text-sm whitespace-nowrap">Validar SMS</button>
+              )}
+            </div>
+          </div>
+          <div className="md:col-span-2">
+            <label className="eyebrow text-ink-400 block mb-2">E-mail</label>
+            <input value={email} onChange={(e) => setEmail(e.target.value)} className="input-field w-full px-4 py-3 rounded-xl font-mono"/>
+          </div>
+        </div>
+
+        <button className="btn-primary px-6 py-3 rounded-xl mt-6">Salvar alterações</button>
+      </div>
+
+      <div className="bg-ink-900 border border-ink-700 rounded-3xl p-6 fade-up fade-up-1">
+        <div className="flex items-start gap-4">
+          <div className="w-10 h-10 rounded-xl bg-amber-glow/10 flex items-center justify-center text-amber-glow flex-shrink-0">
+            <Icon name="shield" className="w-5 h-5" strokeWidth={1.5}/>
+          </div>
+          <div>
+            <h3 className="serif-display text-lg text-ink-50 mb-1">Segurança e privacidade</h3>
+            <p className="text-ink-300 text-sm leading-relaxed mb-4">Seus dados pessoais são criptografados, armazenados conforme LGPD e compartilhados apenas com locadoras nas quais você solicitou cotação.</p>
+            <div className="space-y-2">
+              <button className="btn-ghost px-4 py-2.5 rounded-xl text-sm w-full text-left">Ativar autenticação de dois fatores</button>
+              <button className="btn-ghost px-4 py-2.5 rounded-xl text-sm w-full text-left">Alterar senha</button>
+              <button className="btn-ghost px-4 py-2.5 rounded-xl text-sm w-full text-left text-red-400">Solicitar exclusão de conta (LGPD)</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+window.__CENA_AC__ = { ACExplore, EquipmentDetail, ACCart, ACQuotations, QuotationDetail, ACProfile };
+</script>
+
+<script type="text/babel" data-type="module">
+/* ============================================================
+   PART 4 — Staff & Admin screens
+   ============================================================ */
+const { useState, useEffect, useMemo } = React;
+const { Icon, Logo, EquipmentCard, RENTAL_HOUSES, CATEGORIES, EQUIPMENT, MOCK_QUOTATIONS, TEAM_MEMBERS, currency, fmtDate, fmtDateShort, formatPhone, formatCPF, isValidPhone, isValidCPF, StatusBadge, statusConfig } = window.__CENA_BASE__;
+
+/* ==========================================================
+   STAFF - DASHBOARD
+   ========================================================== */
+const StaffDashboard = ({ onNav, onOpenQuot }) => {
+  const kpis = [
+    { label: 'Cotações abertas', value: '12', delta: '+3', color: '#ff7a2e' },
+    { label: 'Retiradas hoje',   value: '5',  delta: '2 pendentes', color: '#e8c468' },
+    { label: 'Em locação',        value: '28', delta: 'de 124 itens', color: '#6ba8ff' },
+    { label: 'Devoluções hoje',   value: '3',  delta: 'até às 18h', color: '#8ee37c' },
+  ];
+  const recent = MOCK_QUOTATIONS.slice(0, 4);
+
+  return (
+    <div className="p-8 max-w-7xl">
+      <div className="flex items-start justify-between mb-10 fade-up">
+        <div>
+          <div className="eyebrow text-amber-glow mb-2">Segunda-feira · 20 de abril</div>
+          <h1 className="serif-display text-4xl text-ink-50 mb-2">Bom dia, Beatriz.</h1>
+          <p className="text-ink-300">Você tem <span className="text-amber-warm font-medium">3 cotações</span> aguardando resposta e <span className="text-amber-warm font-medium">5 retiradas</span> previstas para hoje.</p>
+        </div>
+        <button onClick={() => onNav('equipment')} className="btn-primary px-5 py-3 rounded-xl flex items-center gap-2">
+          <Icon name="plus" className="w-4 h-4" strokeWidth={2}/> Cadastrar equipamento
+        </button>
+      </div>
+
+      {/* KPIs */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        {kpis.map((k, i) => (
+          <div key={k.label} style={{ animationDelay: `${i * 0.05}s` }} className="fade-up bg-ink-900 border border-ink-700 rounded-2xl p-5 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-24 h-24 rounded-full blur-3xl opacity-20" style={{ background: k.color }}></div>
+            <div className="relative">
+              <div className="eyebrow text-ink-400 mb-2">{k.label}</div>
+              <div className="serif-display text-4xl text-ink-50 mb-1">{k.value}</div>
+              <div className="text-xs text-ink-400">{k.delta}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="grid lg:grid-cols-3 gap-6">
+        {/* Cotações recentes */}
+        <div className="lg:col-span-2 bg-ink-900 border border-ink-700 rounded-2xl overflow-hidden fade-up">
+          <div className="px-5 py-4 border-b border-ink-700 flex items-center justify-between">
+            <h3 className="serif-display text-lg text-ink-50">Cotações recentes</h3>
+            <button onClick={() => onNav('quotations')} className="text-sm text-amber-glow hover:underline">Ver todas</button>
+          </div>
+          <div className="divide-y divide-ink-800">
+            {recent.map(q => (
+              <button key={q.id} onClick={() => onOpenQuot(q)} className="w-full p-4 flex items-center gap-4 hover:bg-ink-800/50 transition-colors text-left">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-glow/20 to-amber-gold/20 flex items-center justify-center text-amber-glow font-mono text-xs">
+                  {q.id.split('-')[1]}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm text-ink-50 font-medium truncate">{q.project}</div>
+                  <div className="text-xs text-ink-400 truncate">{q.client} · {q.clientRole}</div>
+                </div>
+                <StatusBadge status={q.status}/>
+                <Icon name="chevronRight" className="w-4 h-4 text-ink-400"/>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Agenda do dia */}
+        <div className="bg-ink-900 border border-ink-700 rounded-2xl fade-up fade-up-1">
+          <div className="px-5 py-4 border-b border-ink-700 flex items-center justify-between">
+            <h3 className="serif-display text-lg text-ink-50">Agenda de hoje</h3>
+            <Icon name="calendar" className="w-4 h-4 text-ink-400"/>
+          </div>
+          <div className="p-5 space-y-4">
+            {[
+              { time: '07:00', kind: 'Retirada', who: 'Pedro Alvim', project: 'Série Raízes', color: '#ff7a2e' },
+              { time: '09:30', kind: 'Retirada', who: 'Mariana Ribeiro', project: 'Comercial Natura', color: '#ff7a2e' },
+              { time: '14:00', kind: 'Check-in', who: 'Luiza Fontes', project: 'Entre Marés', color: '#8ee37c' },
+              { time: '18:00', kind: 'Devolução', who: 'Thiago Costa', project: 'Videoclipe', color: '#6ba8ff' },
+            ].map((e, i) => (
+              <div key={i} className="flex gap-4 items-start">
+                <div className="w-16 flex-shrink-0">
+                  <div className="text-sm text-ink-50 font-mono">{e.time}</div>
+                </div>
+                <div className="flex-1 min-w-0 pb-4 border-l-2 pl-4 -ml-2" style={{ borderColor: e.color }}>
+                  <div className="eyebrow mb-1" style={{ color: e.color }}>{e.kind}</div>
+                  <div className="text-sm text-ink-100 font-medium">{e.who}</div>
+                  <div className="text-xs text-ink-400 truncate">{e.project}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ==========================================================
+   STAFF - EQUIPMENT MANAGEMENT
+   ========================================================== */
+const StaffEquipment = ({ onNew }) => {
+  const [search, setSearch] = useState('');
+  const [cat, setCat] = useState(null);
+
+  const rhEquipment = EQUIPMENT.filter(e => e.rhId === 'rh1');
+  const filtered = rhEquipment.filter(eq => {
+    if (cat && eq.cat !== cat) return false;
+    if (search && !eq.name.toLowerCase().includes(search.toLowerCase())) return false;
+    return true;
+  });
+
+  return (
+    <div className="p-8 max-w-7xl">
+      <div className="flex items-start justify-between mb-8 fade-up">
+        <div>
+          <h1 className="serif-display text-4xl text-ink-50 mb-2">Meus equipamentos</h1>
+          <p className="text-ink-300">{rhEquipment.length} itens cadastrados · {rhEquipment.reduce((s, e) => s + e.qty, 0)} unidades totais</p>
+        </div>
+        <button onClick={onNew} className="btn-primary px-5 py-3 rounded-xl flex items-center gap-2">
+          <Icon name="plus" className="w-4 h-4" strokeWidth={2}/> Cadastrar novo
+        </button>
+      </div>
+
+      <div className="flex gap-3 mb-6">
+        <div className="flex-1 bg-ink-900 border border-ink-700 rounded-xl flex items-center gap-3 px-4">
+          <Icon name="search" className="w-4 h-4 text-ink-400"/>
+          <input placeholder="Buscar por nome..." value={search} onChange={(e) => setSearch(e.target.value)} className="flex-1 bg-transparent border-0 outline-none py-3 text-sm text-ink-100 placeholder:text-ink-400"/>
+        </div>
+        <select value={cat || ''} onChange={(e) => setCat(e.target.value || null)} className="input-field px-4 py-3 rounded-xl text-sm">
+          <option value="">Todas categorias</option>
+          {CATEGORIES.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+        </select>
+      </div>
+
+      <div className="bg-ink-900 border border-ink-700 rounded-2xl overflow-hidden fade-up">
+        <table className="w-full">
+          <thead>
+            <tr className="border-b border-ink-700">
+              <th className="text-left px-5 py-3 eyebrow text-ink-400">Equipamento</th>
+              <th className="text-left px-5 py-3 eyebrow text-ink-400 hidden md:table-cell">Categoria</th>
+              <th className="text-left px-5 py-3 eyebrow text-ink-400">Disponível</th>
+              <th className="text-left px-5 py-3 eyebrow text-ink-400 hidden lg:table-cell">Em locação</th>
+              <th className="text-right px-5 py-3 eyebrow text-ink-400">Ações</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-ink-800">
+            {filtered.map(eq => (
+              <tr key={eq.id} className="hover:bg-ink-800/40 transition-colors">
+                <td className="px-5 py-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-ink-800 flex items-center justify-center flex-shrink-0">
+                      <Icon name={CATEGORIES.find(c => c.id === eq.cat)?.icon} className="w-5 h-5 text-amber-warm" strokeWidth={1.3}/>
+                    </div>
+                    <div>
+                      <div className="text-sm text-ink-50 font-medium">{eq.name}</div>
+                      <div className="text-xs text-ink-400">{eq.desc}</div>
+                    </div>
+                  </div>
+                </td>
+                <td className="px-5 py-4 hidden md:table-cell">
+                  <span className="text-xs text-ink-300 px-2 py-1 rounded-md bg-ink-800">{CATEGORIES.find(c => c.id === eq.cat)?.name}</span>
+                </td>
+                <td className="px-5 py-4">
+                  <div className="flex items-center gap-2">
+                    <span className={`text-sm font-mono ${eq.qtyAvail > 0 ? 'text-green-400' : 'text-red-400'}`}>{eq.qtyAvail}</span>
+                    <span className="text-xs text-ink-400">/ {eq.qty}</span>
+                  </div>
+                </td>
+                <td className="px-5 py-4 hidden lg:table-cell">
+                  <span className="text-sm text-ink-300 font-mono">{eq.qty - eq.qtyAvail}</span>
+                </td>
+                <td className="px-5 py-4 text-right">
+                  <div className="flex items-center justify-end gap-1">
+                    <button className="w-8 h-8 rounded-lg hover:bg-ink-800 flex items-center justify-center text-ink-400 hover:text-ink-100" title="Visualizar">
+                      <Icon name="eye" className="w-4 h-4"/>
+                    </button>
+                    <button className="w-8 h-8 rounded-lg hover:bg-ink-800 flex items-center justify-center text-ink-400 hover:text-ink-100" title="Editar">
+                      <Icon name="edit" className="w-4 h-4"/>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
+/* ==========================================================
+   STAFF - NEW EQUIPMENT FORM
+   ========================================================== */
+const NewEquipmentForm = ({ onClose, onSave }) => {
+  const [form, setForm] = useState({ name: '', cat: 'cam', desc: '', tech: '', qty: 1 });
+  const update = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink-950/85 backdrop-blur-sm fade-up">
+      <div className="bg-ink-900 border border-ink-700 rounded-3xl max-w-2xl w-full max-h-[92vh] overflow-auto">
+        <div className="sticky top-0 bg-ink-900 border-b border-ink-700 px-8 py-5 flex items-center justify-between">
+          <div>
+            <div className="eyebrow text-amber-glow mb-1">Novo equipamento</div>
+            <h2 className="serif-display text-2xl text-ink-50">Cadastro</h2>
+          </div>
+          <button onClick={onClose} className="w-9 h-9 rounded-full hover:bg-ink-800 flex items-center justify-center text-ink-300">
+            <Icon name="x" className="w-5 h-5" strokeWidth={1.8}/>
+          </button>
+        </div>
+        <div className="p-8 space-y-5">
+          <div>
+            <label className="eyebrow text-ink-400 block mb-2">Nome do equipamento <span className="text-amber-glow">*</span></label>
+            <input value={form.name} onChange={(e) => update('name', e.target.value)} placeholder="Ex: ARRI Alexa Mini LF" className="input-field w-full px-4 py-3 rounded-xl"/>
+          </div>
+          <div>
+            <label className="eyebrow text-ink-400 block mb-2">Categoria <span className="text-amber-glow">*</span></label>
+            <div className="grid grid-cols-3 gap-2">
+              {CATEGORIES.map(c => (
+                <button key={c.id} onClick={() => update('cat', c.id)} className={`px-3 py-2.5 rounded-xl border text-sm flex items-center gap-2 transition-all ${form.cat === c.id ? 'border-amber-glow/60 bg-amber-glow/10 text-amber-glow' : 'border-ink-700 text-ink-300 hover:border-ink-500'}`}>
+                  <Icon name={c.icon} className="w-4 h-4" strokeWidth={1.6}/> {c.name}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <label className="eyebrow text-ink-400 block mb-2">Descrição <span className="text-amber-glow">*</span></label>
+            <input value={form.desc} onChange={(e) => update('desc', e.target.value)} placeholder="Ex: Câmera digital full-frame profissional" className="input-field w-full px-4 py-3 rounded-xl"/>
+          </div>
+          <div>
+            <label className="eyebrow text-ink-400 block mb-2">Descrição técnica <span className="text-amber-glow">*</span></label>
+            <textarea rows="3" value={form.tech} onChange={(e) => update('tech', e.target.value)} placeholder="Ex: Sensor LF 4.5K · ProRes/ARRIRAW · ND interno · Base ISO 800" className="input-field w-full px-4 py-3 rounded-xl font-mono text-sm resize-none"></textarea>
+          </div>
+          <div>
+            <label className="eyebrow text-ink-400 block mb-2">Quantidade para locação <span className="text-amber-glow">*</span></label>
+            <div className="flex items-center gap-3">
+              <button onClick={() => update('qty', Math.max(1, form.qty - 1))} className="w-11 h-11 rounded-xl btn-ghost flex items-center justify-center">
+                <Icon name="minus" className="w-4 h-4" strokeWidth={2}/>
+              </button>
+              <input type="number" value={form.qty} onChange={(e) => update('qty', Math.max(1, parseInt(e.target.value) || 1))} className="input-field flex-1 px-4 py-3 rounded-xl text-center font-mono text-lg"/>
+              <button onClick={() => update('qty', form.qty + 1)} className="w-11 h-11 rounded-xl btn-ghost flex items-center justify-center">
+                <Icon name="plus" className="w-4 h-4" strokeWidth={2}/>
+              </button>
+            </div>
+          </div>
+          <div className="bg-ink-950 border border-ink-700 rounded-xl p-4 flex items-start gap-3">
+            <Icon name="sparkles" className="w-5 h-5 text-amber-glow flex-shrink-0 mt-0.5" strokeWidth={1.5}/>
+            <div className="text-xs text-ink-300 leading-relaxed">
+              Após cadastrar, você poderá adicionar fotos, marcar itens como "em manutenção" e configurar valores base para cotações automáticas.
+            </div>
+          </div>
+        </div>
+        <div className="sticky bottom-0 bg-ink-900 border-t border-ink-700 px-8 py-4 flex items-center justify-between gap-3">
+          <button onClick={onClose} className="btn-ghost px-5 py-3 rounded-xl">Cancelar</button>
+          <button onClick={() => onSave(form)} className="btn-primary px-6 py-3 rounded-xl flex items-center gap-2">
+            <Icon name="check" className="w-4 h-4" strokeWidth={2}/> Cadastrar equipamento
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ==========================================================
+   STAFF - QUOTATIONS LIST
+   ========================================================== */
+const StaffQuotations = ({ onOpen }) => {
+  const [filter, setFilter] = useState('todas');
+  const filters = [
+    { id: 'todas', label: 'Todas' },
+    { id: 'aguardando', label: 'Para cotar', count: 1 },
+    { id: 'cotada', label: 'Aguardando cliente' },
+    { id: 'aprovada', label: 'Aprovadas' },
+    { id: 'confirmada', label: 'Confirmadas' },
+    { id: 'finalizada', label: 'Finalizadas' },
+  ];
+  const filtered = MOCK_QUOTATIONS.filter(q => filter === 'todas' || q.status === filter);
+
+  return (
+    <div className="p-8 max-w-7xl">
+      <div className="mb-8">
+        <h1 className="serif-display text-4xl text-ink-50 mb-2">Cotações</h1>
+        <p className="text-ink-300">Gerencie solicitações de locação.</p>
+      </div>
+
+      <div className="flex gap-2 flex-wrap mb-6">
+        {filters.map(f => (
+          <button key={f.id} onClick={() => setFilter(f.id)}
+            className={`px-4 py-2 rounded-full text-sm border transition-all flex items-center gap-2 ${filter === f.id ? 'bg-ink-100 text-ink-950 border-ink-100' : 'border-ink-700 text-ink-200 hover:border-ink-500'}`}>
+            {f.label}
+            {f.count && <span className={`text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center ${filter === f.id ? 'bg-ink-950 text-amber-glow' : 'bg-amber-glow text-ink-950'}`}>{f.count}</span>}
+          </button>
+        ))}
+      </div>
+
+      <div className="bg-ink-900 border border-ink-700 rounded-2xl overflow-hidden fade-up">
+        <table className="w-full">
+          <thead>
+            <tr className="border-b border-ink-700">
+              <th className="text-left px-5 py-3 eyebrow text-ink-400">ID</th>
+              <th className="text-left px-5 py-3 eyebrow text-ink-400">Projeto</th>
+              <th className="text-left px-5 py-3 eyebrow text-ink-400 hidden md:table-cell">Cliente</th>
+              <th className="text-left px-5 py-3 eyebrow text-ink-400 hidden lg:table-cell">Retirada</th>
+              <th className="text-left px-5 py-3 eyebrow text-ink-400">Status</th>
+              <th className="text-right px-5 py-3 eyebrow text-ink-400">Valor</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-ink-800">
+            {filtered.map(q => (
+              <tr key={q.id} onClick={() => onOpen(q)} className="hover:bg-ink-800/40 transition-colors cursor-pointer">
+                <td className="px-5 py-4 font-mono text-xs text-amber-glow">{q.id}</td>
+                <td className="px-5 py-4">
+                  <div className="text-sm text-ink-50 font-medium">{q.project}</div>
+                  <div className="text-xs text-ink-400">{q.items.reduce((s, i) => s + i.qty, 0)} itens</div>
+                </td>
+                <td className="px-5 py-4 hidden md:table-cell">
+                  <div className="text-sm text-ink-100">{q.client}</div>
+                  <div className="text-xs text-ink-400">{q.clientRole}</div>
+                </td>
+                <td className="px-5 py-4 hidden lg:table-cell">
+                  <div className="text-sm text-ink-100 font-mono">{fmtDateShort(q.pickupDate)}</div>
+                  <div className="text-xs text-ink-400 font-mono">{q.pickupTime}</div>
+                </td>
+                <td className="px-5 py-4"><StatusBadge status={q.status}/></td>
+                <td className="px-5 py-4 text-right text-sm font-medium text-ink-100">{currency(q.total)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
+/* ==========================================================
+   ADMIN - DASHBOARD
+   ========================================================== */
+const AdminDashboard = () => {
+  const kpis = [
+    { label: 'Receita mensal', value: 'R$ 284,5k', delta: '+18% vs mês passado', color: '#ff7a2e' },
+    { label: 'Locações ativas', value: '47', delta: 'em 23 produções', color: '#e8c468' },
+    { label: 'Taxa de ocupação', value: '74%', delta: '+6pp vs média trimestral', color: '#6ba8ff' },
+    { label: 'Tempo médio cotação', value: '38 min', delta: '-72% vs manual', color: '#8ee37c' },
+  ];
+
+  const monthlyRevenue = [48, 62, 58, 71, 82, 68, 89, 95, 102, 88, 96, 114];
+  const maxRev = Math.max(...monthlyRevenue);
+
+  return (
+    <div className="p-8 max-w-7xl">
+      <div className="mb-10 fade-up">
+        <div className="eyebrow text-amber-glow mb-2">Cinestúdio SP · Abril 2026</div>
+        <h1 className="serif-display text-4xl text-ink-50 mb-2">Panorama geral</h1>
+        <p className="text-ink-300">Métricas consolidadas e desempenho em tempo real.</p>
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        {kpis.map((k, i) => (
+          <div key={k.label} style={{ animationDelay: `${i * 0.05}s` }} className="fade-up bg-ink-900 border border-ink-700 rounded-2xl p-5 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-24 h-24 rounded-full blur-3xl opacity-25" style={{ background: k.color }}></div>
+            <div className="relative">
+              <div className="eyebrow text-ink-400 mb-2">{k.label}</div>
+              <div className="serif-display text-3xl text-ink-50 mb-1">{k.value}</div>
+              <div className="text-xs text-ink-400">{k.delta}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="grid lg:grid-cols-3 gap-6 mb-8">
+        {/* Revenue chart */}
+        <div className="lg:col-span-2 bg-ink-900 border border-ink-700 rounded-2xl p-6 fade-up">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="serif-display text-lg text-ink-50">Receita por mês</h3>
+              <p className="text-xs text-ink-400 mt-0.5">Últimos 12 meses · em milhares de reais</p>
+            </div>
+            <button className="btn-ghost px-3 py-1.5 rounded-lg text-xs flex items-center gap-2">
+              <Icon name="filter" className="w-3.5 h-3.5"/> 2026
+            </button>
+          </div>
+          <div className="flex items-end justify-between gap-2 h-48">
+            {monthlyRevenue.map((v, i) => (
+              <div key={i} className="flex-1 flex flex-col items-center gap-2 group">
+                <div className="relative w-full flex items-end justify-center" style={{ height: '85%' }}>
+                  <div
+                    className="w-full rounded-t transition-all group-hover:opacity-100"
+                    style={{
+                      height: `${(v / maxRev) * 100}%`,
+                      background: `linear-gradient(180deg, ${i === 11 ? '#ff7a2e' : 'rgba(255,122,46,0.5)'}, ${i === 11 ? 'rgba(255,122,46,0.3)' : 'rgba(255,122,46,0.1)'})`,
+                      borderTop: i === 11 ? '2px solid #ffab70' : 'none',
+                    }}
+                  ></div>
+                </div>
+                <div className={`text-[10px] font-mono ${i === 11 ? 'text-amber-glow' : 'text-ink-400'}`}>
+                  {['J','F','M','A','M','J','J','A','S','O','N','D'][i]}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Top equipment */}
+        <div className="bg-ink-900 border border-ink-700 rounded-2xl p-6 fade-up fade-up-1">
+          <h3 className="serif-display text-lg text-ink-50 mb-1">Mais locados</h3>
+          <p className="text-xs text-ink-400 mb-5">Top 5 do mês</p>
+          <div className="space-y-3">
+            {[
+              { name: 'ARRI Alexa Mini LF', count: 18, pct: 100 },
+              { name: 'Aputure LS 600d Pro', count: 14, pct: 78 },
+              { name: 'Sony FX6', count: 12, pct: 67 },
+              { name: 'Zeiss Supreme 50mm', count: 9, pct: 50 },
+              { name: 'DJI Ronin 2', count: 7, pct: 39 },
+            ].map((item, i) => (
+              <div key={i}>
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-xs text-ink-100 truncate">{item.name}</span>
+                  <span className="text-xs text-ink-400 font-mono">{item.count}×</span>
+                </div>
+                <div className="h-1 bg-ink-800 rounded-full overflow-hidden">
+                  <div className="h-full rounded-full" style={{ width: `${item.pct}%`, background: 'linear-gradient(90deg, #ff7a2e, #e8c468)' }}></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom insights */}
+      <div className="grid md:grid-cols-3 gap-4">
+        <div className="bg-ink-900 border border-ink-700 rounded-2xl p-5 fade-up fade-up-2">
+          <div className="w-10 h-10 rounded-xl bg-amber-glow/10 flex items-center justify-center text-amber-glow mb-4">
+            <Icon name="truck" className="w-5 h-5" strokeWidth={1.5}/>
+          </div>
+          <div className="serif-display text-xl text-ink-50 mb-1">92%</div>
+          <div className="text-sm text-ink-100">Retiradas no prazo</div>
+          <div className="text-xs text-ink-400 mt-1">7 atrasos nos últimos 30 dias</div>
+        </div>
+        <div className="bg-ink-900 border border-ink-700 rounded-2xl p-5 fade-up fade-up-3">
+          <div className="w-10 h-10 rounded-xl bg-amber-glow/10 flex items-center justify-center text-amber-glow mb-4">
+            <Icon name="users" className="w-5 h-5" strokeWidth={1.5}/>
+          </div>
+          <div className="serif-display text-xl text-ink-50 mb-1">38</div>
+          <div className="text-sm text-ink-100">Clientes ativos</div>
+          <div className="text-xs text-ink-400 mt-1">+9 novos cadastros no mês</div>
+        </div>
+        <div className="bg-ink-900 border border-ink-700 rounded-2xl p-5 fade-up fade-up-4">
+          <div className="w-10 h-10 rounded-xl bg-amber-glow/10 flex items-center justify-center text-amber-glow mb-4">
+            <Icon name="star" className="w-5 h-5" strokeWidth={1.5}/>
+          </div>
+          <div className="serif-display text-xl text-ink-50 mb-1">4.9</div>
+          <div className="text-sm text-ink-100">Avaliação média</div>
+          <div className="text-xs text-ink-400 mt-1">312 avaliações recebidas</div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ==========================================================
+   ADMIN - TEAM MANAGEMENT
+   ========================================================== */
+const AdminTeam = () => {
+  const [showNew, setShowNew] = useState(false);
+  return (
+    <div className="p-8 max-w-6xl">
+      <div className="flex items-start justify-between mb-8 fade-up">
+        <div>
+          <h1 className="serif-display text-4xl text-ink-50 mb-2">Equipe</h1>
+          <p className="text-ink-300">Gerencie funcionários e permissões de acesso.</p>
+        </div>
+        <button onClick={() => setShowNew(true)} className="btn-primary px-5 py-3 rounded-xl flex items-center gap-2">
+          <Icon name="plus" className="w-4 h-4" strokeWidth={2}/> Novo funcionário
+        </button>
+      </div>
+
+      <div className="bg-ink-900 border border-ink-700 rounded-2xl overflow-hidden fade-up">
+        <table className="w-full">
+          <thead>
+            <tr className="border-b border-ink-700">
+              <th className="text-left px-5 py-3 eyebrow text-ink-400">Funcionário</th>
+              <th className="text-left px-5 py-3 eyebrow text-ink-400 hidden md:table-cell">E-mail</th>
+              <th className="text-left px-5 py-3 eyebrow text-ink-400">Perfil</th>
+              <th className="text-left px-5 py-3 eyebrow text-ink-400">Status</th>
+              <th className="text-right px-5 py-3 eyebrow text-ink-400">Ações</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-ink-800">
+            {TEAM_MEMBERS.map(m => (
+              <tr key={m.id} className="hover:bg-ink-800/40 transition-colors">
+                <td className="px-5 py-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-amber-glow to-amber-gold flex items-center justify-center text-ink-950 font-semibold text-sm">
+                      {m.name.charAt(0)}
+                    </div>
+                    <div className="text-sm text-ink-50 font-medium">{m.name}</div>
+                  </div>
+                </td>
+                <td className="px-5 py-4 hidden md:table-cell text-sm text-ink-300 font-mono">{m.email}</td>
+                <td className="px-5 py-4">
+                  <span className="text-xs text-ink-200 px-2 py-1 rounded-md bg-ink-800">{m.role}</span>
+                </td>
+                <td className="px-5 py-4">
+                  {m.active
+                    ? <span className="inline-flex items-center gap-1.5 text-xs text-green-400"><span className="w-1.5 h-1.5 rounded-full bg-green-400"></span> Ativo</span>
+                    : <span className="inline-flex items-center gap-1.5 text-xs text-ink-400"><span className="w-1.5 h-1.5 rounded-full bg-ink-400"></span> Inativo</span>
+                  }
+                </td>
+                <td className="px-5 py-4 text-right">
+                  <div className="flex items-center justify-end gap-1">
+                    <button className="w-8 h-8 rounded-lg hover:bg-ink-800 flex items-center justify-center text-ink-400 hover:text-ink-100"><Icon name="edit" className="w-4 h-4"/></button>
+                    <button className="w-8 h-8 rounded-lg hover:bg-ink-800 flex items-center justify-center text-ink-400 hover:text-red-400"><Icon name="trash" className="w-4 h-4"/></button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {showNew && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink-950/85 backdrop-blur-sm fade-up">
+          <div className="bg-ink-900 border border-ink-700 rounded-3xl max-w-lg w-full overflow-auto">
+            <div className="px-8 py-5 border-b border-ink-700 flex items-center justify-between">
+              <h2 className="serif-display text-2xl text-ink-50">Novo funcionário</h2>
+              <button onClick={() => setShowNew(false)} className="w-9 h-9 rounded-full hover:bg-ink-800 flex items-center justify-center text-ink-300"><Icon name="x" className="w-5 h-5"/></button>
+            </div>
+            <div className="p-8 space-y-4">
+              <div>
+                <label className="eyebrow text-ink-400 block mb-2">Nome completo</label>
+                <input placeholder="Ex: João Pereira" className="input-field w-full px-4 py-3 rounded-xl"/>
+              </div>
+              <div>
+                <label className="eyebrow text-ink-400 block mb-2">E-mail corporativo</label>
+                <input type="email" placeholder="nome@cinestudiosp.com.br" className="input-field w-full px-4 py-3 rounded-xl font-mono"/>
+              </div>
+              <div>
+                <label className="eyebrow text-ink-400 block mb-2">Perfil de acesso</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {['Gerente', 'Check-out', 'Financeiro', 'Administrador'].map(r => (
+                    <button key={r} className="px-3 py-2.5 rounded-xl border border-ink-700 text-sm text-ink-300 hover:border-amber-glow/40 transition-all">
+                      {r}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="bg-ink-950 border border-ink-700 rounded-xl p-4 flex items-start gap-3">
+                <Icon name="mail" className="w-5 h-5 text-amber-glow flex-shrink-0 mt-0.5" strokeWidth={1.5}/>
+                <div className="text-xs text-ink-300">Um e-mail com convite para criar senha será enviado ao funcionário.</div>
+              </div>
+            </div>
+            <div className="px-8 py-4 border-t border-ink-700 flex items-center justify-between gap-3">
+              <button onClick={() => setShowNew(false)} className="btn-ghost px-5 py-3 rounded-xl">Cancelar</button>
+              <button onClick={() => setShowNew(false)} className="btn-primary px-6 py-3 rounded-xl flex items-center gap-2">
+                <Icon name="send" className="w-4 h-4"/> Enviar convite
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+/* ==========================================================
+   ADMIN - RENTALS (overview of all)
+   ========================================================== */
+const AdminRentals = ({ onOpen }) => {
+  return (
+    <div className="p-8 max-w-7xl">
+      <div className="mb-8">
+        <h1 className="serif-display text-4xl text-ink-50 mb-2">Todas as locações</h1>
+        <p className="text-ink-300">Visão completa de cotações, aprovações, retiradas e devoluções.</p>
+      </div>
+
+      <div className="grid md:grid-cols-4 gap-3 mb-6">
+        {['Total', 'Aguardando', 'Confirmadas', 'Finalizadas'].map((l, i) => (
+          <div key={l} className="bg-ink-900 border border-ink-700 rounded-xl p-4">
+            <div className="eyebrow text-ink-400 mb-1">{l}</div>
+            <div className="serif-display text-2xl text-ink-50">{[128, 12, 47, 69][i]}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="bg-ink-900 border border-ink-700 rounded-2xl overflow-hidden fade-up">
+        <table className="w-full">
+          <thead>
+            <tr className="border-b border-ink-700">
+              <th className="text-left px-5 py-3 eyebrow text-ink-400">ID</th>
+              <th className="text-left px-5 py-3 eyebrow text-ink-400">Projeto / Cliente</th>
+              <th className="text-left px-5 py-3 eyebrow text-ink-400 hidden md:table-cell">Período</th>
+              <th className="text-left px-5 py-3 eyebrow text-ink-400 hidden lg:table-cell">Itens</th>
+              <th className="text-left px-5 py-3 eyebrow text-ink-400">Status</th>
+              <th className="text-right px-5 py-3 eyebrow text-ink-400">Valor</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-ink-800">
+            {MOCK_QUOTATIONS.map(q => (
+              <tr key={q.id} onClick={() => onOpen(q)} className="hover:bg-ink-800/40 transition-colors cursor-pointer">
+                <td className="px-5 py-4 font-mono text-xs text-amber-glow">{q.id}</td>
+                <td className="px-5 py-4">
+                  <div className="text-sm text-ink-50 font-medium">{q.project}</div>
+                  <div className="text-xs text-ink-400">{q.client}</div>
+                </td>
+                <td className="px-5 py-4 hidden md:table-cell font-mono text-xs text-ink-300">
+                  {fmtDateShort(q.pickupDate)} → {fmtDateShort(q.returnDate)}
+                </td>
+                <td className="px-5 py-4 hidden lg:table-cell text-sm text-ink-300 font-mono">
+                  {q.items.reduce((s, i) => s + i.qty, 0)}
+                </td>
+                <td className="px-5 py-4"><StatusBadge status={q.status}/></td>
+                <td className="px-5 py-4 text-right text-sm font-medium text-ink-100">{currency(q.total)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
+/* ==========================================================
+   ADMIN - REPORTS
+   ========================================================== */
+const AdminReports = () => {
+  return (
+    <div className="p-8 max-w-6xl">
+      <div className="mb-8">
+        <h1 className="serif-display text-4xl text-ink-50 mb-2">Relatórios</h1>
+        <p className="text-ink-300">Exporte dados consolidados para análise financeira e operacional.</p>
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-4">
+        {[
+          { t: 'Receita consolidada', d: 'Total mensal, por categoria e por cliente', i: 'chart' },
+          { t: 'Taxa de ocupação',     d: 'Utilização dos equipamentos no período',     i: 'box' },
+          { t: 'Fluxo operacional',    d: 'Retiradas, devoluções, tempo médio',         i: 'truck' },
+          { t: 'Clientes ativos',       d: 'Base de contratantes e recorrência',         i: 'users' },
+          { t: 'Auditoria LGPD',        d: 'Logs de acesso e trilha de consentimento',   i: 'shield' },
+          { t: 'Relatório customizado', d: 'Crie seu próprio recorte',                    i: 'settings' },
+        ].map((r, i) => (
+          <button key={i} style={{ animationDelay: `${i * 0.04}s` }} className="fade-up bg-ink-900 border border-ink-700 rounded-2xl p-6 text-left card-hover group">
+            <div className="flex items-start justify-between mb-4">
+              <div className="w-10 h-10 rounded-xl bg-amber-glow/10 flex items-center justify-center text-amber-glow">
+                <Icon name={r.i} className="w-5 h-5" strokeWidth={1.5}/>
+              </div>
+              <Icon name="arrowRight" className="w-4 h-4 text-ink-400 group-hover:text-amber-glow group-hover:translate-x-1 transition-all"/>
+            </div>
+            <div className="serif-display text-xl text-ink-50 mb-1">{r.t}</div>
+            <div className="text-sm text-ink-400">{r.d}</div>
+            <div className="flex items-center gap-2 mt-4 text-xs text-ink-300">
+              <Icon name="fileText" className="w-3.5 h-3.5"/> PDF
+              <span className="text-ink-700">·</span>
+              <Icon name="fileText" className="w-3.5 h-3.5"/> Excel
+            </div>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+window.__CENA_STAFF_ADMIN__ = { StaffDashboard, StaffEquipment, NewEquipmentForm, StaffQuotations, AdminDashboard, AdminTeam, AdminRentals, AdminReports };
+</script>
+
+<script type="text/babel" data-type="module">
+/* ============================================================
+   PART 5 — Main App orchestration
+   ============================================================ */
+const { useState, useEffect, useMemo } = React;
+const { Icon, Logo, EquipmentCard, RENTAL_HOUSES, CATEGORIES, EQUIPMENT, MOCK_QUOTATIONS, TEAM_MEMBERS, currency, fmtDate, fmtDateShort, formatPhone, formatCPF, isValidPhone, isValidCPF, StatusBadge, statusConfig } = window.__CENA_BASE__;
+const { DemoSelector, LoginScreen, AppShell } = window.__CENA_PART2__;
+const { ACExplore, EquipmentDetail, ACCart, ACQuotations, QuotationDetail, ACProfile } = window.__CENA_AC__;
+const { StaffDashboard, StaffEquipment, NewEquipmentForm, StaffQuotations, AdminDashboard, AdminTeam, AdminRentals, AdminReports } = window.__CENA_STAFF_ADMIN__;
+
+/* ==========================================================
+   TOAST
+   ========================================================== */
+const Toast = ({ toast, onClose }) => {
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(onClose, 3500);
+    return () => clearTimeout(t);
+  }, [toast]);
+  if (!toast) return null;
+  return (
+    <div className="fixed bottom-6 right-6 z-[100] bg-ink-800 border border-ink-600 rounded-2xl p-4 pr-6 flex items-center gap-3 fade-up shadow-2xl max-w-md">
+      <div className="w-9 h-9 rounded-full bg-amber-glow/15 flex items-center justify-center text-amber-glow flex-shrink-0">
+        <Icon name={toast.icon || 'check'} className="w-4 h-4" strokeWidth={2}/>
+      </div>
+      <div>
+        <div className="text-sm text-ink-50 font-medium">{toast.title}</div>
+        {toast.desc && <div className="text-xs text-ink-400 mt-0.5">{toast.desc}</div>}
+      </div>
+    </div>
+  );
+};
+
+/* ==========================================================
+   SUCCESS MODAL (after quotation submission)
+   ========================================================== */
+const SuccessModal = ({ open, onClose, quotId }) => {
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-ink-950/85 backdrop-blur-sm fade-up">
+      <div className="bg-ink-900 border border-ink-700 rounded-3xl max-w-md w-full p-10 text-center">
+        <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-amber-glow/15 flex items-center justify-center amber-glow-strong">
+          <Icon name="check" className="w-10 h-10 text-amber-glow" strokeWidth={2.2}/>
+        </div>
+        <div className="eyebrow text-amber-glow mb-2">Cotação enviada</div>
+        <h2 className="serif-display text-3xl text-ink-50 mb-3">Tudo certo!</h2>
+        <p className="text-ink-300 text-sm mb-6 leading-relaxed">
+          Sua solicitação foi encaminhada às locadoras. Você receberá a cotação por e-mail e dentro do sistema em até 2 horas úteis.
+        </p>
+        <div className="bg-ink-950 border border-ink-700 rounded-xl p-4 mb-6">
+          <div className="eyebrow text-ink-400 mb-1">Número da cotação</div>
+          <div className="serif-display text-2xl text-amber-warm">{quotId}</div>
+        </div>
+        <button onClick={onClose} className="btn-primary w-full py-3.5 rounded-xl">
+          Acompanhar pedido
+        </button>
+      </div>
+    </div>
+  );
+};
+
+/* ==========================================================
+   MAIN APP
+   ========================================================== */
+const App = () => {
+  const [stage, setStage] = useState('selector'); // selector | login | app
+  const [role, setRole] = useState(null);
+  const [view, setView] = useState('home');
+  const [cart, setCart] = useState([]);
+  const [detailEq, setDetailEq] = useState(null);
+  const [detailQuot, setDetailQuot] = useState(null);
+  const [quotations, setQuotations] = useState(MOCK_QUOTATIONS);
+  const [initialCat, setInitialCat] = useState(null);
+  const [showNewEq, setShowNewEq] = useState(false);
+  const [toast, setToast] = useState(null);
+  const [success, setSuccess] = useState(null);
+
+  const users = {
+    ac:    { name: 'Carlos Menezes', role: '1º Assistente de Câmera', company: null },
+    staff: { name: 'Beatriz Oliveira', role: 'Check-out · Cinestúdio SP', company: 'Cinestúdio SP' },
+    admin: { name: 'André Silveira',   role: 'Gerente · Cinestúdio SP',  company: 'Cinestúdio SP' },
+  };
+
+  const handleSelectRole = (r) => { setRole(r); setStage('login'); };
+  const handleLogin = () => {
+    setStage('app');
+    setView(role === 'ac' ? 'home' : 'dashboard');
+  };
+  const handleLogout = () => {
+    setStage('selector');
+    setRole(null);
+    setCart([]);
+    setView('home');
+  };
+
+  const handleNav = (v) => {
+    if (v.startsWith('home:')) {
+      setInitialCat(v.split(':')[1]);
+      setView('home');
+    } else {
+      setInitialCat(null);
+      setView(v);
+    }
+  };
+
+  const addToCart = (eq, qty = 1) => {
+    setCart(prev => {
+      const existing = prev.find(c => c.id === eq.id);
+      if (existing) return prev.map(c => c.id === eq.id ? { ...c, qty: Math.min(eq.qtyAvail, c.qty + qty) } : c);
+      return [...prev, { id: eq.id, qty }];
+    });
+    setToast({ title: 'Adicionado ao carrinho', desc: eq.name, icon: 'check' });
+  };
+
+  const updateCart = (id, qty) => setCart(prev => prev.map(c => c.id === id ? { ...c, qty } : c));
+  const removeFromCart = (id) => setCart(prev => prev.filter(c => c.id !== id));
+
+  const submitQuotation = (data) => {
+    const newId = `COT-${2042 + Math.floor(Math.random() * 10)}`;
+    const newQ = {
+      id: newId,
+      client: users.ac.name,
+      clientRole: users.ac.role,
+      rhId: 'rh1',
+      rhName: 'Cinestúdio SP',
+      items: cart,
+      pickupDate: data.pickupDate,
+      pickupTime: data.pickupTime,
+      returnDate: data.returnDate,
+      status: 'aguardando',
+      createdAt: new Date().toISOString().split('T')[0],
+      project: data.project || 'Projeto sem nome',
+      total: null,
+    };
+    setQuotations(prev => [newQ, ...prev]);
+    setCart([]);
+    setSuccess(newId);
+  };
+
+  const handleQuotAction = (action, quot) => {
+    if (action === 'approve') {
+      setQuotations(prev => prev.map(q => q.id === quot.id ? { ...q, status: 'aprovada' } : q));
+      setToast({ title: 'Cotação aprovada', desc: 'A locadora foi notificada.' });
+    } else if (action === 'reject') {
+      setQuotations(prev => prev.map(q => q.id === quot.id ? { ...q, status: 'recusada' } : q));
+      setToast({ title: 'Cotação recusada' });
+    } else if (action === 'quote') {
+      setQuotations(prev => prev.map(q => q.id === quot.id ? { ...q, status: 'cotada', total: 8500 + Math.floor(Math.random() * 12000) } : q));
+      setToast({ title: 'Cotação enviada ao cliente' });
+    }
+    setDetailQuot(null);
+  };
+
+  /* -------- Render by stage -------- */
+  if (stage === 'selector') {
+    return <DemoSelector onSelect={handleSelectRole}/>;
+  }
+  if (stage === 'login') {
+    return <LoginScreen role={role} onLogin={handleLogin} onBack={() => setStage('selector')}/>;
+  }
+
+  /* -------- App shell -------- */
+  const cartCount = cart.reduce((s, c) => s + c.qty, 0);
+  let currentScreen;
+  if (role === 'ac') {
+    const acQuots = quotations.filter(q => q.client === users.ac.name);
+    switch (view) {
+      case 'home':       currentScreen = <ACExplore initialCat={initialCat} onOpenItem={setDetailEq} onAdd={addToCart}/>; break;
+      case 'cart':       currentScreen = <ACCart cart={cart} onUpdate={updateCart} onRemove={removeFromCart} onSubmit={submitQuotation} onBack={() => setView('home')}/>; break;
+      case 'quotations': currentScreen = <ACQuotations quotations={acQuots} onOpen={setDetailQuot}/>; break;
+      case 'profile':    currentScreen = <ACProfile/>; break;
+      default:            currentScreen = <ACExplore onOpenItem={setDetailEq} onAdd={addToCart}/>;
+    }
+  } else if (role === 'staff') {
+    switch (view) {
+      case 'dashboard':  currentScreen = <StaffDashboard onNav={setView} onOpenQuot={setDetailQuot}/>; break;
+      case 'equipment':  currentScreen = <StaffEquipment onNew={() => setShowNewEq(true)}/>; break;
+      case 'quotations': currentScreen = <StaffQuotations onOpen={setDetailQuot}/>; break;
+      case 'schedule':   currentScreen = <StaffDashboard onNav={setView} onOpenQuot={setDetailQuot}/>; break;
+      default:           currentScreen = <StaffDashboard onNav={setView} onOpenQuot={setDetailQuot}/>;
+    }
+  } else if (role === 'admin') {
+    switch (view) {
+      case 'dashboard':  currentScreen = <AdminDashboard/>; break;
+      case 'rentals':    currentScreen = <AdminRentals onOpen={setDetailQuot}/>; break;
+      case 'equipment':  currentScreen = <StaffEquipment onNew={() => setShowNewEq(true)}/>; break;
+      case 'team':       currentScreen = <AdminTeam/>; break;
+      case 'reports':    currentScreen = <AdminReports/>; break;
+      default:           currentScreen = <AdminDashboard/>;
+    }
+  }
+
+  return (
+    <>
+      <AppShell
+        role={role}
+        currentView={view}
+        onNav={handleNav}
+        cartCount={cartCount}
+        onLogout={handleLogout}
+        user={users[role]}
+      >
+        {currentScreen}
+      </AppShell>
+
+      {/* Modals */}
+      <EquipmentDetail eq={detailEq} onClose={() => setDetailEq(null)} onAdd={addToCart}/>
+      <QuotationDetail quot={detailQuot} onClose={() => setDetailQuot(null)} onAction={handleQuotAction} viewerRole={role}/>
+
+      {showNewEq && <NewEquipmentForm onClose={() => setShowNewEq(false)} onSave={() => { setShowNewEq(false); setToast({ title: 'Equipamento cadastrado', desc: 'Agora está disponível no catálogo.' }); }}/>}
+
+      <SuccessModal open={!!success} quotId={success} onClose={() => { setSuccess(null); setView('quotations'); }}/>
+
+      <Toast toast={toast} onClose={() => setToast(null)}/>
+
+      {/* Floating demo switcher */}
+      {stage === 'app' && (
+        <div className="fixed bottom-6 left-6 z-40 bg-ink-900/95 backdrop-blur border border-ink-700 rounded-full px-2 py-2 flex items-center gap-1 shadow-xl">
+          <div className="px-3 py-1 eyebrow text-ink-400">Demo</div>
+          {[
+            { id: 'ac', label: 'Cliente' },
+            { id: 'staff', label: 'Locadora' },
+            { id: 'admin', label: 'Admin' },
+          ].map(r => (
+            <button key={r.id}
+              onClick={() => { setRole(r.id); setView(r.id === 'ac' ? 'home' : 'dashboard'); setCart([]); }}
+              className={`px-3 py-1.5 rounded-full text-xs transition-all ${role === r.id ? 'bg-amber-glow text-ink-950 font-medium' : 'text-ink-300 hover:text-ink-100'}`}
+            >{r.label}</button>
+          ))}
+        </div>
+      )}
+    </>
+  );
+};
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

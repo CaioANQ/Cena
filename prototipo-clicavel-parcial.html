@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Cena — Protótipo Navegável</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400&family=Geist:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<script>
+  tailwind.config = {
+    theme: { extend: {
+      fontFamily: {
+        serif: ['Fraunces', 'serif'],
+        sans: ['Geist', 'system-ui', 'sans-serif'],
+        mono: ['"JetBrains Mono"', 'monospace'],
+      },
+      colors: {
+        ink: { 950:'#0a0908', 900:'#121110', 850:'#171614', 800:'#1a1817', 700:'#2a2724', 600:'#3d3934', 500:'#5a564f', 400:'#8a867e', 300:'#b5b1a8', 200:'#d6d2c8', 100:'#ece8de', 50:'#f6f3ea' },
+        amber: { glow: '#ff7a2e', warm: '#e8c468', soft: '#f5d99a' },
+        film: { green: '#8cbf78', red: '#e87560', blue: '#6ba3c4' },
+      },
+    }}
+  };
+</script>
+
+<style>
+  html, body { background: #0a0908; overscroll-behavior: none; }
+  body { font-family: 'Geist', system-ui, sans-serif; color: #ece8de; -webkit-font-smoothing: antialiased; margin: 0; }
+  .serif { font-family: 'Fraunces', serif; font-optical-sizing: auto; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+  .eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; font-weight: 500; }
+
+  .grain::before {
+    content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 1; opacity: 0.04;
+    background-image: url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  }
+  .cine-glow {
+    background: radial-gradient(80% 60% at 50% 0%, rgba(255,122,46,0.10), transparent 60%),
+                radial-gradient(60% 50% at 100% 100%, rgba(232,196,104,0.05), transparent 60%);
+  }
+
+  .stage { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; gap: 48px; }
+  @media (max-width: 900px) { .stage { padding: 0; align-items: stretch; } .sidebar { display: none !important; } }
+
+  .phone {
+    position: relative; width: 340px; height: 720px;
+    border-radius: 48px; background: #0a0908; padding: 12px;
+    box-shadow: 0 0 0 1px #2a2724, 0 0 0 3px rgba(23,22,20,0.2), 0 40px 80px -20px rgba(0,0,0,0.8), 0 0 80px -10px rgba(255,122,46,0.10);
+    flex-shrink: 0;
+  }
+  @media (max-width: 900px) {
+    .phone { width: 100vw; height: 100vh; border-radius: 0; padding: 0; box-shadow: none; }
+    .phone-notch, .phone-home-indicator { display: none; }
+  }
+  .phone-inner { position: relative; width: 100%; height: 100%; border-radius: 38px; overflow: hidden; background: #0a0908; }
+  @media (max-width: 900px) { .phone-inner { border-radius: 0; } }
+  .phone-notch { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); width: 100px; height: 28px; background: #000; border-radius: 20px; z-index: 30; }
+  .phone-statusbar {
+    position: absolute; top: 0; left: 0; right: 0; height: 48px; display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 28px 0 28px; font-size: 13px; font-weight: 600; color: #fff; z-index: 20; pointer-events: none;
+  }
+  @media (max-width: 900px) {
+    .phone-statusbar { height: env(safe-area-inset-top, 44px); padding-top: 14px; }
+  }
+  .phone-home-indicator { position: absolute; bottom: 7px; left: 50%; transform: translateX(-50%); width: 120px; height: 4px; background: #ffffff; border-radius: 4px; z-index: 20; opacity: 0.9; }
+  .screen { position: absolute; inset: 0; padding-top: 48px; padding-bottom: 20px; overflow: hidden; }
+  @media (max-width: 900px) { .screen { padding-top: env(safe-area-inset-top, 44px); padding-bottom: env(safe-area-inset-bottom, 0px); } }
+
+  @keyframes slideInRight { from { transform: translateX(100%); opacity: 0.5; } to { transform: translateX(0); opacity: 1; } }
+  @keyframes slideInLeft { from { transform: translateX(-100%); opacity: 0.5; } to { transform: translateX(0); opacity: 1; } }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .anim-forward { animation: slideInRight 0.28s cubic-bezier(0.32, 0.72, 0, 1); }
+  .anim-back { animation: slideInLeft 0.28s cubic-bezier(0.32, 0.72, 0, 1); }
+  .anim-fade { animation: fadeIn 0.35s ease-out; }
+
+  .phone ::-webkit-scrollbar { display: none; }
+  .scroll-y { overflow-y: auto; -webkit-overflow-scrolling: touch; height: 100%; }
+
+  .tap { cursor: pointer; transition: transform 0.1s, background-color 0.15s; -webkit-tap-highlight-color: transparent; user-select: none; }
+  .tap:active { transform: scale(0.97); }
+
+  .film-strip { height: 2px; background-image: linear-gradient(to right, transparent 0, transparent 4px, #ff7a2e 4px, #ff7a2e 12px, transparent 12px, transparent 20px); background-size: 20px 2px; opacity: 0.4; }
+
+  .diaphragm-anim { animation: diaphragm 6s ease-in-out infinite; transform-origin: center; }
+  @keyframes diaphragm { 0%,100% { transform: rotate(0deg) scale(1); } 50% { transform: rotate(60deg) scale(0.92); } }
+
+  .pulse-dot { animation: pulseDot 2s ease-in-out infinite; }
+  @keyframes pulseDot { 0%,100% { opacity: 0.3; transform: scale(1); } 50% { opacity: 1; transform: scale(1.2); } }
+
+  .toast-in { animation: toastIn 0.4s cubic-bezier(0.32, 0.72, 0, 1); }
+  @keyframes toastIn { from { transform: translateY(-120%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+  .push-in { animation: pushIn 0.5s cubic-bezier(0.32, 0.72, 0, 1); }
+  @keyframes pushIn { from { transform: translateY(-120%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+  .scan-line { animation: scanMove 2.4s ease-in-out infinite; }
+  @keyframes scanMove { 0%,100% { top: 15%; } 50% { top: 80%; } }
+
+  .sidebar-title { font-family: 'Fraunces', serif; font-weight: 300; letter-spacing: -0.02em; }
+</style>
+</head>
+<body class="grain">
+<div id="root"></div>
+
+<script type="text/babel" data-presets="env,react">
+const { useState, useEffect, useRef, useMemo, useCallback, createContext, useContext } = React;
+
+// ============ ICONS ============
+const Icon = ({ n, s = 16, c = '', w = 1.6 }) => {
+  const P = {
+    search: <><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></>,
+    sliders: <><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></>,
+    home: <><path d="m3 10 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></>,
+    bag: <><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></>,
+    file: <><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></>,
+    user: <><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></>,
+    bell: <><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></>,
+    camera: <><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></>,
+    lens: <><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></>,
+    light: <><path d="M9 18h6M10 22h4M12 2v2M4.93 4.93l1.41 1.41M19.07 4.93l-1.41 1.41M2 12h2M20 12h2"/><path d="M12 14a5 5 0 0 0 3-9 5 5 0 0 0-6 9"/></>,
+    mic: <><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v4"/></>,
+    wrench: <><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></>,
+    plus: <><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></>,
+    minus: <><line x1="5" y1="12" x2="19" y2="12"/></>,
+    check: <polyline points="20 6 9 17 4 12"/>,
+    x: <><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></>,
+    arrowLeft: <><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></>,
+    arrowRight: <><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></>,
+    chevronRight: <polyline points="9 18 15 12 9 6"/>,
+    calendar: <><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></>,
+    clock: <><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></>,
+    mapPin: <><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></>,
+    building: <><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22v-4h6v4M8 6h.01M16 6h.01M12 6h.01M12 10h.01M12 14h.01M16 10h.01M16 14h.01M8 10h.01M8 14h.01"/></>,
+    shield: <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>,
+    lock: <><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></>,
+    star: <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>,
+    heart: <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>,
+    trash: <><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></>,
+    qr: <><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3M17 21h4M21 14v3M14 17h0"/></>,
+    scan: <><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" y1="12" x2="17" y2="12"/></>,
+    send: <><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></>,
+    phoneCall: <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>,
+    message: <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>,
+    info: <><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></>,
+    sparkles: <><path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5z"/><path d="M19 13l.8 2.4 2.4.8-2.4.8-.8 2.4-.8-2.4-2.4-.8 2.4-.8z"/></>,
+    eye: <><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></>,
+    image: <><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></>,
+    refresh: <><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></>,
+    logout: <><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></>,
+  };
+  return <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={w} strokeLinecap="round" strokeLinejoin="round" className={c}>{P[n]}</svg>;
+};
+
+// ============ DATA ============
+const HOUSES = [
+  { id: 'h1', name: 'Cinestúdio SP', district: 'Vila Leopoldina', distance: '3.2 km', rating: 4.9, items: 284, responseTime: '~2h' },
+  { id: 'h2', name: 'Luz & Câmera Rental', district: 'Pinheiros', distance: '5.8 km', rating: 4.7, items: 156, responseTime: '~3h' },
+  { id: 'h3', name: 'FilmeHouse', district: 'Barra Funda', distance: '4.1 km', rating: 4.8, items: 213, responseTime: '~1h' },
+  { id: 'h4', name: 'Pauta Rental', district: 'Mooca', distance: '7.3 km', rating: 4.6, items: 98, responseTime: '~4h' },
+];
+
+const CATEGORIES = [
+  { id: 'camera', name: 'Câmeras', icon: 'camera' },
+  { id: 'lens', name: 'Lentes', icon: 'lens' },
+  { id: 'light', name: 'Luz', icon: 'light' },
+  { id: 'mic', name: 'Áudio', icon: 'mic' },
+  { id: 'rig', name: 'Maquinaria', icon: 'wrench' },
+  { id: 'acc', name: 'Acessórios', icon: 'bag' },
+];
+
+const EQUIPMENT = [
+  { id: 'e1', name: 'ARRI Alexa Mini LF', cat: 'camera', house: 'h1', avail: 2, spec: '4.5K LF', desc: 'Câmera cinema large format compacta — padrão em longas e séries premium.',
+    specs: [['Sensor','Super 35mm ALEV 3'],['Res. máx','4.5K ARRIRAW'],['Mount','LPL (adapt. PL)'],['Frame rate','até 90 fps em 4.5K'],['Codecs','ARRIRAW · ProRes 4444'],['Peso','2.6 kg (corpo)']] },
+  { id: 'e2', name: 'RED Komodo 6K', cat: 'camera', house: 'h3', avail: 3, spec: '6K S35', desc: 'Cinema câmera modular, global shutter, ideal para gimbal.',
+    specs: [['Sensor','Super 35 Global Shutter'],['Res. máx','6K 17:9 RAW'],['Mount','RF (adapt. PL/EF)'],['Frame rate','até 40 fps em 6K'],['Codecs','REDCODE RAW'],['Peso','1.0 kg']] },
+  { id: 'e3', name: 'Sony FX6', cat: 'camera', house: 'h2', avail: 1, spec: '4K FF', desc: 'Câmera full-frame versátil, autofoco profissional.',
+    specs: [['Sensor','Full-Frame 4K'],['Res. máx','4K DCI'],['Mount','Sony E'],['Frame rate','até 120 fps em 4K'],['Codecs','XAVC-I · S-Cinetone'],['Peso','0.9 kg']] },
+  { id: 'e4', name: 'Zeiss Supreme Prime 40mm T1.5', cat: 'lens', house: 'h1', avail: 4, spec: '40mm T1.5', desc: 'Lente prime cinematográfica, cobertura LF.',
+    specs: [['Focal','40mm'],['Abertura','T1.5'],['Mount','PL'],['Cobertura','Large Format'],['Peso','1.6 kg']] },
+  { id: 'e5', name: 'Cooke S4/i 32mm T2', cat: 'lens', house: 'h3', avail: 2, spec: '32mm T2', desc: 'Clássico "Cooke Look", caloroso, ideal para drama.',
+    specs: [['Focal','32mm'],['Abertura','T2'],['Mount','PL'],['Cobertura','Super 35'],['Peso','2.0 kg']] },
+  { id: 'e6', name: 'Sigma Cine FF 50mm T1.5', cat: 'lens', house: 'h2', avail: 3, spec: '50mm T1.5', desc: 'Prime cine full-frame, excelente custo-benefício.',
+    specs: [['Focal','50mm'],['Abertura','T1.5'],['Mount','EF/PL'],['Cobertura','Full-Frame'],['Peso','1.4 kg']] },
+  { id: 'e7', name: 'ARRI SkyPanel S60-C', cat: 'light', house: 'h1', avail: 6, spec: 'RGBW 60×30cm', desc: 'LED soft RGBW de alta saída, controle de cor total.',
+    specs: [['Saída','45.000 lux a 3m'],['CRI','>95'],['Temp cor','2800K-10000K'],['Dimensão','60×30 cm'],['Peso','7.7 kg']] },
+  { id: 'e8', name: 'Aputure LS 600d Pro', cat: 'light', house: 'h3', avail: 4, spec: 'Daylight 600W', desc: 'Spotlight daylight potente, compatível com Bowens.',
+    specs: [['Saída','130.000 lux a 1m'],['CRI','>96'],['Temp cor','5600K'],['Mount','Bowens'],['Peso','5.4 kg']] },
+  { id: 'e9', name: 'Astera Titan Tube', cat: 'light', house: 'h2', avail: 8, spec: 'RGB · 1m', desc: 'Tube LED wireless, bateria interna, pixel mapping.',
+    specs: [['Saída','>3000 lumens'],['CRI','>96'],['Temp cor','2000K-20000K'],['Autonomia','até 20h'],['Peso','1.1 kg']] },
+  { id: 'e10', name: 'Sennheiser MKH 416', cat: 'mic', house: 'h3', avail: 3, spec: 'Shotgun super-card.', desc: 'Microfone shotgun padrão da indústria para set.',
+    specs: [['Tipo','Shotgun condensador'],['Padrão','Super-cardioide'],['Resp. freq.','40 Hz – 20 kHz'],['Alimentação','P48 (phantom)'],['Peso','165g']] },
+  { id: 'e11', name: 'Zoom F8n Pro', cat: 'mic', house: 'h2', avail: 2, spec: 'Recorder 8ch', desc: 'Gravador multicanal para som direto profissional.',
+    specs: [['Canais','8 XLR + 2 line'],['Amostragem','192 kHz / 32-bit float'],['Mídia','2× SD'],['Autonomia','8h com 8 AA'],['Peso','1.1 kg']] },
+  { id: 'e12', name: 'DJI Ronin 2', cat: 'rig', house: 'h3', avail: 2, spec: 'Gimbal 13.6kg', desc: 'Gimbal profissional 3-axis para cargas pesadas.',
+    specs: [['Carga máx','13.6 kg'],['Operação','8h'],['Controle','Force Pro / App'],['Peso','6.4 kg']] },
+  { id: 'e13', name: 'Easyrig Minimax', cat: 'rig', house: 'h1', avail: 3, spec: 'Vest 7-18kg', desc: 'Colete de sustentação para ops de câmera shoulder.',
+    specs: [['Faixa de peso','7-18 kg'],['Altura','ajustável'],['Acessórios','Flowcine Serene'],['Peso','2.8 kg']] },
+  { id: 'e14', name: 'Teradek Bolt 4K LT 750', cat: 'acc', house: 'h2', avail: 4, spec: 'Wireless vídeo', desc: 'Transmissão de vídeo sem fio 4K, zero-latency.',
+    specs: [['Distância','230m'],['Res.','4K HDR'],['Latência','zero frame'],['Peso','380g']] },
+  { id: 'e15', name: 'SmallHD 703 Bolt', cat: 'acc', house: 'h3', avail: 2, spec: 'Monitor 7" 1500 nit', desc: 'Monitor externo com receptor Teradek integrado.',
+    specs: [['Tela','7" IPS 1500 nit'],['Res.','1920×1080'],['Bolt RX','integrado'],['Peso','820g']] },
+  { id: 'e16', name: 'Canon C500 Mark II', cat: 'camera', house: 'h3', avail: 2, spec: '5.9K FF', desc: 'Cinema câmera full-frame com RAW interno.',
+    specs: [['Sensor','Full-Frame 5.9K'],['Res. máx','5.9K RAW'],['Mount','EF / PL'],['Frame rate','até 60 fps em 4K'],['Peso','1.75 kg']] },
+];
+
+const INITIAL_QUOTATIONS = [
+  { id: 'COT-0241', houseId: 'h4', project: 'Videoclipe Marisa', status: 'declined',
+    items: [{ eqId: 'e1', qty: 1 }, { eqId: 'e4', qty: 2 }, { eqId: 'e7', qty: 1 }, { eqId: 'e12', qty: 1 }],
+    dateFrom: '15/04 · 09:00', dateTo: '16/04 · 18:00', createdAt: '15/abr · 11:20' },
+  { id: 'COT-0245', houseId: 'h1', project: 'Doc "Margens"', status: 'ready',
+    items: [{ eqId: 'e1', qty: 1 }, { eqId: 'e4', qty: 1 }, { eqId: 'e5', qty: 1 }, { eqId: 'e7', qty: 2 }, { eqId: 'e9', qty: 3 }],
+    dateFrom: '22/04 · 06:00', dateTo: '28/04 · 20:00', createdAt: '18/abr · 16:40' },
+  { id: 'COT-0247', houseId: 'h2', project: 'Comercial Itaú Lab', status: 'approved',
+    items: [{ eqId: 'e3', qty: 1 }, { eqId: 'e6', qty: 3 }, { eqId: 'e9', qty: 2 }, { eqId: 'e11', qty: 1 }],
+    dateFrom: '20/04 · 08:00', dateTo: '21/04 · 20:00', createdAt: 'Ontem · 09:15' },
+];
+
+// ============ EQUIPMENT ICON ============
+const EqIcon = ({ cat, size = 60 }) => {
+  const icons = {
+    camera: <svg viewBox="0 0 100 100" width={size} height={size}><rect x="22" y="35" width="56" height="38" rx="4" fill="#1a1817" stroke="#3d3934" strokeWidth="1.5"/><rect x="40" y="28" width="20" height="10" rx="2" fill="#1a1817" stroke="#3d3934" strokeWidth="1.5"/><circle cx="50" cy="54" r="14" fill="#0a0908" stroke="#ff7a2e" strokeWidth="1.2"/><circle cx="50" cy="54" r="9" fill="#171614" stroke="#3d3934" strokeWidth="1"/><circle cx="50" cy="54" r="3" fill="#ff7a2e"/><rect x="70" y="40" width="6" height="4" rx="1" fill="#e8c468"/></svg>,
+    lens: <svg viewBox="0 0 100 100" width={size} height={size}><circle cx="50" cy="50" r="32" fill="#1a1817" stroke="#3d3934" strokeWidth="1.5"/><circle cx="50" cy="50" r="25" fill="none" stroke="#5a564f" strokeWidth="1"/><circle cx="50" cy="50" r="18" fill="#0a0908" stroke="#ff7a2e" strokeWidth="1"/><circle cx="50" cy="50" r="10" fill="none" stroke="#5a564f" strokeWidth="0.8"/><circle cx="50" cy="50" r="4" fill="#e8c468"/></svg>,
+    light: <svg viewBox="0 0 100 100" width={size} height={size}><rect x="20" y="32" width="60" height="36" rx="3" fill="#1a1817" stroke="#3d3934" strokeWidth="1.5"/><rect x="26" y="38" width="48" height="24" fill="#e8c468" opacity="0.15"/>{[0,1,2,3,4].map(i => <line key={i} x1={30+i*10} y1="38" x2={30+i*10} y2="62" stroke="#ff7a2e" strokeWidth="0.8" opacity="0.6"/>)}{[0,1,2].map(i => <line key={i} x1="26" y1={42+i*8} x2="74" y2={42+i*8} stroke="#ff7a2e" strokeWidth="0.8" opacity="0.6"/>)}<rect x="45" y="68" width="10" height="8" fill="#3d3934"/></svg>,
+    mic: <svg viewBox="0 0 100 100" width={size} height={size}><rect x="40" y="20" width="20" height="50" rx="10" fill="#1a1817" stroke="#3d3934" strokeWidth="1.5"/>{[0,1,2,3,4,5].map(i => <line key={i} x1="42" y1={26+i*7} x2="58" y2={26+i*7} stroke="#5a564f" strokeWidth="0.6"/>)}<rect x="48" y="70" width="4" height="14" fill="#3d3934"/><rect x="38" y="82" width="24" height="3" fill="#3d3934"/></svg>,
+    rig: <svg viewBox="0 0 100 100" width={size} height={size}><path d="M 30 30 L 70 30 L 70 70 L 30 70 Z" fill="none" stroke="#ff7a2e" strokeWidth="1.5"/><circle cx="50" cy="50" r="8" fill="#1a1817" stroke="#3d3934" strokeWidth="1.5"/><circle cx="30" cy="30" r="4" fill="#3d3934"/><circle cx="70" cy="30" r="4" fill="#3d3934"/><circle cx="30" cy="70" r="4" fill="#3d3934"/><circle cx="70" cy="70" r="4" fill="#3d3934"/></svg>,
+    acc: <svg viewBox="0 0 100 100" width={size} height={size}><rect x="24" y="30" width="52" height="42" rx="3" fill="#1a1817" stroke="#3d3934" strokeWidth="1.5"/><rect x="34" y="40" width="32" height="20" rx="2" fill="#0a0908" stroke="#ff7a2e" strokeWidth="1"/><circle cx="42" cy="50" r="2" fill="#e8c468"/><rect x="50" y="48" width="14" height="4" fill="#3d3934"/></svg>,
+  };
+  return icons[cat] || icons.acc;
+};
+
+// ============ CONTEXTS ============
+const NavContext = createContext();
+const useNav = () => useContext(NavContext);
+const DataContext = createContext();
+const useData = () => useContext(DataContext);
+
+const getEq = (id) => EQUIPMENT.find(e => e.id === id);
+const getHouse = (id) => HOUSES.find(h => h.id === id);
+const statusCfg = {
+  pending:  { bg: 'bg-amber-warm/15', text: 'text-amber-warm', dot: 'bg-amber-warm', label: 'Em análise' },
+  quoted:   { bg: 'bg-amber-glow/15', text: 'text-amber-glow', dot: 'bg-amber-glow', label: 'Orçamento' },
+  approved: { bg: 'bg-film-green/20', text: 'text-film-green', dot: 'bg-film-green', label: 'Aprovada' },
+  declined: { bg: 'bg-film-red/20',   text: 'text-film-red',   dot: 'bg-film-red',   label: 'Recusada' },
+  ready:    { bg: 'bg-film-blue/20',  text: 'text-film-blue',  dot: 'bg-film-blue',  label: 'Pronta p/ retirar' },
+};
+const StatusBadge = ({ status }) => {
+  const cfg = statusCfg[status] || statusCfg.pending;
+  return (
+    <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium ${cfg.bg} ${cfg.text}`}>
+      <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`}></span>{cfg.label}
+    </span>
+  );
+};
+
+// ============ BOTTOM NAV ============
+const BottomNav = () => {
+  const { goToTab, currentScreen } = useNav();
+  const { cart } = useData();
+  const active = ['home','category','eqDetail','house'].includes(currentScreen) ? 'home'
+    : currentScreen === 'quotations' || currentScreen === 'quotationDetail' ? 'quotations'
+    : ['cart','dates','review','success'].includes(currentScreen) ? 'cart'
+    : currentScreen === 'profile' ? 'profile' : '';
+
+  const tabs = [
+    { id: 'home', icon: 'home', label: 'Catálogo' },
+    { id: 'quotations', icon: 'file', label: 'Cotações' },
+    { id: 'cart', icon: 'bag', label: 'Carrinho', badge: cart.length },
+    { id: 'profile', icon: 'user', label: 'Perfil' },
+  ];
+
+  return (
+    <div className="absolute bottom-0 left-0 right-0 bg-ink-900/95 backdrop-blur border-t border-ink-800 px-2 pt-2 pb-5 flex items-center justify-around z-10">
+      {tabs.map(t => (
+        <button key={t.id} onClick={() => goToTab(t.id)}
+          className={`flex-1 flex flex-col items-center gap-1 py-1 tap ${active === t.id ? 'text-amber-glow' : 'text-ink-400'}`}>
+          <div className="relative">
+            <Icon n={t.icon} s={20}/>
+            {!!t.badge && t.badge > 0 && (
+              <span className="absolute -top-1 -right-2 bg-amber-glow text-ink-950 text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center">{t.badge}</span>
+            )}
+          </div>
+          <span className="text-[9px] font-medium">{t.label}</span>
+        </button>
+      ))}
+    </div>
+  );
+};
+
+// ============ PAGE HEADER ============
+const PageHeader = ({ title, right, onBack, subtitle, noBack }) => {
+  const { goBack } = useNav();
+  return (
+    <div className="px-5 pt-3 pb-3 flex items-center gap-3 border-b border-ink-800/60">
+      {!noBack && (
+        <button onClick={onBack || goBack} className="tap text-ink-200 -ml-1 p-1">
+          <Icon n="arrowLeft" s={20}/>
+        </button>
+      )}
+      <div className="flex-1 min-w-0">
+        {subtitle && <p className="text-[10px] text-ink-500 mono uppercase tracking-wider">{subtitle}</p>}
+        <h2 className="serif text-[17px] text-ink-50 leading-tight truncate">{title}</h2>
+      </div>
+      {right}
+    </div>
+  );
+};
+
+window.__CENA__ = {
+  useState, useEffect, useRef, useMemo, useCallback, createContext, useContext,
+  Icon, EqIcon, StatusBadge, BottomNav, PageHeader,
+  HOUSES, CATEGORIES, EQUIPMENT, INITIAL_QUOTATIONS,
+  getEq, getHouse, statusCfg,
+  NavContext, useNav, DataContext, useData,
+};
+</script>
+
+<script type="text/babel" data-presets="env,react">
+// ============================================================
+// PART 2 — AC SCREENS
+// ============================================================
+const {
+  useState, useEffect, useRef, useMemo,
+  Icon, EqIcon, StatusBadge, BottomNav, PageHeader,
+  HOUSES, CATEGORIES, EQUIPMENT,
+  getEq, getHouse, useNav, useData,
+} = window.__CENA__;
+
+// ----- SPLASH -----
+const ScreenSplash = () => {
+  const { navigateTo } = useNav();
+  useEffect(() => { const t = setTimeout(() => navigateTo('login'), 1800); return () => clearTimeout(t); }, []);
+  return (
+    <div className="absolute inset-0 flex flex-col items-center justify-center cine-glow route-enter-fade">
+      <div className="relative mb-6">
+        <svg width="72" height="72" viewBox="0 0 100 100" className="diaphragm-anim">
+          {[0,1,2,3,4,5].map(i => (
+            <path key={i} d={`M 50 50 L ${50 + 30*Math.cos(i*Math.PI/3)} ${50 + 30*Math.sin(i*Math.PI/3)} L ${50 + 30*Math.cos((i+1)*Math.PI/3)} ${50 + 30*Math.sin((i+1)*Math.PI/3)} Z`} fill={i % 2 === 0 ? '#ff7a2e' : '#e8c468'} opacity="0.85"/>
+          ))}
+          <circle cx="50" cy="50" r="12" fill="#0a0908"/>
+        </svg>
+      </div>
+      <h1 className="serif text-5xl font-light tracking-tight text-ink-50 mb-2">Cena</h1>
+      <p className="eyebrow text-amber-glow/80 mb-12">locação inteligente</p>
+      <div className="flex gap-1 mt-6">
+        <span className="w-1.5 h-1.5 bg-amber-glow rounded-full pulse-dot"></span>
+        <span className="w-1.5 h-1.5 bg-amber-glow rounded-full pulse-dot" style={{animationDelay:'0.3s'}}></span>
+        <span className="w-1.5 h-1.5 bg-amber-glow rounded-full pulse-dot" style={{animationDelay:'0.6s'}}></span>
+      </div>
+    </div>
+  );
+};
+
+// ----- LOGIN -----
+const ScreenLogin = () => {
+  const { navigateTo } = useNav();
+  const [loading, setLoading] = useState(false);
+  const handleLogin = () => { setLoading(true); setTimeout(() => { setLoading(false); navigateTo('home'); }, 700); };
+  return (
+    <div className="h-full flex flex-col px-6 pt-8 cine-glow route-enter">
+      <div className="flex items-center gap-2 mb-10">
+        <svg width="28" height="28" viewBox="0 0 100 100">
+          {[0,1,2,3,4,5].map(i => (
+            <path key={i} d={`M 50 50 L ${50 + 30*Math.cos(i*Math.PI/3)} ${50 + 30*Math.sin(i*Math.PI/3)} L ${50 + 30*Math.cos((i+1)*Math.PI/3)} ${50 + 30*Math.sin((i+1)*Math.PI/3)} Z`} fill={i % 2 === 0 ? '#ff7a2e' : '#e8c468'} opacity="0.85"/>
+          ))}
+          <circle cx="50" cy="50" r="8" fill="#0a0908"/>
+        </svg>
+        <span className="serif text-2xl text-ink-50">Cena</span>
+      </div>
+      <h2 className="serif text-[30px] font-light leading-[1.1] text-ink-50 mb-2">Bem-vindo<br/>de volta.</h2>
+      <p className="text-[13px] text-ink-400 mb-8">Entre para continuar suas cotações.</p>
+      <div className="space-y-3 mb-5">
+        <div>
+          <label className="eyebrow text-ink-500 mb-1.5 block">E-mail</label>
+          <input defaultValue="rafael@acdp.com.br" className="w-full bg-ink-900 border border-ink-700 rounded-xl px-4 py-3 text-[13px] text-ink-200 outline-none focus:border-amber-glow/50"/>
+        </div>
+        <div>
+          <label className="eyebrow text-ink-500 mb-1.5 block">Senha</label>
+          <div className="bg-ink-900 border border-ink-700 rounded-xl px-4 py-3 flex items-center gap-2">
+            <input type="password" defaultValue="cena1234" className="flex-1 bg-transparent text-[13px] text-ink-200 outline-none tracking-widest"/>
+            <Icon n="eye" s={14} c="text-ink-500"/>
+          </div>
+        </div>
+      </div>
+      <div className="flex items-center justify-between mb-6">
+        <label className="flex items-center gap-2 text-[12px] text-ink-400">
+          <div className="w-4 h-4 border border-ink-600 rounded flex items-center justify-center bg-amber-glow"><Icon n="check" s={10} c="text-ink-950" w={3}/></div>
+          Lembrar neste aparelho
+        </label>
+        <a className="text-[12px] text-amber-warm tap">Esqueceu?</a>
+      </div>
+      <button onClick={handleLogin} disabled={loading} className="tap w-full bg-amber-glow text-ink-950 font-semibold py-3.5 rounded-xl text-[14px] mb-4 flex items-center justify-center gap-2">
+        {loading ? <><Icon n="refresh" s={14} c="spinner"/> Entrando…</> : 'Entrar'}
+      </button>
+      <div className="flex items-center gap-3 mb-4"><span className="flex-1 h-px bg-ink-800"></span><span className="text-[10px] text-ink-500">ou</span><span className="flex-1 h-px bg-ink-800"></span></div>
+      <button onClick={handleLogin} className="tap w-full border border-ink-700 text-ink-200 py-3 rounded-xl text-[13px] flex items-center justify-center gap-2 mb-3">
+        <div className="w-4 h-4 bg-white rounded-full flex items-center justify-center text-black text-[10px] font-bold">G</div>
+        Entrar com Google
+      </button>
+      <div className="mt-auto pb-4 text-center"><p className="text-[12px] text-ink-500">Novo aqui? <span className="text-amber-warm font-medium tap">Criar conta</span></p></div>
+    </div>
+  );
+};
+
+// ----- HOME -----
+const ScreenHome = () => {
+  const { navigateTo } = useNav();
+  const { quotations, unreadNotifs } = useData();
+  const featured = EQUIPMENT.slice(0, 5);
+  const hotQuotation = quotations.find(q => q.status === 'quoted');
+  return (
+    <div className="h-full bg-ink-950 overflow-y-auto pb-[80px] route-enter">
+      <div className="px-5 pt-3 pb-4 cine-glow">
+        <div className="flex items-center justify-between mb-5">
+          <div>
+            <p className="text-[11px] text-ink-500">Boa tarde, Rafael</p>
+            <p className="serif text-[18px] text-ink-50 leading-tight">Pronto para a diária?</p>
+          </div>
+          <div className="flex gap-2">
+            <div onClick={() => navigateTo('notifications')} className="tap w-9 h-9 bg-ink-900 border border-ink-800 rounded-full flex items-center justify-center relative">
+              <Icon n="bell" s={16} c="text-ink-300"/>
+              {unreadNotifs > 0 && <span className="absolute top-1 right-1.5 w-2 h-2 bg-amber-glow rounded-full"></span>}
+            </div>
+            <div onClick={() => navigateTo('profile')} className="tap w-9 h-9 bg-gradient-to-br from-amber-warm to-amber-glow rounded-full flex items-center justify-center text-ink-950 text-[12px] font-bold">R</div>
+          </div>
+        </div>
+        {hotQuotation && (
+          <div onClick={() => navigateTo('quotationDetail', { quotationId: hotQuotation.id })} className="tap bg-gradient-to-r from-amber-glow/10 to-transparent border border-amber-glow/20 rounded-2xl p-3 mb-4">
+            <div className="flex items-center gap-2 mb-1"><StatusBadge status="quoted"/><span className="text-[10px] text-ink-400 mono">{hotQuotation.id}</span></div>
+            <p className="text-[12px] text-ink-100 mb-2">Orçamento recebido da <span className="text-amber-warm">{getHouse(hotQuotation.houseId)?.name}</span></p>
+            <div className="flex items-center justify-between"><span className="text-[10px] text-ink-400">Expira em 18h</span><span className="text-[11px] text-amber-glow font-medium flex items-center gap-1">Revisar <Icon n="chevronRight" s={10}/></span></div>
+          </div>
+        )}
+        <div onClick={() => navigateTo('search')} className="tap bg-ink-900 border border-ink-800 rounded-full flex items-center px-4 py-2.5 gap-2">
+          <Icon n="search" s={15} c="text-ink-400"/>
+          <span className="text-[12px] text-ink-400 flex-1">Buscar equipamento, locadora…</span>
+          <div className="w-6 h-6 bg-ink-800 rounded-full flex items-center justify-center"><Icon n="sliders" s={12} c="text-ink-300"/></div>
+        </div>
+      </div>
+      <div className="px-5 mb-4">
+        <div className="flex items-center justify-between mb-2.5"><h3 className="eyebrow text-ink-400">Categorias</h3><span className="text-[11px] text-amber-warm tap">Ver todas</span></div>
+        <div className="grid grid-cols-4 gap-2">
+          {CATEGORIES.slice(0,4).map(c => (
+            <div key={c.id} onClick={() => navigateTo('category', { categoryId: c.id })} className="tap bg-ink-900 border border-ink-800 rounded-xl p-2 flex flex-col items-center gap-1.5 aspect-square justify-center">
+              <div className="w-7 h-7 rounded-full bg-amber-glow/10 flex items-center justify-center text-amber-glow"><Icon n={c.icon} s={13}/></div>
+              <span className="text-[9px] text-ink-300">{c.name}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="mb-4">
+        <div className="px-5 flex items-center justify-between mb-2.5"><h3 className="eyebrow text-ink-400">Em alta esta semana</h3></div>
+        <div className="overflow-x-auto"><div className="flex gap-2.5 px-5 pb-1 w-max">
+          {featured.map(eq => {
+            const house = getHouse(eq.house);
+            return (
+              <div key={eq.id} onClick={() => navigateTo('eqDetail', { eqId: eq.id })} className="tap w-[155px] bg-ink-900 border border-ink-800 rounded-2xl p-2.5 shrink-0">
+                <div className="bg-ink-850 h-20 rounded-lg mb-2 flex items-center justify-center overflow-hidden"><EqIcon cat={eq.cat} size={60}/></div>
+                <p className="text-[11px] font-medium text-ink-100 leading-tight mb-0.5 line-clamp-1">{eq.name}</p>
+                <p className="text-[9px] text-ink-500 mb-1.5">{house?.name}</p>
+                <div className="flex items-center justify-between">
+                  <span className="text-[9px] text-film-green flex items-center gap-1"><span className="w-1 h-1 bg-film-green rounded-full"></span>{eq.avail} disp.</span>
+                  <div className="w-5 h-5 bg-amber-glow rounded-full flex items-center justify-center"><Icon n="plus" s={11} c="text-ink-950" w={2.5}/></div>
+                </div>
+              </div>
+            );
+          })}
+        </div></div>
+      </div>
+      <div className="px-5">
+        <div className="flex items-center justify-between mb-2.5"><h3 className="eyebrow text-ink-400">Locadoras próximas</h3></div>
+        <div className="space-y-2">
+          {HOUSES.slice(0,3).map(h => (
+            <div key={h.id} onClick={() => navigateTo('house', { houseId: h.id })} className="tap bg-ink-900 border border-ink-800 rounded-xl p-3 flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-ink-700 to-ink-800 rounded-lg flex items-center justify-center"><Icon n="building" s={16} c="text-amber-warm"/></div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[12px] text-ink-100 font-medium">{h.name}</p>
+                <div className="flex items-center gap-2 text-[10px] text-ink-500">
+                  <span className="flex items-center gap-0.5"><Icon n="mapPin" s={9}/> {h.distance}</span>
+                  <span className="flex items-center gap-0.5"><Icon n="star" s={9} c="text-amber-warm"/> {h.rating}</span>
+                  <span>{h.items} itens</span>
+                </div>
+              </div>
+              <Icon n="chevronRight" s={14} c="text-ink-500"/>
+            </div>
+          ))}
+        </div>
+      </div>
+      <BottomNav/>
+    </div>
+  );
+};
+
+// ----- CATEGORY -----
+const ScreenCategory = () => {
+  const { params } = useNav();
+  const [filter, setFilter] = useState('Todos');
+  const category = CATEGORIES.find(c => c.id === params.categoryId);
+  const items = EQUIPMENT.filter(e => e.cat === params.categoryId);
+  return (
+    <div className="h-full bg-ink-950 overflow-y-auto pb-[80px] route-enter">
+      <PageHeader title={category?.name || 'Catálogo'} right={<div className="tap"><Icon n="search" s={16} c="text-ink-300"/></div>}/>
+      <div className="px-5 pt-3">
+        <div className="overflow-x-auto -mx-5 px-5 mb-3">
+          <div className="flex gap-1.5 w-max">
+            {['Todos', 'Super 35', 'Full Frame', 'Cinema', '< 5kg'].map(f => (
+              <div key={f} onClick={() => setFilter(f)} className={`tap px-3 py-1 rounded-full text-[10px] whitespace-nowrap ${filter === f ? 'bg-amber-glow text-ink-950 font-medium' : 'bg-ink-900 border border-ink-800 text-ink-300'}`}>{f}</div>
+            ))}
+          </div>
+        </div>
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-[11px] text-ink-400"><span className="text-ink-100 font-medium">{items.length}</span> equipamentos</span>
+          <div className="flex items-center gap-1 text-[11px] text-ink-300 tap"><Icon n="sliders" s={12}/> Relevância</div>
+        </div>
+        <GridCatalog items={items}/>
+      </div>
+      <BottomNav/>
+    </div>
+  );
+};
+
+const GridCatalog = ({ items }) => {
+  const { navigateTo } = useNav();
+  return (
+    <div className="grid grid-cols-2 gap-2.5">
+      {items.map(eq => {
+        const house = getHouse(eq.house);
+        return (
+          <div key={eq.id} onClick={() => eq.avail > 0 && navigateTo('eqDetail', { eqId: eq.id })} className={`tap bg-ink-900 border border-ink-800 rounded-xl p-2.5 ${eq.avail === 0 ? 'opacity-60' : ''}`}>
+            <div className="bg-ink-850 aspect-square rounded-lg mb-2 flex items-center justify-center"><EqIcon cat={eq.cat} size={60}/></div>
+            <p className="text-[10.5px] font-medium text-ink-100 leading-tight line-clamp-1">{eq.name}</p>
+            <p className="text-[9px] text-ink-500 mb-1.5">{house?.name}</p>
+            <div className="flex items-center justify-between">
+              <span className="text-[9px] mono text-ink-400">{eq.spec}</span>
+              <span className={`text-[9px] font-medium ${eq.avail > 0 ? 'text-film-green' : 'text-ink-600'}`}>{eq.avail > 0 ? `${eq.avail} disp.` : 'Esgotado'}</span>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+// ----- EQ DETAIL -----
+const ScreenEqDetail = () => {
+  const { params, goBack, navigateTo } = useNav();
+  const { addToCart, showToast } = useData();
+  const eq = getEq(params.eqId);
+  const house = getHouse(eq?.house);
+  const [qty, setQty] = useState(1);
+  const [tab, setTab] = useState('specs');
+  if (!eq) return null;
+  const handleAdd = () => {
+    addToCart({ eqId: eq.id, qty });
+    showToast({ title: `${qty}× ${eq.name.split(' ').slice(0,2).join(' ')} adicionado`, sub: 'no carrinho' });
+    goBack();
+  };
+  return (
+    <div className="h-full bg-ink-950 overflow-y-auto pb-[110px] relative route-enter">
+      <div className="relative bg-gradient-to-b from-ink-850 to-ink-900 aspect-square flex items-center justify-center cine-glow">
+        <div className="absolute top-3 left-3 right-3 flex items-center justify-between z-10">
+          <button onClick={goBack} className="tap w-9 h-9 bg-ink-950/60 backdrop-blur border border-ink-800 rounded-full flex items-center justify-center"><Icon n="arrowLeft" s={16} c="text-ink-100"/></button>
+          <div className="flex gap-2">
+            <div className="tap w-9 h-9 bg-ink-950/60 backdrop-blur border border-ink-800 rounded-full flex items-center justify-center"><Icon n="heart" s={14} c="text-ink-200"/></div>
+            <div className="tap w-9 h-9 bg-ink-950/60 backdrop-blur border border-ink-800 rounded-full flex items-center justify-center"><Icon n="info" s={14} c="text-ink-200"/></div>
+          </div>
+        </div>
+        <EqIcon cat={eq.cat} size={120}/>
+      </div>
+      <div className="px-5 pt-4">
+        <div className="flex items-start justify-between gap-3 mb-1"><h1 className="serif text-[22px] leading-tight text-ink-50">{eq.name}</h1><StatusBadge status="ready"/></div>
+        <p className="text-[11px] text-ink-400 mb-3">{eq.desc}</p>
+        <div onClick={() => navigateTo('house', { houseId: eq.house })} className="tap flex items-center gap-2 p-2.5 bg-ink-900 border border-ink-800 rounded-xl mb-4">
+          <div className="w-8 h-8 bg-gradient-to-br from-ink-700 to-ink-800 rounded-lg flex items-center justify-center"><Icon n="building" s={13} c="text-amber-warm"/></div>
+          <div className="flex-1 min-w-0">
+            <p className="text-[11px] text-ink-100 font-medium leading-none">{house?.name}</p>
+            <p className="text-[9px] text-ink-500 mt-0.5">{house?.district} · {house?.distance}</p>
+          </div>
+          <Icon n="chevronRight" s={13} c="text-ink-500"/>
+        </div>
+        <div className="flex gap-4 border-b border-ink-800 mb-3">
+          {[{id:'overview',label:'Geral'},{id:'specs',label:'Técnica'},{id:'included',label:'Inclusos'}].map(t => (
+            <div key={t.id} onClick={() => setTab(t.id)} className={`tap pb-2.5 text-[12px] relative ${tab === t.id ? 'text-ink-50 font-medium' : 'text-ink-400'}`}>
+              {t.label}{tab === t.id && <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-amber-glow"></span>}
+            </div>
+          ))}
+        </div>
+        {tab === 'specs' && <div className="space-y-2 mb-4">{eq.specs.map(([k,v],i) => <div key={i} className="flex items-center justify-between py-1.5 border-b border-ink-800/50"><span className="text-[11px] text-ink-400">{k}</span><span className="text-[11px] text-ink-100 mono">{v}</span></div>)}</div>}
+        {tab === 'overview' && <div className="space-y-3 mb-4 text-[12px] text-ink-300 leading-relaxed"><p>{eq.desc}</p><p>Disponível em <span className="text-amber-warm">{house?.name}</span>. Manutenção preventiva em dia e kit completo incluso.</p></div>}
+        {tab === 'included' && <div className="space-y-2 mb-4">{['Kit de acessórios padrão','Bateria e carregador','Cartão de memória','Cabo de alimentação','Maleta rígida'].map((it,i) => <div key={i} className="flex items-center gap-2 text-[11px] text-ink-300"><Icon n="check" s={12} c="text-film-green"/> {it}</div>)}</div>}
+        <div className="flex items-center justify-between p-3 bg-ink-900 border border-ink-800 rounded-xl mb-3">
+          <div><p className="text-[11px] text-ink-400">Quantidade</p><p className="text-[9px] text-film-green">{eq.avail} disponíveis</p></div>
+          <div className="flex items-center gap-3">
+            <div onClick={() => setQty(Math.max(1, qty-1))} className={`tap w-7 h-7 border border-ink-700 rounded-full flex items-center justify-center ${qty <= 1 ? 'opacity-40' : ''}`}><Icon n="minus" s={12} c="text-ink-300"/></div>
+            <span className="serif text-[20px] text-ink-50 w-5 text-center">{qty}</span>
+            <div onClick={() => setQty(Math.min(eq.avail, qty+1))} className={`tap w-7 h-7 bg-amber-glow rounded-full flex items-center justify-center ${qty >= eq.avail ? 'opacity-40' : ''}`}><Icon n="plus" s={12} c="text-ink-950" w={2.5}/></div>
+          </div>
+        </div>
+      </div>
+      <div className="absolute bottom-0 left-0 right-0 bg-ink-950/95 backdrop-blur border-t border-ink-800 px-4 pt-3 pb-5">
+        <button onClick={handleAdd} className="tap w-full bg-amber-glow text-ink-950 font-semibold py-3.5 rounded-xl text-[13px] flex items-center justify-center gap-2"><Icon n="bag" s={14}/> Adicionar ao carrinho</button>
+      </div>
+    </div>
+  );
+};
+
+// ----- SEARCH -----
+const ScreenSearch = () => {
+  const { goBack, navigateTo } = useNav();
+  const [q, setQ] = useState('');
+  const results = useMemo(() => q.trim() ? EQUIPMENT.filter(e => e.name.toLowerCase().includes(q.toLowerCase())) : [], [q]);
+  return (
+    <div className="h-full bg-ink-950 route-enter">
+      <div className="px-5 pt-3 pb-3 border-b border-ink-800/60 flex items-center gap-3">
+        <button onClick={goBack} className="tap p-1 -ml-1"><Icon n="arrowLeft" s={18} c="text-ink-200"/></button>
+        <div className="flex-1 bg-ink-900 border border-ink-800 rounded-full flex items-center px-3 py-2 gap-2">
+          <Icon n="search" s={14} c="text-ink-400"/>
+          <input autoFocus value={q} onChange={e => setQ(e.target.value)} placeholder="Buscar…" className="flex-1 bg-transparent text-[12px] text-ink-100 outline-none placeholder:text-ink-500"/>
+          {q && <button onClick={() => setQ('')} className="tap"><Icon n="x" s={12} c="text-ink-500"/></button>}
+        </div>
+      </div>
+      <div className="px-5 py-3 overflow-y-auto" style={{maxHeight: 'calc(100% - 60px)'}}>
+        {!q && (<><p className="eyebrow text-ink-500 mb-3">Buscas recentes</p><div className="space-y-2">{['alexa mini','supreme prime','skypanel'].map(s => <div key={s} onClick={() => setQ(s)} className="tap flex items-center gap-3 p-2"><Icon n="clock" s={12} c="text-ink-500"/><span className="text-[12px] text-ink-200">{s}</span></div>)}</div></>)}
+        {q && results.length === 0 && <div className="text-center py-12 text-[12px] text-ink-500">Nenhum resultado</div>}
+        <div className="space-y-2">{results.map(eq => {
+          const house = getHouse(eq.house);
+          return (
+            <div key={eq.id} onClick={() => navigateTo('eqDetail', { eqId: eq.id })} className="tap bg-ink-900 border border-ink-800 rounded-xl p-3 flex items-center gap-3">
+              <div className="w-12 h-12 bg-ink-850 rounded-lg flex items-center justify-center shrink-0"><EqIcon cat={eq.cat} size={44}/></div>
+              <div className="flex-1 min-w-0"><p className="text-[12px] text-ink-100 font-medium">{eq.name}</p><p className="text-[10px] text-ink-500">{house?.name} · <span className="mono">{eq.spec}</span></p></div>
+              <Icon n="chevronRight" s={13} c="text-ink-500"/>
+            </div>
+          );
+        })}</div>
+      </div>
+    </div>
+  );
+};
+
+// ----- NOTIFICATIONS -----
+const ScreenNotifications = () => {
+  const { goBack, navigateTo } = useNav();
+  const { markNotifsRead } = useData();
+  useEffect(() => { markNotifsRead(); }, []);
+  const notifs = [
+    { icon:'sparkles', title:'Orçamento recebido', sub:'Cinestúdio SP enviou orçamento para COT-0248', time:'14:32', unread:true, action:() => navigateTo('quotationDetail', { quotationId: 'COT-0248' }) },
+    { icon:'clock', title:'FilmeHouse começou análise', sub:'Sua cotação COT-0249 está em análise', time:'14:28', unread:true },
+    { icon:'checkCircle', title:'Cotação aprovada', sub:'Luz & Câmera confirmou COT-0247', time:'Ontem', unread:false },
+    { icon:'bell', title:'Diária amanhã', sub:'Retirada em Cinestúdio SP às 07:00', time:'Ontem', unread:false },
+  ];
+  return (
+    <div className="h-full bg-ink-950 route-enter">
+      <PageHeader title="Notificações"/>
+      <div className="overflow-y-auto" style={{maxHeight: 'calc(100% - 60px)'}}>
+        {notifs.map((n,i) => (
+          <div key={i} onClick={n.action} className={`tap px-5 py-3 flex gap-3 border-b border-ink-800/50 ${n.unread ? 'bg-amber-glow/5' : ''}`}>
+            <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 bg-amber-glow/15 text-amber-glow"><Icon n={n.icon} s={14}/></div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-start justify-between gap-2"><p className="text-[12px] text-ink-100 font-medium">{n.title}</p><span className="text-[9px] text-ink-500 shrink-0">{n.time}</span></div>
+              <p className="text-[11px] text-ink-400 leading-snug mt-0.5">{n.sub}</p>
+            </div>
+            {n.unread && <span className="w-1.5 h-1.5 bg-amber-glow rounded-full mt-2 shrink-0"></span>}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// ----- HOUSE -----
+const ScreenHouse = () => {
+  const { params, goBack } = useNav();
+  const house = getHouse(params.houseId);
+  const items = EQUIPMENT.filter(e => e.house === params.houseId);
+  if (!house) return null;
+  return (
+    <div className="h-full bg-ink-950 overflow-y-auto pb-[80px] route-enter">
+      <div className="relative bg-gradient-to-b from-ink-850 to-ink-900 h-40 cine-glow">
+        <div className="absolute top-3 left-3 z-10"><button onClick={goBack} className="tap w-9 h-9 bg-ink-950/60 backdrop-blur border border-ink-800 rounded-full flex items-center justify-center"><Icon n="arrowLeft" s={16} c="text-ink-100"/></button></div>
+        <div className="absolute inset-0 flex items-center justify-center"><div className="w-16 h-16 bg-gradient-to-br from-amber-warm/30 to-amber-glow/20 rounded-2xl flex items-center justify-center"><Icon n="building" s={28} c="text-amber-warm"/></div></div>
+      </div>
+      <div className="px-5 pt-4">
+        <h1 className="serif text-[22px] text-ink-50 mb-1">{house.name}</h1>
+        <div className="flex items-center gap-3 text-[11px] text-ink-400 mb-4"><span className="flex items-center gap-1"><Icon n="mapPin" s={11}/> {house.district} · {house.distance}</span><span className="flex items-center gap-1 text-amber-warm"><Icon n="star" s={11}/> {house.rating}</span></div>
+        <div className="grid grid-cols-3 gap-2 mb-5">
+          <div className="bg-ink-900 border border-ink-800 rounded-xl p-2.5 text-center"><p className="serif text-[16px] text-amber-glow">{house.items}</p><p className="text-[9px] text-ink-500 mt-0.5">itens</p></div>
+          <div className="bg-ink-900 border border-ink-800 rounded-xl p-2.5 text-center"><p className="serif text-[16px] text-amber-glow">{house.rating}</p><p className="text-[9px] text-ink-500 mt-0.5">avaliação</p></div>
+          <div className="bg-ink-900 border border-ink-800 rounded-xl p-2.5 text-center"><p className="serif text-[16px] text-amber-glow">{house.responseTime}</p><p className="text-[9px] text-ink-500 mt-0.5">resposta</p></div>
+        </div>
+        <p className="eyebrow text-ink-400 mb-2.5">Acervo ({items.length})</p>
+        <GridCatalog items={items}/>
+      </div>
+      <BottomNav/>
+    </div>
+  );
+};
+
+window.__CENA_P2__ = { ScreenSplash, ScreenLogin, ScreenHome, ScreenCategory, ScreenEqDetail, ScreenSearch, ScreenNotifications, ScreenHouse };
+</script>
+
+</body>
+</html>
