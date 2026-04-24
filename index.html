@@ -182,6 +182,9 @@
   *, *::before, *::after { box-sizing: border-box; }
   img, svg, video, canvas { max-width: 100%; }
   button, input, select, textarea { max-width: 100%; }
+  .mobile-menu-toggle,
+  .mobile-sidebar-close,
+  .mobile-nav-backdrop { display: none; }
 
   @media (max-width: 767px) {
     body { width: 100%; }
@@ -211,47 +214,74 @@
     .text-xl { font-size: 1.15rem !important; line-height: 1.25 !important; }
     .text-lg { font-size: 1rem !important; line-height: 1.45 !important; }
 
-    .min-h-screen.flex.bg-ink-950 { flex-direction: column !important; }
-    aside.w-64 {
-      width: 100% !important;
-      height: auto !important;
+    .mobile-menu-toggle,
+    .mobile-sidebar-close { display: flex !important; }
+    .mobile-nav-backdrop {
+      display: block !important;
+      position: fixed;
+      inset: 0;
+      z-index: 45;
+      opacity: 0;
+      pointer-events: none;
+      background: rgba(10, 9, 8, 0.72);
+      backdrop-filter: blur(8px);
+      transition: opacity .22s ease;
+    }
+    .mobile-nav-backdrop-open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    aside.mobile-sidebar {
+      width: min(82vw, 320px) !important;
+      height: 100dvh !important;
       max-height: none !important;
-      position: sticky !important;
+      position: fixed !important;
+      left: 0 !important;
       top: 0 !important;
-      z-index: 40 !important;
-      border-right: 0 !important;
-      border-bottom: 1px solid #1a1817 !important;
+      z-index: 50 !important;
+      transform: translateX(-105%);
+      transition: transform .26s cubic-bezier(.2,.8,.2,1);
+      border-right: 1px solid #24221f !important;
+      border-bottom: 0 !important;
       background: rgba(10, 9, 8, 0.96);
       backdrop-filter: blur(16px);
+      box-shadow: 28px 0 70px rgba(0,0,0,.42);
     }
-    aside.w-64 > .px-6 { padding: 0.9rem 1rem !important; }
-    aside.w-64 > .flex-1 {
-      flex: none !important;
-      padding: 0.7rem 0.75rem !important;
-      overflow-x: auto !important;
-      overflow-y: hidden !important;
+    aside.mobile-sidebar.mobile-sidebar-open {
+      transform: translateX(0);
+    }
+    aside.mobile-sidebar > .px-6 {
+      padding: 1rem !important;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    aside.mobile-sidebar > .flex-1 {
+      flex: 1 1 auto !important;
+      padding: 1rem 0.75rem !important;
+      overflow-x: hidden !important;
+      overflow-y: auto !important;
       -webkit-overflow-scrolling: touch;
     }
-    aside.w-64 > .flex-1 > .eyebrow,
-    aside.w-64 > .flex-1 > div.space-y-1 { display: none !important; }
-    aside.w-64 nav.space-y-1 {
-      display: flex !important;
-      align-items: center;
-      gap: 0.5rem;
-      min-width: max-content;
+    aside.mobile-sidebar > .flex-1 > .eyebrow,
+    aside.mobile-sidebar > .flex-1 > div.space-y-1 { display: block !important; }
+    aside.mobile-sidebar nav.space-y-1 {
+      display: block !important;
+      min-width: 0;
     }
-    aside.w-64 nav.space-y-1 > :not([hidden]) ~ :not([hidden]) { margin-top: 0 !important; }
-    aside.w-64 nav button {
-      width: auto !important;
-      flex: 0 0 auto;
-      white-space: nowrap;
-      border-radius: 999px !important;
+    aside.mobile-sidebar nav.space-y-1 > :not([hidden]) ~ :not([hidden]) { margin-top: 0.25rem !important; }
+    aside.mobile-sidebar nav button,
+    aside.mobile-sidebar .flex-1 > div.space-y-1 button {
+      width: 100% !important;
+      white-space: normal;
+      border-radius: 0.75rem !important;
     }
-    aside.w-64 > .px-3.py-4 {
-      padding: 0 0.75rem 0.75rem !important;
-      border-top: 0 !important;
+    aside.mobile-sidebar > .px-3.py-4 {
+      padding: 0.85rem 0.75rem !important;
+      border-top: 1px solid #1a1817 !important;
     }
-    aside.w-64 > .px-3.py-4 button { justify-content: center; }
+    aside.mobile-sidebar > .px-3.py-4 button { justify-content: flex-start; }
 
     header.h-16 {
       height: auto !important;
@@ -883,6 +913,7 @@ const LoginScreen = ({ role, onLogin, onBack }) => {
    LAYOUT (app shell with sidebar + top bar)
    ========================================================== */
 const AppShell = ({ role, currentView, onNav, cartCount, onLogout, onNotify, user, children }) => {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navConfig = {
     ac: [
       { id: 'home',       label: 'Explorar',      icon: 'search' },
@@ -905,13 +936,36 @@ const AppShell = ({ role, currentView, onNav, cartCount, onLogout, onNotify, use
     ],
   };
   const nav = navConfig[role] || [];
+  const handleSidebarNav = (id) => {
+    onNav(id);
+    setMobileMenuOpen(false);
+  };
+  const handleSidebarLogout = () => {
+    setMobileMenuOpen(false);
+    onLogout();
+  };
 
   return (
     <div className="min-h-screen flex bg-ink-950">
+      <button
+        type="button"
+        aria-label="Recolher menu"
+        onClick={() => setMobileMenuOpen(false)}
+        className={`mobile-nav-backdrop ${mobileMenuOpen ? 'mobile-nav-backdrop-open' : ''}`}
+      />
+
       {/* Sidebar */}
-      <aside className="w-64 border-r border-ink-800 flex flex-col sticky top-0 h-screen">
+      <aside className={`mobile-sidebar ${mobileMenuOpen ? 'mobile-sidebar-open' : ''} w-64 border-r border-ink-800 flex flex-col sticky top-0 h-screen`}>
         <div className="px-6 py-6 border-b border-ink-800">
           <Logo />
+          <button
+            type="button"
+            aria-label="Recolher menu"
+            onClick={() => setMobileMenuOpen(false)}
+            className="mobile-sidebar-close btn-ghost w-9 h-9 rounded-xl items-center justify-center"
+          >
+            <Icon name="x" className="w-4 h-4" strokeWidth={1.8}/>
+          </button>
         </div>
 
         <div className="flex-1 px-3 py-6 overflow-y-auto">
@@ -920,7 +974,7 @@ const AppShell = ({ role, currentView, onNav, cartCount, onLogout, onNotify, use
             {nav.map(item => (
               <button
                 key={item.id}
-                onClick={() => onNav(item.id)}
+                onClick={() => handleSidebarNav(item.id)}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all ${
                   currentView === item.id
                     ? 'bg-amber-glow/10 text-amber-glow border border-amber-glow/20'
@@ -938,7 +992,7 @@ const AppShell = ({ role, currentView, onNav, cartCount, onLogout, onNotify, use
               <div className="eyebrow text-ink-400 px-3 mt-8 mb-3">Categorias</div>
               <div className="space-y-1">
                 {CATEGORIES.map(cat => (
-                  <button key={cat.id} onClick={() => onNav('home:' + cat.id)} className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs text-ink-300 hover:bg-ink-800 hover:text-ink-50 transition-colors">
+                  <button key={cat.id} onClick={() => handleSidebarNav('home:' + cat.id)} className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs text-ink-300 hover:bg-ink-800 hover:text-ink-50 transition-colors">
                     <Icon name={cat.icon} className="w-3.5 h-3.5" strokeWidth={1.6}/> {cat.name}
                   </button>
                 ))}
@@ -948,7 +1002,7 @@ const AppShell = ({ role, currentView, onNav, cartCount, onLogout, onNotify, use
         </div>
 
         <div className="px-3 py-4 border-t border-ink-800">
-          <button onClick={onLogout} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-ink-300 hover:bg-ink-800 hover:text-ink-50">
+          <button onClick={handleSidebarLogout} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-ink-300 hover:bg-ink-800 hover:text-ink-50">
             <Icon name="logout" className="w-4 h-4" strokeWidth={1.6}/> Sair
           </button>
         </div>
@@ -957,12 +1011,22 @@ const AppShell = ({ role, currentView, onNav, cartCount, onLogout, onNotify, use
       {/* Main area */}
       <div className="flex-1 flex flex-col min-w-0">
         <header className="h-16 border-b border-ink-800 px-8 flex items-center justify-between bg-ink-950/80 backdrop-blur sticky top-0 z-20">
-          <div className="flex items-center gap-4 text-sm">
-            <span className="text-ink-400">{user?.company || 'Cena'}</span>
-            <span className="text-ink-600">/</span>
-            <span className="text-ink-100 font-medium capitalize">
-              {nav.find(n => n.id === (currentView.split(':')[0]))?.label || currentView}
-            </span>
+          <div className="flex items-center gap-3 min-w-0">
+            <button
+              type="button"
+              aria-label="Abrir menu"
+              onClick={() => setMobileMenuOpen(true)}
+              className="mobile-menu-toggle btn-ghost w-10 h-10 rounded-xl items-center justify-center flex-shrink-0"
+            >
+              <Icon name="menu" className="w-4 h-4" strokeWidth={1.8}/>
+            </button>
+            <div className="flex items-center gap-4 text-sm min-w-0">
+              <span className="text-ink-400">{user?.company || 'Cena'}</span>
+              <span className="text-ink-600">/</span>
+              <span className="text-ink-100 font-medium capitalize">
+                {nav.find(n => n.id === (currentView.split(':')[0]))?.label || currentView}
+              </span>
+            </div>
           </div>
           <div className="flex items-center gap-3">
             {role === 'ac' && (
