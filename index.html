@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests" />
+<meta name="referrer" content="strict-origin-when-cross-origin" />
+<meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), payment=(), usb=(), clipboard-read=(), clipboard-write=(self)" />
 <title>Cena — Locação Inteligente de Equipamentos Audiovisuais</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -393,6 +396,43 @@ const formatCPF = (v) => {
 const isValidPhone = (v) => v.replace(/\D/g, '').length === 11;
 const isValidCPF = (v) => v.replace(/\D/g, '').length === 11;
 
+const fmtDateTime = (s) => {
+  if (!s) return '—';
+  return new Date(s).toLocaleString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+};
+
+const maskCPF = (v) => {
+  const d = String(v || '').replace(/\D/g, '');
+  if (d.length !== 11) return '•••.•••.•••-••';
+  return `•••.${d.slice(3, 6)}.${d.slice(6, 9)}-••`;
+};
+
+const maskPhone = (v) => {
+  const d = String(v || '').replace(/\D/g, '');
+  if (d.length < 10) return '(••) •••••-••••';
+  return `(${d.slice(0, 2)}) •••••-${d.slice(-4)}`;
+};
+
+const QUOTE_AREAS = [
+  { id: 'camera', label: 'Câmera', cats: ['cam', 'lens', 'acc'], owner: 'Diretor de Fotografia' },
+  { id: 'electric', label: 'Elétrica', cats: ['light'], owner: 'Gaffer / Elétrica' },
+  { id: 'grip', label: 'Maquinaria', cats: ['grip'], owner: 'Maquinista' },
+  { id: 'audio', label: 'Áudio', cats: ['audio'], owner: 'Técnico de som' },
+  { id: 'production', label: 'Produção', cats: ['cam', 'lens', 'light', 'audio', 'grip', 'acc'], owner: 'Produção' },
+];
+
+const CHECKOUT_ITEMS = [
+  ['qr', 'QR / protocolo validado'],
+  ['serialsOut', 'Seriais conferidos na saída'],
+  ['photosOut', 'Fotos da mesa de saída'],
+  ['tests', 'Eletrônicos testados'],
+  ['driverPickup', 'Motorista e VAN confirmados'],
+  ['signatureOut', 'Assinatura de retirada'],
+  ['photosReturn', 'Fotos de devolução'],
+  ['serialsReturn', 'Seriais conferidos no retorno'],
+  ['signatureReturn', 'Assinatura de devolução'],
+];
+
 const statusConfig = {
   aguardando:  { label: 'Aguardando cotação', color: '#e8c468', bg: 'rgba(232,196,104,0.1)' },
   cotada:      { label: 'Cotação enviada',    color: '#6ba8ff', bg: 'rgba(107,168,255,0.1)' },
@@ -519,7 +559,7 @@ const EquipmentCard = ({ eq, onClick, onAdd, compact = false }) => {
 };
 
 /* placeholder for the rest of the app - loaded by next chunks */
-window.__CENA_BASE__ = { Icon, Logo, EquipmentCard, RENTAL_HOUSES, CATEGORIES, EQUIPMENT, MOCK_QUOTATIONS, TEAM_MEMBERS, currency, fmtDate, fmtDateShort, formatPhone, formatCPF, isValidPhone, isValidCPF, StatusBadge, statusConfig, AppContext, useApp };
+window.__CENA_BASE__ = { Icon, Logo, EquipmentCard, RENTAL_HOUSES, CATEGORIES, EQUIPMENT, MOCK_QUOTATIONS, TEAM_MEMBERS, currency, fmtDate, fmtDateShort, fmtDateTime, formatPhone, formatCPF, maskCPF, maskPhone, isValidPhone, isValidCPF, QUOTE_AREAS, CHECKOUT_ITEMS, StatusBadge, statusConfig, AppContext, useApp };
 </script>
 
 <script type="text/babel" data-type="module">
@@ -606,7 +646,7 @@ const DemoSelector = ({ onSelect }) => {
           </div>
 
           <div className="mt-16 flex items-center justify-center gap-8 text-ink-400 text-xs fade-up fade-up-5">
-            <div className="flex items-center gap-2"><Icon name="shield" className="w-4 h-4"/> LGPD compliant</div>
+            <div className="flex items-center gap-2"><Icon name="shield" className="w-4 h-4"/> Privacidade by design</div>
             <div className="h-3 w-px bg-ink-700"></div>
             <div className="flex items-center gap-2"><Icon name="clock" className="w-4 h-4"/> Tempo médio de cotação: 4h → 15 min</div>
             <div className="h-3 w-px bg-ink-700"></div>
@@ -629,11 +669,17 @@ const LoginScreen = ({ role, onLogin, onBack }) => {
   };
   const p = presets[role];
   const [email, setEmail] = useState(p.email);
-  const [pwd, setPwd] = useState('demo2026');
+  const [pwd, setPwd] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const submit = (e) => {
     e.preventDefault();
+    if (pwd.length < 8) {
+      setError('Use pelo menos 8 caracteres para simular uma senha forte.');
+      return;
+    }
+    setError('');
     setLoading(true);
     setTimeout(() => onLogin(), 600);
   };
@@ -660,6 +706,7 @@ const LoginScreen = ({ role, onLogin, onBack }) => {
               <input
                 type="email" value={email} onChange={(e) => setEmail(e.target.value)}
                 className="input-field w-full px-4 py-3 rounded-xl font-mono text-sm"
+                autoComplete="username"
                 required
               />
             </div>
@@ -668,9 +715,12 @@ const LoginScreen = ({ role, onLogin, onBack }) => {
               <input
                 type="password" value={pwd} onChange={(e) => setPwd(e.target.value)}
                 className="input-field w-full px-4 py-3 rounded-xl font-mono text-sm"
+                autoComplete="current-password"
+                minLength="8"
                 required
               />
             </div>
+            {error && <div className="text-xs text-red-400">{error}</div>}
             <div className="flex items-center justify-between text-xs pt-1">
               <label className="flex items-center gap-2 text-ink-300 cursor-pointer">
                 <input type="checkbox" className="accent-amber-glow"/> Lembrar-me
@@ -827,7 +877,7 @@ window.__CENA_PART2__ = { DemoSelector, LoginScreen, AppShell };
    PART 3 — AC / Client screens
    ============================================================ */
 const { useState, useEffect, useMemo, useRef } = React;
-const { Icon, Logo, EquipmentCard, RENTAL_HOUSES, CATEGORIES, EQUIPMENT, MOCK_QUOTATIONS, currency, fmtDate, fmtDateShort, formatPhone, formatCPF, isValidPhone, isValidCPF, StatusBadge, statusConfig } = window.__CENA_BASE__;
+const { Icon, Logo, EquipmentCard, RENTAL_HOUSES, CATEGORIES, EQUIPMENT, MOCK_QUOTATIONS, currency, fmtDate, fmtDateShort, fmtDateTime, formatPhone, formatCPF, maskCPF, maskPhone, isValidPhone, isValidCPF, QUOTE_AREAS, CHECKOUT_ITEMS, StatusBadge, statusConfig } = window.__CENA_BASE__;
 
 /* ==========================================================
    AC - EXPLORAR / HOME
@@ -1232,7 +1282,7 @@ const ACCart = ({ cart, equipment = EQUIPMENT, onUpdate, onRemove, onSubmit, onB
                 <Icon name="shield" className="w-5 h-5 text-amber-glow flex-shrink-0 mt-0.5" strokeWidth={1.5}/>
                 <div>
                   <div className="text-sm text-ink-100 font-medium mb-1">Confirmação segura</div>
-                  <div className="text-xs text-ink-400 leading-relaxed">Sua cotação é enviada diretamente para a locadora com todos os dados criptografados. Valores e informações pessoais permanecem privados (LGPD).</div>
+                  <div className="text-xs text-ink-400 leading-relaxed">Sua cotação é enviada diretamente para a locadora correta. Nesta demo, dados sensíveis são minimizados e mascarados no armazenamento local.</div>
                 </div>
               </div>
             </div>
@@ -1413,16 +1463,37 @@ const ACQuotations = ({ quotations, onOpen }) => {
 const QuotationDetail = ({ quot, equipment = EQUIPMENT, onClose, onAction, viewerRole = 'ac' }) => {
   if (!quot) return null;
   const [quoteValue, setQuoteValue] = useState(quot.total || '');
+  const [revisionReason, setRevisionReason] = useState('');
+  const [driver, setDriver] = useState(quot.driver || { name: '', phone: '', vehicle: '', plate: '' });
   const [checkoutReady, setCheckoutReady] = useState({
-    qr: false,
-    photos: false,
-    tests: false,
-    signature: false,
+    qr: Boolean(quot.evidence?.qr),
+    serialsOut: Boolean(quot.evidence?.serialsOut),
+    photosOut: Boolean(quot.evidence?.photosOut),
+    tests: Boolean(quot.evidence?.tests),
+    driverPickup: Boolean(quot.evidence?.driverPickup),
+    signatureOut: Boolean(quot.evidence?.signatureOut),
+    photosReturn: Boolean(quot.evidence?.photosReturn),
+    serialsReturn: Boolean(quot.evidence?.serialsReturn),
+    signatureReturn: Boolean(quot.evidence?.signatureReturn),
   });
   const steps = ['aguardando', 'cotada', 'aprovada', 'confirmada', 'finalizada'];
   const currentStep = Math.max(0, steps.indexOf(quot.status));
   const totalItems = quot.items.reduce((s, i) => s + i.qty, 0);
-  const checkoutComplete = Object.values(checkoutReady).every(Boolean);
+  const requestedEquipment = quot.items.map(it => equipment.find(e => e.id === it.id)).filter(Boolean);
+  const requiredAreas = QUOTE_AREAS.filter(area => requestedEquipment.some(eq => area.cats.includes(eq.cat)));
+  const approvals = {
+    ...requiredAreas.reduce((acc, area) => ({
+      ...acc,
+      [area.id]: { label: area.label, owner: area.owner, approved: ['aprovada', 'confirmada', 'finalizada'].includes(quot.status) },
+    }), {}),
+    ...(quot.approvals || {}),
+  };
+  const approvalsComplete = requiredAreas.every(area => approvals[area.id]?.approved);
+  const checkoutComplete = CHECKOUT_ITEMS.every(([key]) => checkoutReady[key]);
+  const driverComplete = ['name', 'phone', 'vehicle', 'plate'].every(key => String(driver[key] || '').trim());
+  const holdExpired = quot.holdExpiresAt && new Date(quot.holdExpiresAt).getTime() < Date.now();
+  const versionHistory = quot.versions || [{ version: 1, at: quot.createdAt, actor: quot.client, note: 'Pedido inicial criado' }];
+  const verification = quot.requesterVerification || { level: 'validado', validatedBy: ['Cinestúdio SP', 'FilmeHouse'], cpf: '123.456.789-00', phone: '(11) 98765-4321' };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink-950/85 backdrop-blur-sm fade-up">
@@ -1467,6 +1538,8 @@ const QuotationDetail = ({ quot, equipment = EQUIPMENT, onClose, onAction, viewe
                 <div className="flex justify-between"><span className="text-ink-300">Função</span><span className="text-ink-100">{quot.clientRole}</span></div>
                 <div className="flex justify-between"><span className="text-ink-300">Criada em</span><span className="text-ink-100 font-mono">{fmtDate(quot.createdAt)}</span></div>
                 <div className="flex justify-between"><span className="text-ink-300">Locadora</span><span className="text-ink-100">{quot.rhName}</span></div>
+                <div className="flex justify-between"><span className="text-ink-300">Pedido mestre</span><span className="text-ink-100 font-mono">{quot.masterId || quot.id}</span></div>
+                <div className="flex justify-between"><span className="text-ink-300">Versão</span><span className="text-ink-100 font-mono">v{quot.version || 1}</span></div>
               </div>
             </div>
             <div>
@@ -1476,6 +1549,29 @@ const QuotationDetail = ({ quot, equipment = EQUIPMENT, onClose, onAction, viewe
                 <div className="flex justify-between"><span className="text-ink-300">Devolução</span><span className="text-ink-100 font-mono">{fmtDate(quot.returnDate)}</span></div>
                 <div className="flex justify-between"><span className="text-ink-300">Duração</span><span className="text-ink-100 font-mono">{Math.max(1, Math.ceil((new Date(quot.returnDate) - new Date(quot.pickupDate)) / 86400000))} dia(s)</span></div>
                 <div className="flex justify-between"><span className="text-ink-300">Itens</span><span className="text-ink-100 font-mono">{totalItems}</span></div>
+                <div className="flex justify-between"><span className="text-ink-300">Validade</span><span className={`font-mono ${holdExpired ? 'text-red-400' : 'text-ink-100'}`}>{quot.holdExpiresAt ? fmtDateTime(quot.holdExpiresAt) : 'a emitir'}</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-6 mb-8">
+            <div className="bg-ink-950 border border-ink-700 rounded-xl p-4">
+              <h3 className="eyebrow text-ink-400 mb-3">Segurança do solicitante</h3>
+              <div className="space-y-3 text-sm">
+                <div className="flex justify-between"><span className="text-ink-300">Status</span><span className="text-green-400 font-medium">{verification.level === 'validado' ? 'Validado' : 'Em análise'}</span></div>
+                <div className="flex justify-between"><span className="text-ink-300">CPF</span><span className="text-ink-100 font-mono">{maskCPF(verification.cpf)}</span></div>
+                <div className="flex justify-between"><span className="text-ink-300">Telefone</span><span className="text-ink-100 font-mono">{maskPhone(verification.phone)}</span></div>
+                <div className="flex justify-between"><span className="text-ink-300">Referências</span><span className="text-ink-100 text-right">{(verification.validatedBy || []).join(' · ') || 'pendente'}</span></div>
+              </div>
+            </div>
+            <div className="bg-ink-950 border border-ink-700 rounded-xl p-4">
+              <h3 className="eyebrow text-ink-400 mb-3">Cadeia de custódia</h3>
+              <div className="grid grid-cols-2 gap-2">
+                {['Solicitante validado', 'Valor isolado', 'Aprovação por área', 'Evidências auditáveis'].map((item) => (
+                  <div key={item} className="flex items-center gap-2 text-xs text-ink-200 bg-ink-900 border border-ink-800 rounded-lg px-3 py-2">
+                    <Icon name="shield" className="w-3.5 h-3.5 text-green-400" strokeWidth={1.5}/> {item}
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -1504,17 +1600,96 @@ const QuotationDetail = ({ quot, equipment = EQUIPMENT, onClose, onAction, viewe
             <div className="bg-amber-glow/5 border border-amber-glow/20 rounded-xl p-5 mb-8 flex items-center justify-between">
               <div>
                 <div className="eyebrow text-amber-glow mb-1">Valor da cotação</div>
-                <div className="text-xs text-ink-300">Proposta enviada pela locadora</div>
+                <div className="text-xs text-ink-300">
+                  {holdExpired ? 'Proposta expirada, solicite nova versão' : 'Proposta enviada pela locadora com pré-reserva ativa'}
+                </div>
               </div>
               <div className="serif-display text-3xl text-amber-warm">{currency(quot.total)}</div>
+            </div>
+          )}
+
+          <div className="bg-ink-950 border border-ink-700 rounded-xl p-4 mb-8">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="eyebrow text-ink-400">Aprovações responsáveis</h3>
+              <span className={`text-xs font-mono ${approvalsComplete ? 'text-green-400' : 'text-amber-warm'}`}>{requiredAreas.filter(a => approvals[a.id]?.approved).length}/{requiredAreas.length}</span>
+            </div>
+            <div className="grid md:grid-cols-2 gap-2">
+              {requiredAreas.map((area) => {
+                const approved = approvals[area.id]?.approved;
+                return (
+                  <div key={area.id} className="bg-ink-900 border border-ink-800 rounded-xl px-3 py-3 flex items-center justify-between gap-3">
+                    <div>
+                      <div className="text-sm text-ink-100 font-medium">{area.label}</div>
+                      <div className="text-[11px] text-ink-400">{area.owner}</div>
+                    </div>
+                    {approved ? (
+                      <span className="inline-flex items-center gap-1.5 text-xs text-green-400"><Icon name="check" className="w-3.5 h-3.5" strokeWidth={2}/> aprovado</span>
+                    ) : viewerRole === 'ac' && quot.status === 'cotada' ? (
+                      <button onClick={() => onAction?.('approveArea', quot, { areaId: area.id })} className="btn-ghost px-3 py-1.5 rounded-lg text-xs">Aprovar</button>
+                    ) : (
+                      <span className="text-xs text-ink-400">pendente</span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="bg-ink-950 border border-ink-700 rounded-xl p-4 mb-8">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="eyebrow text-ink-400">Histórico de versões</h3>
+              {viewerRole === 'ac' && ['aguardando', 'cotada'].includes(quot.status) && (
+                <button onClick={() => onAction?.('requestRevision', quot, { reason: revisionReason || 'Ajuste solicitado pelo responsável' })} className="btn-ghost px-3 py-1.5 rounded-lg text-xs">Solicitar ajuste</button>
+              )}
+            </div>
+            {viewerRole === 'ac' && ['aguardando', 'cotada'].includes(quot.status) && (
+              <input value={revisionReason} onChange={(e) => setRevisionReason(e.target.value)} placeholder="Ex: trocar lente, adicionar bateria, revisar diária" className="input-field w-full px-3 py-2.5 rounded-xl text-sm mb-3"/>
+            )}
+            <div className="space-y-2">
+              {versionHistory.map((v, i) => (
+                <div key={i} className="flex items-start justify-between gap-3 border-t border-ink-800 first:border-t-0 pt-2 first:pt-0">
+                  <div>
+                    <div className="text-sm text-ink-100">v{v.version} · {v.note}</div>
+                    <div className="text-xs text-ink-400">{v.actor}</div>
+                  </div>
+                  <div className="text-xs text-ink-400 font-mono">{v.at?.includes('T') ? fmtDateTime(v.at) : fmtDate(v.at)}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {['aprovada', 'confirmada', 'finalizada'].includes(quot.status) && (
+            <div className="bg-ink-950 border border-ink-700 rounded-xl p-4 mb-8">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="eyebrow text-ink-400">Logística e motorista</h3>
+                <span className={`text-xs font-mono ${driverComplete ? 'text-green-400' : 'text-amber-warm'}`}>{driverComplete ? 'validado' : 'pendente'}</span>
+              </div>
+              {viewerRole === 'staff' && ['aprovada', 'confirmada'].includes(quot.status) ? (
+                <div className="space-y-3">
+                  <div className="grid md:grid-cols-2 gap-3">
+                    <input value={driver.name} onChange={(e) => setDriver(prev => ({ ...prev, name: e.target.value }))} placeholder="Nome do motorista" className="input-field w-full px-3 py-2.5 rounded-xl text-sm"/>
+                    <input value={driver.phone} onChange={(e) => setDriver(prev => ({ ...prev, phone: formatPhone(e.target.value) }))} placeholder="Telefone" className="input-field w-full px-3 py-2.5 rounded-xl text-sm font-mono"/>
+                    <input value={driver.vehicle} onChange={(e) => setDriver(prev => ({ ...prev, vehicle: e.target.value }))} placeholder="Veículo / modelo" className="input-field w-full px-3 py-2.5 rounded-xl text-sm"/>
+                    <input value={driver.plate} onChange={(e) => setDriver(prev => ({ ...prev, plate: e.target.value.toUpperCase().slice(0, 8) }))} placeholder="Placa" className="input-field w-full px-3 py-2.5 rounded-xl text-sm font-mono"/>
+                  </div>
+                  <button disabled={!driverComplete} onClick={() => onAction?.('saveDriver', quot, { driver })} className={`px-4 py-2.5 rounded-xl text-sm ${driverComplete ? 'btn-primary' : 'btn-ghost opacity-60 cursor-not-allowed'}`}>Salvar logística</button>
+                </div>
+              ) : (
+                <div className="grid md:grid-cols-4 gap-3 text-sm">
+                  <div><div className="text-ink-400 text-xs mb-1">Motorista</div><div className="text-ink-100">{driver.name || 'pendente'}</div></div>
+                  <div><div className="text-ink-400 text-xs mb-1">Telefone</div><div className="text-ink-100 font-mono">{driver.phone || 'pendente'}</div></div>
+                  <div><div className="text-ink-400 text-xs mb-1">Veículo</div><div className="text-ink-100">{driver.vehicle || 'pendente'}</div></div>
+                  <div><div className="text-ink-400 text-xs mb-1">Placa</div><div className="text-ink-100 font-mono">{driver.plate || 'pendente'}</div></div>
+                </div>
+              )}
             </div>
           )}
 
           {/* Actions */}
           {viewerRole === 'ac' && quot.status === 'cotada' && (
             <div className="flex items-center gap-3">
-              <button onClick={() => onAction?.('approve', quot)} className="btn-primary flex-1 py-3.5 rounded-xl flex items-center justify-center gap-2">
-                <Icon name="check" className="w-4 h-4" strokeWidth={2}/> Aprovar cotação
+              <button disabled={!approvalsComplete || holdExpired} onClick={() => onAction?.('approve', quot)} className={`flex-1 py-3.5 rounded-xl flex items-center justify-center gap-2 ${approvalsComplete && !holdExpired ? 'btn-primary' : 'btn-ghost opacity-60 cursor-not-allowed'}`}>
+                <Icon name="check" className="w-4 h-4" strokeWidth={2}/> Aprovar e fechar
               </button>
               <button onClick={() => onAction?.('reject', quot)} className="btn-ghost flex-1 py-3.5 rounded-xl">Recusar</button>
             </div>
@@ -1547,14 +1722,9 @@ const QuotationDetail = ({ quot, equipment = EQUIPMENT, onClose, onAction, viewe
           {viewerRole === 'staff' && ['aprovada', 'confirmada'].includes(quot.status) && (
             <div className="space-y-4">
               <div className="bg-ink-950 border border-ink-700 rounded-xl p-4">
-                <div className="eyebrow text-ink-400 mb-3">Check-out digital</div>
+                <div className="eyebrow text-ink-400 mb-3">Check-out / check-in digital</div>
                 <div className="grid md:grid-cols-2 gap-2">
-                  {[
-                    ['qr', 'QR / protocolo validado'],
-                    ['photos', 'Fotos da mesa anexadas'],
-                    ['tests', 'Eletrônicos testados'],
-                    ['signature', 'Assinatura digital coletada'],
-                  ].map(([key, label]) => (
+                  {CHECKOUT_ITEMS.map(([key, label]) => (
                     <label key={key} className="flex items-center gap-2 text-sm text-ink-200 bg-ink-900 border border-ink-800 rounded-xl px-3 py-2.5 cursor-pointer">
                       <input type="checkbox" checked={checkoutReady[key]} onChange={(e) => setCheckoutReady(prev => ({ ...prev, [key]: e.target.checked }))} className="accent-amber-glow"/>
                       {label}
@@ -1564,12 +1734,12 @@ const QuotationDetail = ({ quot, equipment = EQUIPMENT, onClose, onAction, viewe
               </div>
               <div className="flex gap-3">
                 {quot.status === 'aprovada' && (
-                  <button onClick={() => onAction?.('confirmPickup', quot)} className="btn-primary flex-1 py-3.5 rounded-xl flex items-center justify-center gap-2">
+                  <button disabled={!driverComplete} onClick={() => onAction?.('confirmPickup', quot, { evidence: checkoutReady, driver })} className={`flex-1 py-3.5 rounded-xl flex items-center justify-center gap-2 ${driverComplete ? 'btn-primary' : 'btn-ghost opacity-60 cursor-not-allowed'}`}>
                     <Icon name="calendar" className="w-4 h-4" strokeWidth={1.8}/> Confirmar retirada
                   </button>
                 )}
                 {quot.status === 'confirmada' && (
-                  <button disabled={!checkoutComplete} onClick={() => onAction?.('finishRental', quot)} className={`flex-1 py-3.5 rounded-xl flex items-center justify-center gap-2 ${checkoutComplete ? 'btn-primary' : 'btn-ghost opacity-60 cursor-not-allowed'}`}>
+                  <button disabled={!checkoutComplete} onClick={() => onAction?.('finishRental', quot, { evidence: checkoutReady })} className={`flex-1 py-3.5 rounded-xl flex items-center justify-center gap-2 ${checkoutComplete ? 'btn-primary' : 'btn-ghost opacity-60 cursor-not-allowed'}`}>
                     <Icon name="check" className="w-4 h-4" strokeWidth={2}/> Finalizar check-out
                   </button>
                 )}
@@ -1592,13 +1762,16 @@ const ACProfile = ({ profile, onSave, onSecurityAction }) => {
   const [phoneVerified, setPhoneVerified] = useState(profile?.phoneVerified ?? true);
   const [email, setEmail] = useState(profile?.email || 'carlos.menezes@filmes.br');
   const [role, setRole] = useState(profile?.role || '1º Assistente de Câmera');
+  const [twoFactor, setTwoFactor] = useState(profile?.twoFactor ?? true);
   const canSave = name.trim().split(/\s+/).length > 1 && isValidCPF(cpf) && isValidPhone(phone) && email.includes('@');
+  const validatedBy = profile?.validatedBy || ['Cinestúdio SP', 'FilmeHouse'];
+  const trustLevel = phoneVerified && isValidCPF(cpf) ? (profile?.trustLevel || 'Validado') : 'Em análise';
 
   return (
     <div className="p-8 max-w-3xl">
       <div className="mb-8">
         <h1 className="serif-display text-4xl text-ink-50 mb-2">Meu perfil</h1>
-        <p className="text-ink-300">Dados necessários para cotações seguras. Protegidos pela LGPD.</p>
+        <p className="text-ink-300">Dados necessários para cotações seguras. Minimização, consentimento e controles LGPD.</p>
       </div>
 
       <div className="bg-ink-900 border border-ink-700 rounded-3xl p-8 mb-6 fade-up">
@@ -1613,6 +1786,21 @@ const ACProfile = ({ profile, onSave, onSecurityAction }) => {
               <Icon name="shield" className="w-3.5 h-3.5 text-green-400"/>
               <span className="text-xs text-green-400">Perfil verificado</span>
             </div>
+          </div>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-3 mb-8">
+          <div className="bg-ink-950 border border-ink-700 rounded-xl p-4">
+            <div className="eyebrow text-ink-400 mb-1">Nível de confiança</div>
+            <div className="text-sm text-green-400 font-medium">{trustLevel}</div>
+          </div>
+          <div className="bg-ink-950 border border-ink-700 rounded-xl p-4">
+            <div className="eyebrow text-ink-400 mb-1">Referências</div>
+            <div className="text-sm text-ink-100">{validatedBy.length} locadoras</div>
+          </div>
+          <div className="bg-ink-950 border border-ink-700 rounded-xl p-4">
+            <div className="eyebrow text-ink-400 mb-1">2FA</div>
+            <div className="text-sm text-ink-100">{twoFactor ? 'Ativo' : 'Disponível'}</div>
           </div>
         </div>
 
@@ -1649,7 +1837,7 @@ const ACProfile = ({ profile, onSave, onSecurityAction }) => {
           </div>
         </div>
 
-        <button disabled={!canSave} onClick={() => canSave && onSave?.({ name, cpf, phone, phoneVerified, email, role })} className={`px-6 py-3 rounded-xl mt-6 ${canSave ? 'btn-primary' : 'btn-ghost opacity-60 cursor-not-allowed'}`}>Salvar alterações</button>
+        <button disabled={!canSave} onClick={() => canSave && onSave?.({ ...profile, name, cpf, phone, phoneVerified, email, role, trustLevel, validatedBy, documentVerified: isValidCPF(cpf), twoFactor })} className={`px-6 py-3 rounded-xl mt-6 ${canSave ? 'btn-primary' : 'btn-ghost opacity-60 cursor-not-allowed'}`}>Salvar alterações</button>
       </div>
 
       <div className="bg-ink-900 border border-ink-700 rounded-3xl p-6 fade-up fade-up-1">
@@ -1659,11 +1847,12 @@ const ACProfile = ({ profile, onSave, onSecurityAction }) => {
           </div>
           <div>
             <h3 className="serif-display text-lg text-ink-50 mb-1">Segurança e privacidade</h3>
-            <p className="text-ink-300 text-sm leading-relaxed mb-4">Seus dados pessoais são criptografados, armazenados conforme LGPD e compartilhados apenas com locadoras nas quais você solicitou cotação.</p>
+            <p className="text-ink-300 text-sm leading-relaxed mb-4">Seus dados pessoais são mascarados por padrão e minimizados no armazenamento local desta demo. Em produção, entram criptografia, backend e auditoria persistente.</p>
             <div className="space-y-2">
-              <button onClick={() => onSecurityAction?.('2FA ativado para esta demo')} className="btn-ghost px-4 py-2.5 rounded-xl text-sm w-full text-left">Ativar autenticação de dois fatores</button>
-              <button onClick={() => onSecurityAction?.('Fluxo de troca de senha iniciado')} className="btn-ghost px-4 py-2.5 rounded-xl text-sm w-full text-left">Alterar senha</button>
-              <button onClick={() => onSecurityAction?.('Solicitação LGPD registrada')} className="btn-ghost px-4 py-2.5 rounded-xl text-sm w-full text-left text-red-400">Solicitar exclusão de conta (LGPD)</button>
+              <button onClick={() => { setTwoFactor(true); onSave?.({ ...profile, name, cpf, phone, phoneVerified, email, role, trustLevel, validatedBy, documentVerified: isValidCPF(cpf), twoFactor: true }); onSecurityAction?.('enable2fa'); }} className="btn-ghost px-4 py-2.5 rounded-xl text-sm w-full text-left">Ativar autenticação de dois fatores</button>
+              <button onClick={() => onSecurityAction?.('password')} className="btn-ghost px-4 py-2.5 rounded-xl text-sm w-full text-left">Alterar senha</button>
+              <button onClick={() => onSecurityAction?.('exportData')} className="btn-ghost px-4 py-2.5 rounded-xl text-sm w-full text-left">Exportar meus dados (LGPD)</button>
+              <button onClick={() => onSecurityAction?.('deleteLocalData')} className="btn-ghost px-4 py-2.5 rounded-xl text-sm w-full text-left text-red-400">Excluir dados locais (LGPD)</button>
             </div>
           </div>
         </div>
@@ -1680,7 +1869,7 @@ window.__CENA_AC__ = { ACExplore, EquipmentDetail, ACCart, ACQuotations, Quotati
    PART 4 — Staff & Admin screens
    ============================================================ */
 const { useState, useEffect, useMemo } = React;
-const { Icon, Logo, EquipmentCard, RENTAL_HOUSES, CATEGORIES, EQUIPMENT, MOCK_QUOTATIONS, TEAM_MEMBERS, currency, fmtDate, fmtDateShort, formatPhone, formatCPF, isValidPhone, isValidCPF, StatusBadge, statusConfig } = window.__CENA_BASE__;
+const { Icon, Logo, EquipmentCard, RENTAL_HOUSES, CATEGORIES, EQUIPMENT, MOCK_QUOTATIONS, TEAM_MEMBERS, currency, fmtDate, fmtDateShort, formatPhone, formatCPF, isValidPhone, isValidCPF, QUOTE_AREAS, CHECKOUT_ITEMS, StatusBadge, statusConfig } = window.__CENA_BASE__;
 
 /* ==========================================================
    STAFF - DASHBOARD
@@ -2382,12 +2571,15 @@ window.__CENA_STAFF_ADMIN__ = { StaffDashboard, StaffEquipment, NewEquipmentForm
    PART 5 — Main App orchestration
    ============================================================ */
 const { useState, useEffect, useMemo } = React;
-const { Icon, Logo, EquipmentCard, RENTAL_HOUSES, CATEGORIES, EQUIPMENT, MOCK_QUOTATIONS, TEAM_MEMBERS, currency, fmtDate, fmtDateShort, formatPhone, formatCPF, isValidPhone, isValidCPF, StatusBadge, statusConfig } = window.__CENA_BASE__;
+const { Icon, Logo, EquipmentCard, RENTAL_HOUSES, CATEGORIES, EQUIPMENT, MOCK_QUOTATIONS, TEAM_MEMBERS, currency, fmtDate, fmtDateShort, formatPhone, formatCPF, maskCPF, maskPhone, isValidPhone, isValidCPF, QUOTE_AREAS, StatusBadge, statusConfig } = window.__CENA_BASE__;
 const { DemoSelector, LoginScreen, AppShell } = window.__CENA_PART2__;
 const { ACExplore, EquipmentDetail, ACCart, ACQuotations, QuotationDetail, ACProfile } = window.__CENA_AC__;
 const { StaffDashboard, StaffEquipment, NewEquipmentForm, StaffQuotations, AdminDashboard, AdminTeam, AdminRentals, AdminReports } = window.__CENA_STAFF_ADMIN__;
 
 const STORAGE_KEY = 'cena-mvp-interactive-state-v1';
+const SESSION_STORAGE_KEY = 'cena-mvp-secure-session-v2';
+const SECURITY_MODE = true;
+const SESSION_TIMEOUT_MS = 30 * 60 * 1000;
 
 const defaultProfile = {
   name: 'Carlos Menezes',
@@ -2396,16 +2588,88 @@ const defaultProfile = {
   phone: '(11) 98765-4321',
   phoneVerified: true,
   email: 'carlos.menezes@filmes.br',
+  trustLevel: 'Validado',
+  validatedBy: ['Cinestúdio SP', 'FilmeHouse'],
+  documentVerified: true,
+  twoFactor: true,
+  consents: {
+    quoteProcessing: { basis: 'execucao_contrato', acceptedAt: '2026-04-24T00:00:00.000Z' },
+    securityValidation: { basis: 'legitimo_interesse', acceptedAt: '2026-04-24T00:00:00.000Z' },
+  },
 };
 
-const loadInteractiveState = () => {
+const safeText = (value, max = 160, fallback = '') => {
+  const text = String(value ?? '').replace(/[\u0000-\u001F\u007F]/g, ' ').trim().slice(0, max);
+  return text || fallback;
+};
+
+const maskName = (value) => {
+  const parts = safeText(value, 80, 'Usuário').split(/\s+/).filter(Boolean);
+  if (parts.length <= 1) return parts[0] || 'Usuário';
+  return `${parts[0]} ${parts.slice(1).map(part => `${part.charAt(0)}.`).join(' ')}`;
+};
+
+const maskEmail = (value) => {
+  const [user, domain] = String(value || '').split('@');
+  if (!user || !domain) return '';
+  return `${user.slice(0, 2)}***@${domain}`;
+};
+
+const csvCell = (cell) => {
+  let text = String(cell ?? '');
+  if (/^[=+\-@]/.test(text)) text = `'${text}`;
+  return `"${text.replaceAll('"', '""')}"`;
+};
+
+const sanitizeProfileForStorage = (profile = {}) => ({
+  role: profile.role,
+  phoneVerified: Boolean(profile.phoneVerified),
+  trustLevel: profile.trustLevel,
+  validatedBy: profile.validatedBy || [],
+  documentVerified: Boolean(profile.documentVerified),
+  twoFactor: Boolean(profile.twoFactor),
+  consents: profile.consents || {},
+});
+
+const sanitizeVerificationForStorage = (verification = {}) => ({
+  level: verification.level,
+  cpf: '',
+  phone: '',
+  phoneVerified: Boolean(verification.phoneVerified),
+  documentVerified: Boolean(verification.documentVerified),
+  validatedBy: verification.validatedBy || [],
+});
+
+const sanitizeQuotationForStorage = (quotation = {}) => ({
+  ...quotation,
+  requesterVerification: sanitizeVerificationForStorage(quotation.requesterVerification),
+  driver: quotation.driver ? { ...quotation.driver, phone: '' } : quotation.driver,
+});
+
+const sanitizeStateForLocalStorage = ({ cart, quotations, equipment, team, profile, auditLog }) => ({
+  cart,
+  quotations: (quotations || []).map(sanitizeQuotationForStorage),
+  equipment,
+  team: (team || []).map(member => ({ ...member, email: maskEmail(member.email) })),
+  profile: sanitizeProfileForStorage(profile),
+  auditLog: (auditLog || []).slice(0, 200),
+});
+
+const parseStorage = (store, key) => {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
-    return JSON.parse(raw);
+    const raw = store?.getItem(key);
+    return raw ? JSON.parse(raw) : null;
   } catch (err) {
     return null;
   }
+};
+
+const loadInteractiveState = () => {
+  const sessionState = parseStorage(sessionStorage, SESSION_STORAGE_KEY);
+  if (sessionState) return sessionState;
+  const persistedState = parseStorage(localStorage, STORAGE_KEY);
+  if (!persistedState) return null;
+  return { ...persistedState, profile: { ...defaultProfile, ...(persistedState.profile || {}) } };
 };
 
 const makeEquipmentId = (name) => {
@@ -2418,6 +2682,57 @@ const makeEquipmentId = (name) => {
     .slice(0, 28);
   return `eq-${slug || 'item'}-${Date.now().toString(36)}`;
 };
+
+const addHoursIso = (hours) => new Date(Date.now() + hours * 60 * 60 * 1000).toISOString();
+
+const buildApprovals = (items, equipmentList) => {
+  const requested = items.map(item => equipmentList.find(eq => eq.id === item.id)).filter(Boolean);
+  return QUOTE_AREAS
+    .filter(area => requested.some(eq => area.cats.includes(eq.cat)))
+    .reduce((acc, area) => ({
+      ...acc,
+      [area.id]: { label: area.label, owner: area.owner, approved: false },
+    }), {});
+};
+
+const getApprovals = (quot, equipmentList) => ({
+  ...buildApprovals(quot.items || [], equipmentList),
+  ...(quot.approvals || {}),
+});
+
+const approvalsAreComplete = (quot, equipmentList) => {
+  const approvals = getApprovals(quot, equipmentList);
+  const requiredIds = Object.keys(buildApprovals(quot.items || [], equipmentList));
+  return requiredIds.every(id => approvals[id]?.approved);
+};
+
+const makeVerification = (profile) => ({
+  level: profile.phoneVerified && isValidCPF(profile.cpf) ? 'validado' : 'em_analise',
+  cpf: profile.cpf,
+  phone: profile.phone,
+  phoneVerified: Boolean(profile.phoneVerified),
+  documentVerified: Boolean(profile.documentVerified || isValidCPF(profile.cpf)),
+  validatedBy: profile.validatedBy?.length ? profile.validatedBy : ['Cinestúdio SP', 'FilmeHouse'],
+});
+
+const baseVersions = (quot) => quot.versions?.length ? quot.versions : [{
+  version: quot.version || 1,
+  at: quot.createdAt,
+  actor: quot.client || 'Sistema',
+  note: 'Pedido inicial criado',
+}];
+
+const addVersionEvent = (quot, note, actor, bump = false) => {
+  const current = quot.version || 1;
+  const version = bump ? current + 1 : current;
+  return {
+    ...quot,
+    version,
+    versions: [...baseVersions(quot), { version, at: new Date().toISOString(), actor, note }],
+  };
+};
+
+const hasCompleteDriver = (driver = {}) => ['name', 'phone', 'vehicle', 'plate'].every(key => String(driver[key] || '').trim());
 
 /* ==========================================================
    TOAST
@@ -2485,6 +2800,7 @@ const App = () => {
   const [equipment, setEquipment] = useState(saved?.equipment || EQUIPMENT);
   const [team, setTeam] = useState(saved?.team || TEAM_MEMBERS);
   const [profile, setProfile] = useState(saved?.profile || defaultProfile);
+  const [auditLog, setAuditLog] = useState(saved?.auditLog || []);
   const [initialCat, setInitialCat] = useState(null);
   const [showNewEq, setShowNewEq] = useState(false);
   const [editingEq, setEditingEq] = useState(null);
@@ -2497,20 +2813,65 @@ const App = () => {
     admin: { name: 'André Silveira',   role: 'Gerente · Cinestúdio SP',  company: 'Cinestúdio SP' },
   };
 
+  const recordAudit = (action, target = '', risk = 'info') => {
+    setAuditLog(prev => [{
+      id: `audit-${Date.now().toString(36)}`,
+      at: new Date().toISOString(),
+      actor: users[role]?.name || 'Sistema',
+      role: role || 'public',
+      action,
+      target,
+      risk,
+    }, ...prev].slice(0, 200));
+  };
+
+  const requireRole = (allowedRoles, actionLabel) => {
+    if (allowedRoles.includes(role)) return true;
+    setToast({ title: 'Acesso negado', desc: `Seu perfil não pode executar: ${actionLabel}.`, icon: 'shield' });
+    recordAudit('acesso_negado', actionLabel, 'security');
+    return false;
+  };
+
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ cart, quotations, equipment, team, profile }));
+      const fullState = { cart, quotations, equipment, team, profile, auditLog };
+      sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(fullState));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(sanitizeStateForLocalStorage(fullState)));
     } catch (err) {
       setToast({ title: 'Sessão local cheia', desc: 'As alterações continuam ativas enquanto a página ficar aberta.' });
     }
-  }, [cart, quotations, equipment, team, profile]);
+  }, [cart, quotations, equipment, team, profile, auditLog]);
+
+  useEffect(() => {
+    if (stage !== 'app') return;
+    let lastActivity = Date.now();
+    const markActivity = () => { lastActivity = Date.now(); };
+    const timer = setInterval(() => {
+      if (Date.now() - lastActivity <= SESSION_TIMEOUT_MS) return;
+      sessionStorage.removeItem(SESSION_STORAGE_KEY);
+      setStage('selector');
+      setRole(null);
+      setCart([]);
+      setView('home');
+      setDetailEq(null);
+      setDetailQuot(null);
+    }, 15000);
+    ['click', 'keydown', 'mousemove', 'touchstart'].forEach(evt => window.addEventListener(evt, markActivity, { passive: true }));
+    return () => {
+      clearInterval(timer);
+      ['click', 'keydown', 'mousemove', 'touchstart'].forEach(evt => window.removeEventListener(evt, markActivity));
+    };
+  }, [stage]);
 
   const handleSelectRole = (r) => { setRole(r); setStage('login'); };
   const handleLogin = () => {
     setStage('app');
     setView(role === 'ac' ? 'home' : 'dashboard');
+    recordAudit('login_simulado', role, 'auth');
   };
   const handleLogout = () => {
+    sessionStorage.removeItem(SESSION_STORAGE_KEY);
+    recordAudit('logout', role, 'auth');
     setStage('selector');
     setRole(null);
     setCart([]);
@@ -2547,11 +2908,18 @@ const App = () => {
       if (!groups.has(eq.rhId)) groups.set(eq.rhId, []);
       groups.get(eq.rhId).push(item);
     });
+    const nowIso = new Date().toISOString();
+    const createdAt = nowIso.split('T')[0];
+    const masterId = `PED-${Math.floor(10000 + Math.random() * 80000)}`;
+    const verification = makeVerification(profile);
     const created = Array.from(groups.entries()).map(([rhId, items], index) => {
       const rh = RENTAL_HOUSES.find(r => r.id === rhId);
       const newId = `COT-${Math.floor(3000 + Math.random() * 6000)}${index ? `-${index + 1}` : ''}`;
       return {
         id: newId,
+        masterId,
+        protocolId: `PRT-${masterId.replace('PED-', '')}-${index + 1}`,
+        version: 1,
         client: users.ac.name,
         clientRole: users.ac.role,
         rhId,
@@ -2561,74 +2929,179 @@ const App = () => {
         pickupTime: data.pickupTime,
         returnDate: data.returnDate,
         status: 'aguardando',
-        createdAt: new Date().toISOString().split('T')[0],
-        project: data.project || 'Projeto sem nome',
-        notes: data.notes || '',
+        createdAt,
+        project: safeText(data.project, 80, 'Projeto sem nome'),
+        notes: safeText(data.notes, 240, ''),
         total: null,
+        holdExpiresAt: null,
+        requesterVerification: verification,
+        approvals: buildApprovals(items, equipment),
+        versions: [{
+          version: 1,
+          at: nowIso,
+          actor: users.ac.name,
+          note: index ? `Subpedido criado para ${rh?.name || 'locadora'}` : 'Pedido mestre enviado às locadoras',
+        }],
+        evidence: {},
+        driver: { name: '', phone: '', vehicle: '', plate: '' },
       };
     });
     setQuotations(prev => [...created, ...prev]);
     setCart([]);
     setSuccess(created.map(q => q.id).join(' · '));
+    recordAudit('cotacao_criada', masterId, 'workflow');
   };
 
   const handleQuotAction = (action, quot, payload = {}) => {
-    if (action === 'approve') {
-      setQuotations(prev => prev.map(q => q.id === quot.id ? { ...q, status: 'aprovada' } : q));
+    const replaceQuotation = (next, keepOpen = false) => {
+      setQuotations(prev => prev.map(q => q.id === next.id ? next : q));
+      setDetailQuot(keepOpen ? next : null);
+    };
+
+    if (action === 'approveArea') {
+      const area = QUOTE_AREAS.find(item => item.id === payload.areaId);
+      const approvals = getApprovals(quot, equipment);
+      const next = addVersionEvent({
+        ...quot,
+        approvals: {
+          ...approvals,
+          [payload.areaId]: {
+            ...(approvals[payload.areaId] || {}),
+            label: area?.label || payload.areaId,
+            owner: area?.owner || 'Responsável',
+            approved: true,
+            at: new Date().toISOString(),
+            actor: users.ac.name,
+          },
+        },
+      }, `Aprovação de ${area?.label || 'área'} registrada`, users.ac.name);
+      replaceQuotation(next, true);
+      setToast({ title: 'Aprovação registrada', desc: area?.owner || 'Responsável validado.' });
+      recordAudit('aprovacao_area', `${quot.id}:${payload.areaId}`, 'approval');
+    } else if (action === 'requestRevision') {
+      const next = addVersionEvent({
+        ...quot,
+        status: 'aguardando',
+        total: null,
+        holdExpiresAt: null,
+        approvals: buildApprovals(quot.items || [], equipment),
+      }, payload.reason || 'Ajuste solicitado pelo responsável', users.ac.name, true);
+      replaceQuotation(next);
+      setToast({ title: 'Ajuste solicitado', desc: 'A locadora recebeu a nova versão do pedido.' });
+      recordAudit('revisao_solicitada', quot.id, 'workflow');
+    } else if (action === 'approve') {
+      if (quot.holdExpiresAt && new Date(quot.holdExpiresAt).getTime() < Date.now()) {
+        setToast({ title: 'Pré-reserva expirada', desc: 'Solicite uma nova versão antes de aprovar.' });
+        return;
+      }
+      if (!approvalsAreComplete(quot, equipment)) {
+        setToast({ title: 'Aprovações pendentes', desc: 'Todos os responsáveis precisam aprovar antes do fechamento.' });
+        return;
+      }
+      const next = addVersionEvent({ ...quot, status: 'aprovada' }, 'Cotação aprovada e estoque bloqueado', users.ac.name);
+      replaceQuotation(next);
       setEquipment(prev => prev.map(eq => {
         const requested = quot.items.find(item => item.id === eq.id);
         return requested ? { ...eq, qtyAvail: Math.max(0, eq.qtyAvail - requested.qty) } : eq;
       }));
       setToast({ title: 'Cotação aprovada', desc: 'A locadora foi notificada.' });
+      recordAudit('cotacao_aprovada', quot.id, 'approval');
     } else if (action === 'reject') {
-      setQuotations(prev => prev.map(q => q.id === quot.id ? { ...q, status: 'recusada' } : q));
+      replaceQuotation(addVersionEvent({ ...quot, status: 'recusada' }, 'Cotação recusada', users[role]?.name || 'Sistema'));
       setToast({ title: 'Cotação recusada' });
+      recordAudit('cotacao_recusada', quot.id, 'workflow');
     } else if (action === 'quote') {
-      setQuotations(prev => prev.map(q => q.id === quot.id ? { ...q, status: 'cotada', total: payload.total || 8500 + Math.floor(Math.random() * 12000) } : q));
-      setToast({ title: 'Cotação enviada ao cliente' });
+      const total = payload.total || 8500 + Math.floor(Math.random() * 12000);
+      const next = addVersionEvent({
+        ...quot,
+        status: 'cotada',
+        total,
+        holdExpiresAt: addHoursIso(24),
+        approvals: getApprovals(quot, equipment),
+      }, 'Cotação emitida com pré-reserva de 24h', users.staff.name);
+      replaceQuotation(next);
+      setToast({ title: 'Cotação enviada ao cliente', desc: 'Pré-reserva ativada por 24 horas.' });
+      recordAudit('cotacao_emitida', quot.id, 'financial');
     } else if (action === 'schedulePickup') {
-      setQuotations(prev => prev.map(q => q.id === quot.id ? { ...q, status: 'confirmada' } : q));
+      const next = addVersionEvent({ ...quot, status: 'confirmada', pickupScheduledAt: new Date().toISOString() }, 'Horário de retirada confirmado pelo solicitante', users.ac.name);
+      replaceQuotation(next);
       setToast({ title: 'Retirada agendada', desc: `${quot.pickupDate} às ${quot.pickupTime}` });
+      recordAudit('retirada_agendada', quot.id, 'custody');
+    } else if (action === 'saveDriver') {
+      const driver = payload.driver || {};
+      if (!hasCompleteDriver(driver)) {
+        setToast({ title: 'Dados incompletos', desc: 'Informe motorista, telefone, veículo e placa.' });
+        return;
+      }
+      const next = addVersionEvent({ ...quot, driver }, 'Motorista e veículo vinculados ao protocolo', users.staff.name);
+      replaceQuotation(next, true);
+      setToast({ title: 'Logística salva', desc: `${driver.name} · ${driver.plate}` });
+      recordAudit('logistica_vinculada', quot.id, 'custody');
     } else if (action === 'confirmPickup') {
-      setQuotations(prev => prev.map(q => q.id === quot.id ? { ...q, status: 'confirmada' } : q));
+      const driver = payload.driver || quot.driver;
+      if (!hasCompleteDriver(driver)) {
+        setToast({ title: 'Logística pendente', desc: 'Cadastre motorista e VAN antes de liberar a retirada.' });
+        return;
+      }
+      const next = addVersionEvent({
+        ...quot,
+        driver,
+        status: 'confirmada',
+        evidence: { ...(quot.evidence || {}), ...(payload.evidence || {}), driverPickup: true },
+        pickupConfirmedAt: new Date().toISOString(),
+      }, 'Retirada liberada pela locadora', users.staff.name);
+      replaceQuotation(next);
       setToast({ title: 'Retirada confirmada', desc: 'Kit liberado para transporte.' });
+      recordAudit('retirada_confirmada', quot.id, 'custody');
     } else if (action === 'finishRental') {
-      setQuotations(prev => prev.map(q => q.id === quot.id ? { ...q, status: 'finalizada' } : q));
+      const next = addVersionEvent({
+        ...quot,
+        status: 'finalizada',
+        evidence: { ...(quot.evidence || {}), ...(payload.evidence || {}) },
+        closedAt: new Date().toISOString(),
+      }, 'Devolução conferida e protocolo encerrado', users.staff.name);
+      replaceQuotation(next);
       setEquipment(prev => prev.map(eq => {
         const requested = quot.items.find(item => item.id === eq.id);
         return requested ? { ...eq, qtyAvail: Math.min(eq.qty, eq.qtyAvail + requested.qty) } : eq;
       }));
       setToast({ title: 'Check-out finalizado', desc: 'Estoque devolvido e protocolo encerrado.' });
+      recordAudit('devolucao_finalizada', quot.id, 'custody');
     }
-    setDetailQuot(null);
   };
 
   const saveEquipment = (form) => {
+    if (!requireRole(['staff', 'admin'], 'salvar equipamento')) return;
     const qty = Math.max(1, Number(form.qty) || 1);
+    const cleanName = safeText(form.name, 80, 'Equipamento sem nome');
+    const cleanDesc = safeText(form.desc, 180, '');
+    const cleanTech = safeText(form.tech, 160, '');
     if (editingEq) {
       setEquipment(prev => prev.map(eq => eq.id === editingEq.id ? {
         ...eq,
-        name: form.name.trim(),
+        name: cleanName,
         cat: form.cat,
-        desc: form.desc.trim(),
-        tech: form.tech.trim(),
+        desc: cleanDesc,
+        tech: cleanTech,
         qty,
         qtyAvail: Math.min(qty, Math.max(0, Number(eq.qtyAvail) + (qty - Number(eq.qty)))),
       } : eq));
-      setToast({ title: 'Equipamento atualizado', desc: form.name.trim() });
+      setToast({ title: 'Equipamento atualizado', desc: cleanName });
+      recordAudit('equipamento_atualizado', editingEq.id, 'inventory');
     } else {
       const newEquipment = {
-        id: makeEquipmentId(form.name),
+        id: makeEquipmentId(cleanName),
         rhId: 'rh1',
-        name: form.name.trim(),
+        name: cleanName,
         cat: form.cat,
-        desc: form.desc.trim(),
-        tech: form.tech.trim(),
+        desc: cleanDesc,
+        tech: cleanTech,
         qty,
         qtyAvail: qty,
       };
       setEquipment(prev => [newEquipment, ...prev]);
       setToast({ title: 'Equipamento cadastrado', desc: 'Agora está disponível no catálogo.' });
+      recordAudit('equipamento_cadastrado', newEquipment.id, 'inventory');
     }
     setEditingEq(null);
     setShowNewEq(false);
@@ -2640,36 +3113,106 @@ const App = () => {
   };
 
   const deleteEquipment = (eq) => {
+    if (!requireRole(['staff', 'admin'], 'remover equipamento')) return;
     const used = quotations.some(q => q.items.some(item => item.id === eq.id) && !['finalizada', 'recusada'].includes(q.status));
     if (used) {
       setToast({ title: 'Equipamento vinculado', desc: 'Finalize ou recuse as cotações antes de remover.' });
       return;
     }
+    if (!window.confirm(`Remover "${eq.name}" do catálogo local da demo?`)) return;
     setEquipment(prev => prev.filter(item => item.id !== eq.id));
     setToast({ title: 'Equipamento removido', desc: eq.name });
+    recordAudit('equipamento_removido', eq.id, 'inventory');
   };
 
   const inviteTeamMember = (form) => {
-    setTeam(prev => [{ id: `u-${Date.now().toString(36)}`, name: form.name.trim(), email: form.email.trim(), role: form.role, active: true }, ...prev]);
-    setToast({ title: 'Convite enviado', desc: form.email.trim(), icon: 'mail' });
+    if (!requireRole(['admin'], 'convidar funcionário')) return;
+    const cleanEmail = safeText(form.email, 120, '');
+    setTeam(prev => [{ id: `u-${Date.now().toString(36)}`, name: safeText(form.name, 80, 'Novo usuário'), email: cleanEmail, role: safeText(form.role, 40, 'Check-out'), active: true }, ...prev]);
+    setToast({ title: 'Convite enviado', desc: cleanEmail, icon: 'mail' });
+    recordAudit('convite_equipe', maskEmail(cleanEmail), 'access');
   };
 
   const toggleTeamMember = (member) => {
+    if (!requireRole(['admin'], 'alterar acesso de funcionário')) return;
     setTeam(prev => prev.map(item => item.id === member.id ? { ...item, active: !item.active } : item));
     setToast({ title: member.active ? 'Acesso pausado' : 'Acesso reativado', desc: member.name });
+    recordAudit(member.active ? 'acesso_pausado' : 'acesso_reativado', member.id, 'access');
   };
 
   const removeTeamMember = (member) => {
+    if (!requireRole(['admin'], 'remover funcionário')) return;
+    if (!window.confirm(`Remover o acesso de "${member.name}" nesta demo?`)) return;
     setTeam(prev => prev.filter(item => item.id !== member.id));
     setToast({ title: 'Funcionário removido', desc: member.name });
+    recordAudit('funcionario_removido', member.id, 'access');
+  };
+
+  const exportPersonalData = () => {
+    if (!window.confirm('Baixar uma cópia local dos seus dados desta demo? O arquivo pode conter CPF, telefone e histórico de cotações.')) return;
+    const acNames = new Set([users.ac.name, defaultProfile.name]);
+    const payload = {
+      exportedAt: new Date().toISOString(),
+      profile,
+      quotations: quotations.filter(q => acNames.has(q.client)),
+      consents: profile.consents || {},
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'meus-dados-cena-demo.json';
+    a.click();
+    URL.revokeObjectURL(url);
+    setToast({ title: 'Dados exportados', desc: 'Arquivo JSON baixado localmente.' });
+    recordAudit('dados_pessoais_exportados', 'perfil_ac', 'privacy');
+  };
+
+  const deleteLocalPersonalData = () => {
+    if (!window.confirm('Excluir os dados pessoais e cotações locais desta sessão? Essa ação remove dados salvos no navegador da demo.')) return;
+    const acNames = new Set([users.ac.name, defaultProfile.name]);
+    setCart([]);
+    setProfile(defaultProfile);
+    setQuotations(prev => prev.filter(q => !acNames.has(q.client)));
+    sessionStorage.removeItem(SESSION_STORAGE_KEY);
+    localStorage.removeItem(STORAGE_KEY);
+    setToast({ title: 'Dados locais excluídos', desc: 'Perfil, carrinho e cotações do solicitante foram removidos desta demo.' });
+    setView('home');
+  };
+
+  const handleSecurityAction = (action) => {
+    if (action === 'enable2fa') {
+      setToast({ title: '2FA ativado para esta demo', icon: 'shield' });
+      recordAudit('2fa_ativado', 'perfil_ac', 'auth');
+      return;
+    }
+    if (action === 'password') {
+      setToast({ title: 'Fluxo de troca de senha iniciado', desc: 'Em produção, essa etapa exige reautenticação.', icon: 'shield' });
+      recordAudit('troca_senha_iniciada', 'perfil_ac', 'auth');
+      return;
+    }
+    if (action === 'exportData') {
+      exportPersonalData();
+      return;
+    }
+    if (action === 'deleteLocalData') {
+      deleteLocalPersonalData();
+    }
   };
 
   const exportReport = (name) => {
-    const rows = [
-      ['id', 'projeto', 'cliente', 'locadora', 'status', 'retirada', 'devolucao', 'valor'],
-      ...quotations.map(q => [q.id, q.project, q.client, q.rhName, q.status, q.pickupDate, q.returnDate, q.total || 0]),
-    ];
-    const csv = rows.map(row => row.map(cell => `"${String(cell).replaceAll('"', '""')}"`).join(',')).join('\n');
+    if (!requireRole(['admin'], 'exportar relatório')) return;
+    if (!window.confirm(`Baixar "${name}" no dispositivo atual? Relatórios podem conter dados comerciais sensíveis.`)) return;
+    const rows = name === 'Auditoria LGPD'
+      ? [
+          ['id', 'data', 'perfil', 'ator_mascarado', 'acao', 'alvo', 'risco'],
+          ...auditLog.map(log => [log.id, log.at, log.role, maskName(log.actor), log.action, log.target, log.risk]),
+        ]
+      : [
+          ['pedido_mestre', 'id', 'protocolo', 'projeto', 'cliente_mascarado', 'locadora', 'status', 'retirada', 'devolucao', 'valor', 'validade_pre_reserva', 'motorista_mascarado'],
+          ...quotations.map(q => [q.masterId || q.id, q.id, q.protocolId || '', q.project, maskName(q.client), q.rhName, q.status, q.pickupDate, q.returnDate, q.total || 0, q.holdExpiresAt || '', maskName(q.driver?.name || '')]),
+        ];
+    const csv = rows.map(row => row.map(csvCell).join(',')).join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -2678,6 +3221,7 @@ const App = () => {
     a.click();
     URL.revokeObjectURL(url);
     setToast({ title: 'Relatório exportado', desc: `${name} baixado em CSV.` });
+    recordAudit('relatorio_exportado', name, 'privacy');
   };
 
   /* -------- Render by stage -------- */
@@ -2698,7 +3242,7 @@ const App = () => {
       case 'home':       currentScreen = <ACExplore equipment={equipment} initialCat={initialCat} onOpenItem={setDetailEq} onAdd={addToCart}/>; break;
       case 'cart':       currentScreen = <ACCart cart={cart} equipment={equipment} onUpdate={updateCart} onRemove={removeFromCart} onSubmit={submitQuotation} onBack={() => setView('home')}/>; break;
       case 'quotations': currentScreen = <ACQuotations quotations={acQuots} onOpen={setDetailQuot}/>; break;
-      case 'profile':    currentScreen = <ACProfile profile={profile} onSave={(next) => { setProfile(next); setToast({ title: 'Perfil atualizado', desc: 'Dados salvos nesta demo.' }); }} onSecurityAction={(message) => setToast({ title: message, icon: 'shield' })}/>; break;
+      case 'profile':    currentScreen = <ACProfile profile={profile} onSave={(next) => { setProfile(next); setToast({ title: 'Perfil atualizado', desc: 'Dados salvos nesta demo.' }); recordAudit('perfil_atualizado', 'perfil_ac', 'privacy'); }} onSecurityAction={handleSecurityAction}/>; break;
       default:            currentScreen = <ACExplore equipment={equipment} onOpenItem={setDetailEq} onAdd={addToCart}/>;
     }
   } else if (role === 'staff') {
@@ -2746,7 +3290,7 @@ const App = () => {
       <Toast toast={toast} onClose={() => setToast(null)}/>
 
       {/* Floating demo switcher */}
-      {stage === 'app' && (
+      {stage === 'app' && !SECURITY_MODE && (
         <div className="fixed bottom-6 left-6 z-40 bg-ink-900/95 backdrop-blur border border-ink-700 rounded-full px-2 py-2 flex items-center gap-1 shadow-xl">
           <div className="px-3 py-1 eyebrow text-ink-400">Demo</div>
           {[
