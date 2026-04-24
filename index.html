@@ -778,6 +778,7 @@ const AppShell = ({ role, currentView, onNav, cartCount, onLogout, onNotify, use
     admin: [
       { id: 'dashboard',  label: 'Dashboard',     icon: 'dashboard' },
       { id: 'rentals',    label: 'Locações',      icon: 'clipboard' },
+      { id: 'finance',    label: 'Financeiro',    icon: 'chart' },
       { id: 'equipment',  label: 'Inventário',    icon: 'box' },
       { id: 'team',       label: 'Equipe',        icon: 'users' },
       { id: 'reports',    label: 'Relatórios',    icon: 'chart' },
@@ -2226,7 +2227,7 @@ const StaffQuotations = ({ quotations = MOCK_QUOTATIONS, onOpen }) => {
 /* ==========================================================
    ADMIN - DASHBOARD
    ========================================================== */
-const AdminDashboard = ({ quotations = MOCK_QUOTATIONS, equipment = EQUIPMENT, team = TEAM_MEMBERS }) => {
+const AdminDashboard = ({ quotations = MOCK_QUOTATIONS, equipment = EQUIPMENT, team = TEAM_MEMBERS, onNav }) => {
   const revenue = quotations.reduce((s, q) => s + (q.total || 0), 0);
   const activeRentals = quotations.filter(q => ['aprovada', 'confirmada'].includes(q.status)).length;
   const totalQty = equipment.reduce((s, e) => s + e.qty, 0);
@@ -2234,7 +2235,7 @@ const AdminDashboard = ({ quotations = MOCK_QUOTATIONS, equipment = EQUIPMENT, t
   const occupancy = totalQty ? Math.round((rentedQty / totalQty) * 100) : 0;
   const avgQuoteTime = quotations.filter(q => q.status === 'aguardando').length ? '38 min' : '15 min';
   const kpis = [
-    { label: 'Receita mensal', value: revenue ? currency(revenue) : 'R$ 0,00', delta: `${quotations.length} cotações no período`, color: '#ff7a2e' },
+    { label: 'Receita mensal', value: revenue ? currency(revenue) : 'R$ 0,00', delta: `${quotations.length} cotações no período`, color: '#ff7a2e', action: 'finance' },
     { label: 'Locações ativas', value: String(activeRentals), delta: `em ${new Set(quotations.map(q => q.project)).size} produções`, color: '#e8c468' },
     { label: 'Taxa de ocupação', value: `${occupancy}%`, delta: `${rentedQty} de ${totalQty} unidades`, color: '#6ba8ff' },
     { label: 'Tempo médio cotação', value: avgQuoteTime, delta: 'fluxo digital', color: '#8ee37c' },
@@ -2253,7 +2254,19 @@ const AdminDashboard = ({ quotations = MOCK_QUOTATIONS, equipment = EQUIPMENT, t
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         {kpis.map((k, i) => (
-          <div key={k.label} style={{ animationDelay: `${i * 0.05}s` }} className="fade-up bg-ink-900 border border-ink-700 rounded-2xl p-5 relative overflow-hidden">
+          <div
+            key={k.label}
+            role={k.action ? 'button' : undefined}
+            tabIndex={k.action ? 0 : undefined}
+            onClick={() => k.action && onNav?.(k.action)}
+            onKeyDown={(e) => {
+              if (!k.action || !['Enter', ' '].includes(e.key)) return;
+              e.preventDefault();
+              onNav?.(k.action);
+            }}
+            style={{ animationDelay: `${i * 0.05}s` }}
+            className={`fade-up bg-ink-900 border border-ink-700 rounded-2xl p-5 relative overflow-hidden text-left ${k.action ? 'cursor-pointer' : ''}`}
+          >
             <div className="absolute top-0 right-0 w-24 h-24 rounded-full blur-3xl opacity-25" style={{ background: k.color }}></div>
             <div className="relative">
               <div className="eyebrow text-ink-400 mb-2">{k.label}</div>
@@ -2532,6 +2545,210 @@ const AdminRentals = ({ quotations = MOCK_QUOTATIONS, onOpen }) => {
 };
 
 /* ==========================================================
+   ADMIN - FINANCE
+   ========================================================== */
+const AdminFinance = ({ quotations = MOCK_QUOTATIONS }) => {
+  const [query, setQuery] = useState('');
+  const [date, setDate] = useState('');
+
+  const entries = quotations
+    .filter(q => q.total != null && q.status !== 'recusada')
+    .map((q) => {
+      const received = q.status === 'finalizada';
+      return {
+        id: q.id,
+        protocol: q.protocolId || q.id,
+        project: q.project,
+        client: q.client,
+        house: q.rhName,
+        status: q.status,
+        movement: received ? 'Recebido' : 'A receber',
+        date: received ? (q.closedAt?.split('T')[0] || q.returnDate) : q.pickupDate,
+        dueDate: q.returnDate,
+        amount: q.total || 0,
+      };
+    })
+    .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+  const receivedTotal = entries.filter(e => e.movement === 'Recebido').reduce((s, e) => s + e.amount, 0);
+  const receivableTotal = entries.filter(e => e.movement === 'A receber').reduce((s, e) => s + e.amount, 0);
+  const billedTotal = receivedTotal + receivableTotal;
+  const avgTicket = entries.length ? billedTotal / entries.length : 0;
+  const conversionBase = quotations.filter(q => q.status !== 'aguardando').length || 1;
+  const conversion = Math.round((entries.length / conversionBase) * 100);
+  const today = new Date().toISOString().split('T')[0];
+  const overdue = entries.filter(e => e.movement === 'A receber' && e.dueDate < today).reduce((s, e) => s + e.amount, 0);
+
+  const normalizedQuery = query.trim().toLowerCase();
+  const filtered = entries.filter((entry) => {
+    const haystack = `${entry.id} ${entry.protocol} ${entry.project} ${entry.client} ${entry.house} ${entry.date} ${entry.dueDate}`.toLowerCase();
+    const matchesQuery = !normalizedQuery || haystack.includes(normalizedQuery);
+    const matchesDate = !date || entry.date === date || entry.dueDate === date;
+    return matchesQuery && matchesDate;
+  });
+
+  const monthly = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun'].map((label, index) => ({
+    label,
+    value: Math.round((billedTotal / 6) * (0.72 + index * 0.06)),
+  }));
+  const maxMonth = Math.max(...monthly.map(m => m.value), 1);
+
+  const exportStatement = () => {
+    if (!filtered.length) return;
+    const rows = [
+      ['data', 'vencimento', 'cotacao', 'protocolo', 'cliente', 'projeto', 'locadora', 'movimento', 'status', 'valor'],
+      ...filtered.map(e => [e.date, e.dueDate, e.id, e.protocol, e.client, e.project, e.house, e.movement, e.status, e.amount]),
+    ];
+    const csv = rows.map(row => row.map(cell => {
+      let text = String(cell ?? '');
+      if (/^[=+\-@]/.test(text)) text = `'${text}`;
+      return `"${text.replaceAll('"', '""')}"`;
+    }).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `extrato-financeiro-cena-${date || 'filtrado'}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const kpis = [
+    { label: 'Faturamento previsto', value: currency(billedTotal), delta: `${entries.length} movimentos`, color: '#ff7a2e' },
+    { label: 'Recebido', value: currency(receivedTotal), delta: 'entradas finalizadas', color: '#8ee37c' },
+    { label: 'A receber', value: currency(receivableTotal), delta: overdue ? `${currency(overdue)} em atraso` : 'sem atraso crítico', color: '#e8c468' },
+    { label: 'Ticket médio', value: currency(avgTicket), delta: 'por locação faturada', color: '#6ba8ff' },
+    { label: 'Conversão em receita', value: `${conversion}%`, delta: 'cotações com valor', color: '#8ee37c' },
+    { label: 'Inadimplência simulada', value: billedTotal ? `${Math.round((overdue / billedTotal) * 100)}%` : '0%', delta: 'base demonstrativa', color: '#ff6b6b' },
+  ];
+
+  return (
+    <div className="p-8 max-w-7xl">
+      <div className="mb-8 fade-up">
+        <div className="eyebrow text-amber-glow mb-2">Financeiro · Cinestúdio SP</div>
+        <h1 className="serif-display text-4xl text-ink-50 mb-2">Menu Financeiro</h1>
+        <p className="text-ink-300">Faturamento, recebíveis, indicadores e extrato operacional.</p>
+      </div>
+
+      <div className="grid md:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
+        {kpis.map((k, i) => (
+          <div key={k.label} style={{ animationDelay: `${i * 0.04}s` }} className="fade-up bg-ink-900 border border-ink-700 rounded-2xl p-5 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-20 h-20 rounded-full blur-3xl opacity-25" style={{ background: k.color }}></div>
+            <div className="relative">
+              <div className="eyebrow text-ink-400 mb-2">{k.label}</div>
+              <div className="serif-display text-2xl text-ink-50 mb-1">{k.value}</div>
+              <div className="text-xs text-ink-400">{k.delta}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="grid lg:grid-cols-3 gap-6 mb-8">
+        <div className="lg:col-span-2 bg-ink-900 border border-ink-700 rounded-2xl p-6 fade-up">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="serif-display text-lg text-ink-50">Receita projetada</h3>
+              <p className="text-xs text-ink-400 mt-0.5">Visão dos próximos ciclos financeiros</p>
+            </div>
+            <span className="eyebrow text-ink-400">2026</span>
+          </div>
+          <div className="flex items-end justify-between gap-2 h-44">
+            {monthly.map((m, i) => (
+              <div key={m.label} className="flex-1 flex flex-col items-center gap-2">
+                <div className="relative w-full flex items-end justify-center" style={{ height: '84%' }}>
+                  <div className="w-full rounded-t" style={{ height: `${(m.value / maxMonth) * 100}%`, background: `linear-gradient(180deg, ${i === monthly.length - 1 ? '#ff7a2e' : 'rgba(255,122,46,0.55)'}, rgba(255,122,46,0.12))` }}></div>
+                </div>
+                <div className="text-[10px] font-mono text-ink-400">{m.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="bg-ink-900 border border-ink-700 rounded-2xl p-6 fade-up fade-up-1">
+          <h3 className="serif-display text-lg text-ink-50 mb-1">Saúde financeira</h3>
+          <p className="text-xs text-ink-400 mb-5">Indicadores recomendados para locadora</p>
+          <div className="space-y-4">
+            {[
+              ['Receita recorrente', billedTotal ? 'alta' : 'baixa', billedTotal ? 86 : 18],
+              ['Recebíveis no prazo', overdue ? 'atenção' : 'saudável', overdue ? 61 : 94],
+              ['Ticket médio', avgTicket > 12000 ? 'premium' : 'moderado', avgTicket > 12000 ? 88 : 55],
+              ['Conversão', `${conversion}%`, Math.min(100, conversion)],
+            ].map(([label, value, pct]) => (
+              <div key={label}>
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-xs text-ink-100">{label}</span>
+                  <span className="text-xs text-ink-400 font-mono">{value}</span>
+                </div>
+                <div className="h-1 bg-ink-800 rounded-full overflow-hidden">
+                  <div className="h-full rounded-full bg-gradient-to-r from-amber-glow to-amber-gold" style={{ width: `${pct}%` }}></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-ink-900 border border-ink-700 rounded-2xl overflow-hidden fade-up">
+        <div className="p-5 border-b border-ink-700">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div>
+              <h3 className="serif-display text-xl text-ink-50">Extrato financeiro</h3>
+              <p className="text-xs text-ink-400 mt-0.5">Busque por nome, projeto, protocolo ou data.</p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <div className="relative">
+                <Icon name="search" className="w-4 h-4 text-ink-400 absolute left-3 top-1/2 -translate-y-1/2" strokeWidth={1.6}/>
+                <input value={query} onInput={(e) => setQuery(e.target.value)} onChange={(e) => setQuery(e.target.value)} placeholder="Buscar nome ou data" className="input-field w-full sm:w-64 pl-9 pr-3 py-2.5 rounded-xl text-sm"/>
+              </div>
+              <input type="date" value={date} onInput={(e) => setDate(e.target.value)} onChange={(e) => setDate(e.target.value)} aria-label="Filtrar por data" className="input-field px-3 py-2.5 rounded-xl text-sm font-mono"/>
+              <button onClick={exportStatement} disabled={!filtered.length} className={`px-4 py-2.5 rounded-xl text-sm flex items-center justify-center gap-2 ${filtered.length ? 'btn-primary' : 'btn-ghost opacity-60 cursor-not-allowed'}`}>
+                <Icon name="fileText" className="w-4 h-4" strokeWidth={1.7}/> Exportar
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-ink-800">
+                <th className="text-left px-5 py-3 eyebrow text-ink-400">Data</th>
+                <th className="text-left px-5 py-3 eyebrow text-ink-400">Cliente / Projeto</th>
+                <th className="text-left px-5 py-3 eyebrow text-ink-400 hidden md:table-cell">Protocolo</th>
+                <th className="text-left px-5 py-3 eyebrow text-ink-400">Movimento</th>
+                <th className="text-right px-5 py-3 eyebrow text-ink-400">Valor</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-ink-800">
+              {filtered.map(entry => (
+                <tr key={`${entry.id}-${entry.movement}`} className="hover:bg-ink-800/40 transition-colors">
+                  <td className="px-5 py-4 font-mono text-xs text-ink-300">{fmtDateShort(entry.date)}</td>
+                  <td className="px-5 py-4">
+                    <div className="text-sm text-ink-50 font-medium">{entry.client}</div>
+                    <div className="text-xs text-ink-400">{entry.project}</div>
+                  </td>
+                  <td className="px-5 py-4 hidden md:table-cell font-mono text-xs text-amber-glow">{entry.protocol}</td>
+                  <td className="px-5 py-4">
+                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${entry.movement === 'Recebido' ? 'text-green-400 bg-green-400/10' : 'text-amber-warm bg-amber-glow/10'}`}>{entry.movement}</span>
+                  </td>
+                  <td className="px-5 py-4 text-right text-sm font-medium text-ink-100">{currency(entry.amount)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {filtered.length === 0 && (
+          <div className="p-12 text-center text-ink-300 text-sm">
+            Nenhum movimento encontrado para o filtro selecionado.
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+/* ==========================================================
    ADMIN - REPORTS
    ========================================================== */
 const AdminReports = ({ onExport }) => {
@@ -2572,7 +2789,7 @@ const AdminReports = ({ onExport }) => {
   );
 };
 
-window.__CENA_STAFF_ADMIN__ = { StaffDashboard, StaffEquipment, NewEquipmentForm, StaffQuotations, AdminDashboard, AdminTeam, AdminRentals, AdminReports };
+window.__CENA_STAFF_ADMIN__ = { StaffDashboard, StaffEquipment, NewEquipmentForm, StaffQuotations, AdminDashboard, AdminTeam, AdminRentals, AdminFinance, AdminReports };
 </script>
 
 <script type="text/babel" data-type="module">
@@ -2583,7 +2800,7 @@ const { useState, useEffect, useMemo } = React;
 const { Icon, Logo, EquipmentCard, RENTAL_HOUSES, CATEGORIES, EQUIPMENT, MOCK_QUOTATIONS, TEAM_MEMBERS, currency, fmtDate, fmtDateShort, formatPhone, formatCPF, maskCPF, maskPhone, isValidPhone, isValidCPF, QUOTE_AREAS, StatusBadge, statusConfig } = window.__CENA_BASE__;
 const { DemoSelector, LoginScreen, AppShell } = window.__CENA_PART2__;
 const { ACExplore, EquipmentDetail, ACCart, ACQuotations, QuotationDetail, ACProfile } = window.__CENA_AC__;
-const { StaffDashboard, StaffEquipment, NewEquipmentForm, StaffQuotations, AdminDashboard, AdminTeam, AdminRentals, AdminReports } = window.__CENA_STAFF_ADMIN__;
+const { StaffDashboard, StaffEquipment, NewEquipmentForm, StaffQuotations, AdminDashboard, AdminTeam, AdminRentals, AdminFinance, AdminReports } = window.__CENA_STAFF_ADMIN__;
 
 const STORAGE_KEY = 'cena-mvp-interactive-state-v1';
 const SESSION_STORAGE_KEY = 'cena-mvp-secure-session-v2';
@@ -3265,12 +3482,13 @@ const App = () => {
     }
   } else if (role === 'admin') {
     switch (view) {
-      case 'dashboard':  currentScreen = <AdminDashboard quotations={quotations} equipment={equipment} team={team}/>; break;
+      case 'dashboard':  currentScreen = <AdminDashboard quotations={quotations} equipment={equipment} team={team} onNav={setView}/>; break;
       case 'rentals':    currentScreen = <AdminRentals quotations={quotations} onOpen={setDetailQuot}/>; break;
+      case 'finance':    currentScreen = <AdminFinance quotations={quotations}/>; break;
       case 'equipment':  currentScreen = <StaffEquipment equipment={equipment} onNew={() => { setEditingEq(null); setShowNewEq(true); }} onView={setDetailEq} onEdit={editEquipment} onDelete={deleteEquipment}/>; break;
       case 'team':       currentScreen = <AdminTeam team={team} onInvite={inviteTeamMember} onToggle={toggleTeamMember} onRemove={removeTeamMember} onEdit={(member) => setToast({ title: 'Edição rápida', desc: `${member.name} selecionado.` })}/>; break;
       case 'reports':    currentScreen = <AdminReports onExport={exportReport}/>; break;
-      default:           currentScreen = <AdminDashboard quotations={quotations} equipment={equipment} team={team}/>;
+      default:           currentScreen = <AdminDashboard quotations={quotations} equipment={equipment} team={team} onNav={setView}/>;
     }
   }
 
