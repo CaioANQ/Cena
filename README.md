@@ -2,6 +2,8 @@
 
 > Protótipo de validação para plataforma de locação inteligente de equipamentos audiovisuais no mercado brasileiro. Cliente: 1º Assistente de Câmera (AC) profissional. Objetivo: substituir o fluxo manual via WhatsApp por um sistema multi-locadora com cotações paralelas, tracking visual e check-out digital no set.
 
+> **Uso de portfólio:** este repositório está disponível apenas para avaliação profissional por empresas e recrutadores. O código, design, documentação, fluxos, textos e demais conteúdos não podem ser copiados, reutilizados, modificados, distribuídos ou publicados sem autorização prévia por escrito. Consulte [LICENSE](LICENSE).
+
 ---
 
 ## Índice
