@@ -668,8 +668,9 @@ const LoginScreen = ({ role, onLogin, onBack }) => {
     admin: { email: 'andre@cinestudiosp.com.br', label: 'Administrador',   sub: 'Gestão completa da locadora' },
   };
   const p = presets[role];
+  const demoPassword = 'demo2026!';
   const [email, setEmail] = useState(p.email);
-  const [pwd, setPwd] = useState('');
+  const [pwd, setPwd] = useState(demoPassword);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -699,6 +700,14 @@ const LoginScreen = ({ role, onLogin, onBack }) => {
           <div className="eyebrow text-amber-glow mb-2">{p.label}</div>
           <h1 className="serif-display text-3xl text-ink-50 mb-2">Bem-vindo de volta</h1>
           <p className="text-ink-300 text-sm mb-8">{p.sub}</p>
+
+          <div className="bg-ink-950 border border-ink-700 rounded-xl p-4 mb-6 text-xs">
+            <div className="eyebrow text-ink-400 mb-2">Acesso demo</div>
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-ink-300">Senha</span>
+              <span className="font-mono text-amber-warm">{demoPassword}</span>
+            </div>
+          </div>
 
           <form onSubmit={submit} className="space-y-4">
             <div>
