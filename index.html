@@ -703,7 +703,7 @@ const LoginScreen = ({ role, onLogin, onBack }) => {
 /* ==========================================================
    LAYOUT (app shell with sidebar + top bar)
    ========================================================== */
-const AppShell = ({ role, currentView, onNav, cartCount, onLogout, user, children }) => {
+const AppShell = ({ role, currentView, onNav, cartCount, onLogout, onNotify, user, children }) => {
   const navConfig = {
     ac: [
       { id: 'home',       label: 'Explorar',      icon: 'search' },
@@ -794,7 +794,7 @@ const AppShell = ({ role, currentView, onNav, cartCount, onLogout, user, childre
                 )}
               </button>
             )}
-            <button className="btn-ghost w-10 h-10 rounded-xl flex items-center justify-center relative">
+            <button onClick={onNotify} className="btn-ghost w-10 h-10 rounded-xl flex items-center justify-center relative" title="Notificações">
               <Icon name="bell" className="w-4 h-4" strokeWidth={1.6}/>
               <span className="absolute top-2 right-2.5 w-1.5 h-1.5 rounded-full bg-amber-glow"></span>
             </button>
@@ -832,24 +832,26 @@ const { Icon, Logo, EquipmentCard, RENTAL_HOUSES, CATEGORIES, EQUIPMENT, MOCK_QU
 /* ==========================================================
    AC - EXPLORAR / HOME
    ========================================================== */
-const ACExplore = ({ onOpenItem, onAdd, initialCat = null }) => {
+const ACExplore = ({ equipment = EQUIPMENT, onOpenItem, onAdd, initialCat = null }) => {
   const [search, setSearch] = useState('');
   const [cat, setCat] = useState(initialCat);
   const [rhFilter, setRhFilter] = useState(null);
+  const [onlyAvailable, setOnlyAvailable] = useState(false);
 
   useEffect(() => { if (initialCat) setCat(initialCat); }, [initialCat]);
 
   const filtered = useMemo(() => {
-    return EQUIPMENT.filter(eq => {
+    return equipment.filter(eq => {
       if (cat && eq.cat !== cat) return false;
       if (rhFilter && eq.rhId !== rhFilter) return false;
+      if (onlyAvailable && eq.qtyAvail <= 0) return false;
       if (search) {
         const s = search.toLowerCase();
         return eq.name.toLowerCase().includes(s) || eq.desc.toLowerCase().includes(s) || eq.tech.toLowerCase().includes(s);
       }
       return true;
     });
-  }, [search, cat, rhFilter]);
+  }, [equipment, search, cat, rhFilter, onlyAvailable]);
 
   return (
     <div className="p-8 max-w-7xl">
@@ -874,10 +876,10 @@ const ACExplore = ({ onOpenItem, onAdd, initialCat = null }) => {
             className="flex-1 bg-transparent border-0 outline-none py-3 text-ink-100 placeholder:text-ink-400"
           />
         </div>
-        <button className="btn-ghost h-12 px-4 rounded-xl flex items-center gap-2 text-sm">
-          <Icon name="filter" className="w-4 h-4" strokeWidth={1.6}/> Filtros
+        <button onClick={() => setOnlyAvailable(v => !v)} className={`h-12 px-4 rounded-xl flex items-center gap-2 text-sm ${onlyAvailable ? 'btn-primary' : 'btn-ghost'}`}>
+          <Icon name="filter" className="w-4 h-4" strokeWidth={1.6}/> Disponíveis
         </button>
-        <button className="btn-primary h-12 px-6 rounded-xl text-sm">Buscar</button>
+        <button onClick={() => setSearch(search.trim())} className="btn-primary h-12 px-6 rounded-xl text-sm">Buscar</button>
       </div>
 
       {/* Categories */}
@@ -1057,16 +1059,25 @@ const EquipmentDetail = ({ eq, onClose, onAdd }) => {
                 </button>
               </div>
 
-              <button
-                onClick={() => { onAdd(eq, qty); onClose(); }}
-                className="btn-primary w-full py-4 rounded-xl mt-6 flex items-center justify-center gap-2"
-              >
-                <Icon name="cart" className="w-4 h-4" strokeWidth={1.8}/> Adicionar ao carrinho
-              </button>
+              {onAdd ? (
+                <>
+                  <button
+                    onClick={() => { onAdd(eq, qty); onClose(); }}
+                    className="btn-primary w-full py-4 rounded-xl mt-6 flex items-center justify-center gap-2"
+                  >
+                    <Icon name="cart" className="w-4 h-4" strokeWidth={1.8}/> Adicionar ao carrinho
+                  </button>
 
-              <p className="text-xs text-ink-400 mt-3 text-center">
-                Valor será definido ao solicitar cotação
-              </p>
+                  <p className="text-xs text-ink-400 mt-3 text-center">
+                    Valor será definido ao solicitar cotação
+                  </p>
+                </>
+              ) : (
+                <div className="bg-ink-950 border border-ink-700 rounded-xl p-4 mt-6">
+                  <div className="eyebrow text-ink-400 mb-1">Operação</div>
+                  <div className="text-sm text-ink-200">Ficha disponível para equipe da locadora.</div>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -1078,7 +1089,7 @@ const EquipmentDetail = ({ eq, onClose, onAdd }) => {
 /* ==========================================================
    AC - CART + QUOTATION FLOW
    ========================================================== */
-const ACCart = ({ cart, onUpdate, onRemove, onSubmit, onBack }) => {
+const ACCart = ({ cart, equipment = EQUIPMENT, onUpdate, onRemove, onSubmit, onBack }) => {
   const [pickupDate, setPickupDate] = useState('2026-04-28');
   const [pickupTime, setPickupTime] = useState('08:30');
   const [returnDate, setReturnDate] = useState('2026-05-02');
@@ -1090,12 +1101,13 @@ const ACCart = ({ cart, onUpdate, onRemove, onSubmit, onBack }) => {
   const groups = useMemo(() => {
     const m = new Map();
     cart.forEach(item => {
-      const eq = EQUIPMENT.find(e => e.id === item.id);
+      const eq = equipment.find(e => e.id === item.id);
+      if (!eq) return;
       if (!m.has(eq.rhId)) m.set(eq.rhId, []);
       m.get(eq.rhId).push({ ...item, eq });
     });
     return Array.from(m.entries()).map(([rhId, items]) => ({ rh: RENTAL_HOUSES.find(r => r.id === rhId), items }));
-  }, [cart]);
+  }, [cart, equipment]);
 
   const totalItems = cart.reduce((s, c) => s + c.qty, 0);
 
@@ -1398,11 +1410,19 @@ const ACQuotations = ({ quotations, onOpen }) => {
 /* ==========================================================
    AC - QUOTATION DETAIL
    ========================================================== */
-const QuotationDetail = ({ quot, onClose, onAction, viewerRole = 'ac' }) => {
+const QuotationDetail = ({ quot, equipment = EQUIPMENT, onClose, onAction, viewerRole = 'ac' }) => {
   if (!quot) return null;
+  const [quoteValue, setQuoteValue] = useState(quot.total || '');
+  const [checkoutReady, setCheckoutReady] = useState({
+    qr: false,
+    photos: false,
+    tests: false,
+    signature: false,
+  });
   const steps = ['aguardando', 'cotada', 'aprovada', 'confirmada', 'finalizada'];
-  const currentStep = steps.indexOf(quot.status);
+  const currentStep = Math.max(0, steps.indexOf(quot.status));
   const totalItems = quot.items.reduce((s, i) => s + i.qty, 0);
+  const checkoutComplete = Object.values(checkoutReady).every(Boolean);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink-950/85 backdrop-blur-sm fade-up">
@@ -1463,7 +1483,8 @@ const QuotationDetail = ({ quot, onClose, onAction, viewerRole = 'ac' }) => {
           <h3 className="eyebrow text-ink-400 mb-3">Equipamentos solicitados</h3>
           <div className="bg-ink-950 border border-ink-700 rounded-xl overflow-hidden mb-8">
             {quot.items.map((it, i) => {
-              const eq = EQUIPMENT.find(e => e.id === it.id);
+              const eq = equipment.find(e => e.id === it.id);
+              if (!eq) return null;
               return (
                 <div key={it.id} className={`p-4 flex items-center gap-4 ${i > 0 ? 'border-t border-ink-800' : ''}`}>
                   <div className="w-10 h-10 rounded-lg bg-ink-800 flex items-center justify-center flex-shrink-0">
@@ -1498,17 +1519,60 @@ const QuotationDetail = ({ quot, onClose, onAction, viewerRole = 'ac' }) => {
               <button onClick={() => onAction?.('reject', quot)} className="btn-ghost flex-1 py-3.5 rounded-xl">Recusar</button>
             </div>
           )}
+          {viewerRole === 'ac' && quot.status === 'aprovada' && (
+            <div className="bg-ink-950 border border-ink-700 rounded-xl p-5 flex items-center justify-between gap-4">
+              <div>
+                <div className="eyebrow text-amber-glow mb-1">Próxima etapa</div>
+                <div className="text-sm text-ink-200">Confirme a retirada para reservar o horário na locadora.</div>
+              </div>
+              <button onClick={() => onAction?.('schedulePickup', quot)} className="btn-primary px-5 py-3 rounded-xl flex items-center gap-2">
+                <Icon name="calendar" className="w-4 h-4" strokeWidth={1.8}/> Agendar retirada
+              </button>
+            </div>
+          )}
           {viewerRole === 'staff' && quot.status === 'aguardando' && (
             <div className="space-y-3">
               <div>
                 <label className="eyebrow text-ink-400 block mb-2">Valor da cotação (R$)</label>
-                <input type="number" placeholder="0,00" className="input-field w-full px-4 py-3 rounded-xl font-mono"/>
+                <input type="number" placeholder="0,00" value={quoteValue} onChange={(e) => setQuoteValue(e.target.value)} className="input-field w-full px-4 py-3 rounded-xl font-mono"/>
               </div>
               <div className="flex gap-3">
-                <button onClick={() => onAction?.('quote', quot)} className="btn-primary flex-1 py-3.5 rounded-xl flex items-center justify-center gap-2">
+                <button onClick={() => onAction?.('quote', quot, { total: Number(quoteValue) || null })} className="btn-primary flex-1 py-3.5 rounded-xl flex items-center justify-center gap-2">
                   <Icon name="send" className="w-4 h-4" strokeWidth={1.8}/> Enviar cotação ao cliente
                 </button>
                 <button onClick={() => onAction?.('reject', quot)} className="btn-ghost py-3.5 px-6 rounded-xl">Recusar</button>
+              </div>
+            </div>
+          )}
+          {viewerRole === 'staff' && ['aprovada', 'confirmada'].includes(quot.status) && (
+            <div className="space-y-4">
+              <div className="bg-ink-950 border border-ink-700 rounded-xl p-4">
+                <div className="eyebrow text-ink-400 mb-3">Check-out digital</div>
+                <div className="grid md:grid-cols-2 gap-2">
+                  {[
+                    ['qr', 'QR / protocolo validado'],
+                    ['photos', 'Fotos da mesa anexadas'],
+                    ['tests', 'Eletrônicos testados'],
+                    ['signature', 'Assinatura digital coletada'],
+                  ].map(([key, label]) => (
+                    <label key={key} className="flex items-center gap-2 text-sm text-ink-200 bg-ink-900 border border-ink-800 rounded-xl px-3 py-2.5 cursor-pointer">
+                      <input type="checkbox" checked={checkoutReady[key]} onChange={(e) => setCheckoutReady(prev => ({ ...prev, [key]: e.target.checked }))} className="accent-amber-glow"/>
+                      {label}
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <div className="flex gap-3">
+                {quot.status === 'aprovada' && (
+                  <button onClick={() => onAction?.('confirmPickup', quot)} className="btn-primary flex-1 py-3.5 rounded-xl flex items-center justify-center gap-2">
+                    <Icon name="calendar" className="w-4 h-4" strokeWidth={1.8}/> Confirmar retirada
+                  </button>
+                )}
+                {quot.status === 'confirmada' && (
+                  <button disabled={!checkoutComplete} onClick={() => onAction?.('finishRental', quot)} className={`flex-1 py-3.5 rounded-xl flex items-center justify-center gap-2 ${checkoutComplete ? 'btn-primary' : 'btn-ghost opacity-60 cursor-not-allowed'}`}>
+                    <Icon name="check" className="w-4 h-4" strokeWidth={2}/> Finalizar check-out
+                  </button>
+                )}
               </div>
             </div>
           )}
@@ -1521,13 +1585,14 @@ const QuotationDetail = ({ quot, onClose, onAction, viewerRole = 'ac' }) => {
 /* ==========================================================
    AC - PROFILE
    ========================================================== */
-const ACProfile = () => {
-  const [name, setName] = useState('Carlos Menezes');
-  const [cpf, setCpf] = useState('123.456.789-00');
-  const [phone, setPhone] = useState('(11) 98765-4321');
-  const [phoneVerified, setPhoneVerified] = useState(true);
-  const [email, setEmail] = useState('carlos.menezes@filmes.br');
-  const [role, setRole] = useState('1º Assistente de Câmera');
+const ACProfile = ({ profile, onSave, onSecurityAction }) => {
+  const [name, setName] = useState(profile?.name || 'Carlos Menezes');
+  const [cpf, setCpf] = useState(profile?.cpf || '123.456.789-00');
+  const [phone, setPhone] = useState(profile?.phone || '(11) 98765-4321');
+  const [phoneVerified, setPhoneVerified] = useState(profile?.phoneVerified ?? true);
+  const [email, setEmail] = useState(profile?.email || 'carlos.menezes@filmes.br');
+  const [role, setRole] = useState(profile?.role || '1º Assistente de Câmera');
+  const canSave = name.trim().split(/\s+/).length > 1 && isValidCPF(cpf) && isValidPhone(phone) && email.includes('@');
 
   return (
     <div className="p-8 max-w-3xl">
@@ -1584,7 +1649,7 @@ const ACProfile = () => {
           </div>
         </div>
 
-        <button className="btn-primary px-6 py-3 rounded-xl mt-6">Salvar alterações</button>
+        <button disabled={!canSave} onClick={() => canSave && onSave?.({ name, cpf, phone, phoneVerified, email, role })} className={`px-6 py-3 rounded-xl mt-6 ${canSave ? 'btn-primary' : 'btn-ghost opacity-60 cursor-not-allowed'}`}>Salvar alterações</button>
       </div>
 
       <div className="bg-ink-900 border border-ink-700 rounded-3xl p-6 fade-up fade-up-1">
@@ -1596,9 +1661,9 @@ const ACProfile = () => {
             <h3 className="serif-display text-lg text-ink-50 mb-1">Segurança e privacidade</h3>
             <p className="text-ink-300 text-sm leading-relaxed mb-4">Seus dados pessoais são criptografados, armazenados conforme LGPD e compartilhados apenas com locadoras nas quais você solicitou cotação.</p>
             <div className="space-y-2">
-              <button className="btn-ghost px-4 py-2.5 rounded-xl text-sm w-full text-left">Ativar autenticação de dois fatores</button>
-              <button className="btn-ghost px-4 py-2.5 rounded-xl text-sm w-full text-left">Alterar senha</button>
-              <button className="btn-ghost px-4 py-2.5 rounded-xl text-sm w-full text-left text-red-400">Solicitar exclusão de conta (LGPD)</button>
+              <button onClick={() => onSecurityAction?.('2FA ativado para esta demo')} className="btn-ghost px-4 py-2.5 rounded-xl text-sm w-full text-left">Ativar autenticação de dois fatores</button>
+              <button onClick={() => onSecurityAction?.('Fluxo de troca de senha iniciado')} className="btn-ghost px-4 py-2.5 rounded-xl text-sm w-full text-left">Alterar senha</button>
+              <button onClick={() => onSecurityAction?.('Solicitação LGPD registrada')} className="btn-ghost px-4 py-2.5 rounded-xl text-sm w-full text-left text-red-400">Solicitar exclusão de conta (LGPD)</button>
             </div>
           </div>
         </div>
@@ -1620,14 +1685,19 @@ const { Icon, Logo, EquipmentCard, RENTAL_HOUSES, CATEGORIES, EQUIPMENT, MOCK_QU
 /* ==========================================================
    STAFF - DASHBOARD
    ========================================================== */
-const StaffDashboard = ({ onNav, onOpenQuot }) => {
+const StaffDashboard = ({ quotations = MOCK_QUOTATIONS, equipment = EQUIPMENT, onNav, onOpenQuot }) => {
+  const openQuotes = quotations.filter(q => q.status === 'aguardando').length;
+  const pickupsToday = quotations.filter(q => ['aprovada', 'confirmada'].includes(q.status)).length;
+  const rentedQty = equipment.reduce((s, e) => s + Math.max(0, e.qty - e.qtyAvail), 0);
+  const totalQty = equipment.reduce((s, e) => s + e.qty, 0);
+  const returnsToday = quotations.filter(q => q.status === 'confirmada').length;
   const kpis = [
-    { label: 'Cotações abertas', value: '12', delta: '+3', color: '#ff7a2e' },
-    { label: 'Retiradas hoje',   value: '5',  delta: '2 pendentes', color: '#e8c468' },
-    { label: 'Em locação',        value: '28', delta: 'de 124 itens', color: '#6ba8ff' },
-    { label: 'Devoluções hoje',   value: '3',  delta: 'até às 18h', color: '#8ee37c' },
+    { label: 'Cotações abertas', value: String(openQuotes), delta: openQuotes ? 'aguardando resposta' : 'fila limpa', color: '#ff7a2e' },
+    { label: 'Retiradas hoje',   value: String(pickupsToday),  delta: `${quotations.filter(q => q.status === 'aprovada').length} pendentes`, color: '#e8c468' },
+    { label: 'Em locação',        value: String(rentedQty), delta: `de ${totalQty} itens`, color: '#6ba8ff' },
+    { label: 'Devoluções hoje',   value: String(returnsToday),  delta: 'até às 18h', color: '#8ee37c' },
   ];
-  const recent = MOCK_QUOTATIONS.slice(0, 4);
+  const recent = quotations.slice(0, 4);
 
   return (
     <div className="p-8 max-w-7xl">
@@ -1635,7 +1705,7 @@ const StaffDashboard = ({ onNav, onOpenQuot }) => {
         <div>
           <div className="eyebrow text-amber-glow mb-2">Segunda-feira · 20 de abril</div>
           <h1 className="serif-display text-4xl text-ink-50 mb-2">Bom dia, Beatriz.</h1>
-          <p className="text-ink-300">Você tem <span className="text-amber-warm font-medium">3 cotações</span> aguardando resposta e <span className="text-amber-warm font-medium">5 retiradas</span> previstas para hoje.</p>
+          <p className="text-ink-300">Você tem <span className="text-amber-warm font-medium">{openQuotes} cotações</span> aguardando resposta e <span className="text-amber-warm font-medium">{pickupsToday} retiradas</span> previstas.</p>
         </div>
         <button onClick={() => onNav('equipment')} className="btn-primary px-5 py-3 rounded-xl flex items-center gap-2">
           <Icon name="plus" className="w-4 h-4" strokeWidth={2}/> Cadastrar equipamento
@@ -1687,12 +1757,15 @@ const StaffDashboard = ({ onNav, onOpenQuot }) => {
             <Icon name="calendar" className="w-4 h-4 text-ink-400"/>
           </div>
           <div className="p-5 space-y-4">
-            {[
-              { time: '07:00', kind: 'Retirada', who: 'Pedro Alvim', project: 'Série Raízes', color: '#ff7a2e' },
-              { time: '09:30', kind: 'Retirada', who: 'Mariana Ribeiro', project: 'Comercial Natura', color: '#ff7a2e' },
-              { time: '14:00', kind: 'Check-in', who: 'Luiza Fontes', project: 'Entre Marés', color: '#8ee37c' },
-              { time: '18:00', kind: 'Devolução', who: 'Thiago Costa', project: 'Videoclipe', color: '#6ba8ff' },
-            ].map((e, i) => (
+            {quotations.filter(q => ['aprovada', 'confirmada', 'finalizada'].includes(q.status)).slice(0, 4).map((q, i) => {
+              const e = {
+                time: q.pickupTime,
+                kind: q.status === 'finalizada' ? 'Finalizada' : q.status === 'confirmada' ? 'Retirada confirmada' : 'Retirada',
+                who: q.client,
+                project: q.project,
+                color: q.status === 'finalizada' ? '#8ee37c' : q.status === 'confirmada' ? '#6ba8ff' : '#ff7a2e',
+              };
+              return (
               <div key={i} className="flex gap-4 items-start">
                 <div className="w-16 flex-shrink-0">
                   <div className="text-sm text-ink-50 font-mono">{e.time}</div>
@@ -1703,7 +1776,7 @@ const StaffDashboard = ({ onNav, onOpenQuot }) => {
                   <div className="text-xs text-ink-400 truncate">{e.project}</div>
                 </div>
               </div>
-            ))}
+            )})}
           </div>
         </div>
       </div>
@@ -1714,11 +1787,11 @@ const StaffDashboard = ({ onNav, onOpenQuot }) => {
 /* ==========================================================
    STAFF - EQUIPMENT MANAGEMENT
    ========================================================== */
-const StaffEquipment = ({ onNew }) => {
+const StaffEquipment = ({ equipment = EQUIPMENT, onNew, onView, onEdit, onDelete }) => {
   const [search, setSearch] = useState('');
   const [cat, setCat] = useState(null);
 
-  const rhEquipment = EQUIPMENT.filter(e => e.rhId === 'rh1');
+  const rhEquipment = equipment.filter(e => e.rhId === 'rh1');
   const filtered = rhEquipment.filter(eq => {
     if (cat && eq.cat !== cat) return false;
     if (search && !eq.name.toLowerCase().includes(search.toLowerCase())) return false;
@@ -1787,11 +1860,14 @@ const StaffEquipment = ({ onNew }) => {
                 </td>
                 <td className="px-5 py-4 text-right">
                   <div className="flex items-center justify-end gap-1">
-                    <button className="w-8 h-8 rounded-lg hover:bg-ink-800 flex items-center justify-center text-ink-400 hover:text-ink-100" title="Visualizar">
+                    <button onClick={() => onView?.(eq)} className="w-8 h-8 rounded-lg hover:bg-ink-800 flex items-center justify-center text-ink-400 hover:text-ink-100" title="Visualizar">
                       <Icon name="eye" className="w-4 h-4"/>
                     </button>
-                    <button className="w-8 h-8 rounded-lg hover:bg-ink-800 flex items-center justify-center text-ink-400 hover:text-ink-100" title="Editar">
+                    <button onClick={() => onEdit?.(eq)} className="w-8 h-8 rounded-lg hover:bg-ink-800 flex items-center justify-center text-ink-400 hover:text-ink-100" title="Editar">
                       <Icon name="edit" className="w-4 h-4"/>
+                    </button>
+                    <button onClick={() => onDelete?.(eq)} className="w-8 h-8 rounded-lg hover:bg-ink-800 flex items-center justify-center text-ink-400 hover:text-red-400" title="Remover">
+                      <Icon name="trash" className="w-4 h-4"/>
                     </button>
                   </div>
                 </td>
@@ -1807,17 +1883,18 @@ const StaffEquipment = ({ onNew }) => {
 /* ==========================================================
    STAFF - NEW EQUIPMENT FORM
    ========================================================== */
-const NewEquipmentForm = ({ onClose, onSave }) => {
-  const [form, setForm] = useState({ name: '', cat: 'cam', desc: '', tech: '', qty: 1 });
+const NewEquipmentForm = ({ initial = null, onClose, onSave }) => {
+  const [form, setForm] = useState(initial || { name: '', cat: 'cam', desc: '', tech: '', qty: 1 });
   const update = (k, v) => setForm(f => ({ ...f, [k]: v }));
+  const canSave = form.name.trim() && form.desc.trim() && form.tech.trim() && Number(form.qty) > 0;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink-950/85 backdrop-blur-sm fade-up">
       <div className="bg-ink-900 border border-ink-700 rounded-3xl max-w-2xl w-full max-h-[92vh] overflow-auto">
         <div className="sticky top-0 bg-ink-900 border-b border-ink-700 px-8 py-5 flex items-center justify-between">
           <div>
-            <div className="eyebrow text-amber-glow mb-1">Novo equipamento</div>
-            <h2 className="serif-display text-2xl text-ink-50">Cadastro</h2>
+            <div className="eyebrow text-amber-glow mb-1">{initial ? 'Editar equipamento' : 'Novo equipamento'}</div>
+            <h2 className="serif-display text-2xl text-ink-50">{initial ? 'Atualizar cadastro' : 'Cadastro'}</h2>
           </div>
           <button onClick={onClose} className="w-9 h-9 rounded-full hover:bg-ink-800 flex items-center justify-center text-ink-300">
             <Icon name="x" className="w-5 h-5" strokeWidth={1.8}/>
@@ -1867,8 +1944,8 @@ const NewEquipmentForm = ({ onClose, onSave }) => {
         </div>
         <div className="sticky bottom-0 bg-ink-900 border-t border-ink-700 px-8 py-4 flex items-center justify-between gap-3">
           <button onClick={onClose} className="btn-ghost px-5 py-3 rounded-xl">Cancelar</button>
-          <button onClick={() => onSave(form)} className="btn-primary px-6 py-3 rounded-xl flex items-center gap-2">
-            <Icon name="check" className="w-4 h-4" strokeWidth={2}/> Cadastrar equipamento
+          <button disabled={!canSave} onClick={() => canSave && onSave(form)} className={`px-6 py-3 rounded-xl flex items-center gap-2 ${canSave ? 'btn-primary' : 'btn-ghost opacity-60 cursor-not-allowed'}`}>
+            <Icon name="check" className="w-4 h-4" strokeWidth={2}/> {initial ? 'Salvar alterações' : 'Cadastrar equipamento'}
           </button>
         </div>
       </div>
@@ -1879,17 +1956,18 @@ const NewEquipmentForm = ({ onClose, onSave }) => {
 /* ==========================================================
    STAFF - QUOTATIONS LIST
    ========================================================== */
-const StaffQuotations = ({ onOpen }) => {
+const StaffQuotations = ({ quotations = MOCK_QUOTATIONS, onOpen }) => {
   const [filter, setFilter] = useState('todas');
+  const awaiting = quotations.filter(q => q.status === 'aguardando').length;
   const filters = [
     { id: 'todas', label: 'Todas' },
-    { id: 'aguardando', label: 'Para cotar', count: 1 },
+    { id: 'aguardando', label: 'Para cotar', count: awaiting },
     { id: 'cotada', label: 'Aguardando cliente' },
     { id: 'aprovada', label: 'Aprovadas' },
     { id: 'confirmada', label: 'Confirmadas' },
     { id: 'finalizada', label: 'Finalizadas' },
   ];
-  const filtered = MOCK_QUOTATIONS.filter(q => filter === 'todas' || q.status === filter);
+  const filtered = quotations.filter(q => filter === 'todas' || q.status === filter);
 
   return (
     <div className="p-8 max-w-7xl">
@@ -1950,12 +2028,18 @@ const StaffQuotations = ({ onOpen }) => {
 /* ==========================================================
    ADMIN - DASHBOARD
    ========================================================== */
-const AdminDashboard = () => {
+const AdminDashboard = ({ quotations = MOCK_QUOTATIONS, equipment = EQUIPMENT, team = TEAM_MEMBERS }) => {
+  const revenue = quotations.reduce((s, q) => s + (q.total || 0), 0);
+  const activeRentals = quotations.filter(q => ['aprovada', 'confirmada'].includes(q.status)).length;
+  const totalQty = equipment.reduce((s, e) => s + e.qty, 0);
+  const rentedQty = equipment.reduce((s, e) => s + Math.max(0, e.qty - e.qtyAvail), 0);
+  const occupancy = totalQty ? Math.round((rentedQty / totalQty) * 100) : 0;
+  const avgQuoteTime = quotations.filter(q => q.status === 'aguardando').length ? '38 min' : '15 min';
   const kpis = [
-    { label: 'Receita mensal', value: 'R$ 284,5k', delta: '+18% vs mês passado', color: '#ff7a2e' },
-    { label: 'Locações ativas', value: '47', delta: 'em 23 produções', color: '#e8c468' },
-    { label: 'Taxa de ocupação', value: '74%', delta: '+6pp vs média trimestral', color: '#6ba8ff' },
-    { label: 'Tempo médio cotação', value: '38 min', delta: '-72% vs manual', color: '#8ee37c' },
+    { label: 'Receita mensal', value: revenue ? currency(revenue) : 'R$ 0,00', delta: `${quotations.length} cotações no período`, color: '#ff7a2e' },
+    { label: 'Locações ativas', value: String(activeRentals), delta: `em ${new Set(quotations.map(q => q.project)).size} produções`, color: '#e8c468' },
+    { label: 'Taxa de ocupação', value: `${occupancy}%`, delta: `${rentedQty} de ${totalQty} unidades`, color: '#6ba8ff' },
+    { label: 'Tempo médio cotação', value: avgQuoteTime, delta: 'fluxo digital', color: '#8ee37c' },
   ];
 
   const monthlyRevenue = [48, 62, 58, 71, 82, 68, 89, 95, 102, 88, 96, 114];
@@ -2055,9 +2139,9 @@ const AdminDashboard = () => {
           <div className="w-10 h-10 rounded-xl bg-amber-glow/10 flex items-center justify-center text-amber-glow mb-4">
             <Icon name="users" className="w-5 h-5" strokeWidth={1.5}/>
           </div>
-          <div className="serif-display text-xl text-ink-50 mb-1">38</div>
+          <div className="serif-display text-xl text-ink-50 mb-1">{quotations.length}</div>
           <div className="text-sm text-ink-100">Clientes ativos</div>
-          <div className="text-xs text-ink-400 mt-1">+9 novos cadastros no mês</div>
+          <div className="text-xs text-ink-400 mt-1">{team.filter(m => m.active).length} funcionários ativos</div>
         </div>
         <div className="bg-ink-900 border border-ink-700 rounded-2xl p-5 fade-up fade-up-4">
           <div className="w-10 h-10 rounded-xl bg-amber-glow/10 flex items-center justify-center text-amber-glow mb-4">
@@ -2075,8 +2159,16 @@ const AdminDashboard = () => {
 /* ==========================================================
    ADMIN - TEAM MANAGEMENT
    ========================================================== */
-const AdminTeam = () => {
+const AdminTeam = ({ team = TEAM_MEMBERS, onInvite, onToggle, onRemove, onEdit }) => {
   const [showNew, setShowNew] = useState(false);
+  const [form, setForm] = useState({ name: '', email: '', role: 'Check-out' });
+  const update = (k, v) => setForm(prev => ({ ...prev, [k]: v }));
+  const submit = () => {
+    if (!form.name.trim() || !form.email.includes('@')) return;
+    onInvite?.(form);
+    setForm({ name: '', email: '', role: 'Check-out' });
+    setShowNew(false);
+  };
   return (
     <div className="p-8 max-w-6xl">
       <div className="flex items-start justify-between mb-8 fade-up">
@@ -2101,7 +2193,7 @@ const AdminTeam = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-ink-800">
-            {TEAM_MEMBERS.map(m => (
+            {team.map(m => (
               <tr key={m.id} className="hover:bg-ink-800/40 transition-colors">
                 <td className="px-5 py-4">
                   <div className="flex items-center gap-3">
@@ -2123,8 +2215,9 @@ const AdminTeam = () => {
                 </td>
                 <td className="px-5 py-4 text-right">
                   <div className="flex items-center justify-end gap-1">
-                    <button className="w-8 h-8 rounded-lg hover:bg-ink-800 flex items-center justify-center text-ink-400 hover:text-ink-100"><Icon name="edit" className="w-4 h-4"/></button>
-                    <button className="w-8 h-8 rounded-lg hover:bg-ink-800 flex items-center justify-center text-ink-400 hover:text-red-400"><Icon name="trash" className="w-4 h-4"/></button>
+                    <button onClick={() => onEdit?.(m)} className="w-8 h-8 rounded-lg hover:bg-ink-800 flex items-center justify-center text-ink-400 hover:text-ink-100"><Icon name="edit" className="w-4 h-4"/></button>
+                    <button onClick={() => onToggle?.(m)} className="w-8 h-8 rounded-lg hover:bg-ink-800 flex items-center justify-center text-ink-400 hover:text-ink-100"><Icon name={m.active ? 'x' : 'check'} className="w-4 h-4"/></button>
+                    <button onClick={() => onRemove?.(m)} className="w-8 h-8 rounded-lg hover:bg-ink-800 flex items-center justify-center text-ink-400 hover:text-red-400"><Icon name="trash" className="w-4 h-4"/></button>
                   </div>
                 </td>
               </tr>
@@ -2143,17 +2236,17 @@ const AdminTeam = () => {
             <div className="p-8 space-y-4">
               <div>
                 <label className="eyebrow text-ink-400 block mb-2">Nome completo</label>
-                <input placeholder="Ex: João Pereira" className="input-field w-full px-4 py-3 rounded-xl"/>
+                <input value={form.name} onChange={(e) => update('name', e.target.value)} placeholder="Ex: João Pereira" className="input-field w-full px-4 py-3 rounded-xl"/>
               </div>
               <div>
                 <label className="eyebrow text-ink-400 block mb-2">E-mail corporativo</label>
-                <input type="email" placeholder="nome@cinestudiosp.com.br" className="input-field w-full px-4 py-3 rounded-xl font-mono"/>
+                <input value={form.email} onChange={(e) => update('email', e.target.value)} type="email" placeholder="nome@cinestudiosp.com.br" className="input-field w-full px-4 py-3 rounded-xl font-mono"/>
               </div>
               <div>
                 <label className="eyebrow text-ink-400 block mb-2">Perfil de acesso</label>
                 <div className="grid grid-cols-2 gap-2">
                   {['Gerente', 'Check-out', 'Financeiro', 'Administrador'].map(r => (
-                    <button key={r} className="px-3 py-2.5 rounded-xl border border-ink-700 text-sm text-ink-300 hover:border-amber-glow/40 transition-all">
+                    <button key={r} onClick={() => update('role', r)} className={`px-3 py-2.5 rounded-xl border text-sm transition-all ${form.role === r ? 'border-amber-glow/60 bg-amber-glow/10 text-amber-glow' : 'border-ink-700 text-ink-300 hover:border-amber-glow/40'}`}>
                       {r}
                     </button>
                   ))}
@@ -2166,7 +2259,7 @@ const AdminTeam = () => {
             </div>
             <div className="px-8 py-4 border-t border-ink-700 flex items-center justify-between gap-3">
               <button onClick={() => setShowNew(false)} className="btn-ghost px-5 py-3 rounded-xl">Cancelar</button>
-              <button onClick={() => setShowNew(false)} className="btn-primary px-6 py-3 rounded-xl flex items-center gap-2">
+              <button onClick={submit} className="btn-primary px-6 py-3 rounded-xl flex items-center gap-2">
                 <Icon name="send" className="w-4 h-4"/> Enviar convite
               </button>
             </div>
@@ -2180,7 +2273,13 @@ const AdminTeam = () => {
 /* ==========================================================
    ADMIN - RENTALS (overview of all)
    ========================================================== */
-const AdminRentals = ({ onOpen }) => {
+const AdminRentals = ({ quotations = MOCK_QUOTATIONS, onOpen }) => {
+  const counters = [
+    quotations.length,
+    quotations.filter(q => q.status === 'aguardando').length,
+    quotations.filter(q => q.status === 'confirmada').length,
+    quotations.filter(q => q.status === 'finalizada').length,
+  ];
   return (
     <div className="p-8 max-w-7xl">
       <div className="mb-8">
@@ -2192,7 +2291,7 @@ const AdminRentals = ({ onOpen }) => {
         {['Total', 'Aguardando', 'Confirmadas', 'Finalizadas'].map((l, i) => (
           <div key={l} className="bg-ink-900 border border-ink-700 rounded-xl p-4">
             <div className="eyebrow text-ink-400 mb-1">{l}</div>
-            <div className="serif-display text-2xl text-ink-50">{[128, 12, 47, 69][i]}</div>
+            <div className="serif-display text-2xl text-ink-50">{counters[i]}</div>
           </div>
         ))}
       </div>
@@ -2210,7 +2309,7 @@ const AdminRentals = ({ onOpen }) => {
             </tr>
           </thead>
           <tbody className="divide-y divide-ink-800">
-            {MOCK_QUOTATIONS.map(q => (
+            {quotations.map(q => (
               <tr key={q.id} onClick={() => onOpen(q)} className="hover:bg-ink-800/40 transition-colors cursor-pointer">
                 <td className="px-5 py-4 font-mono text-xs text-amber-glow">{q.id}</td>
                 <td className="px-5 py-4">
@@ -2237,7 +2336,7 @@ const AdminRentals = ({ onOpen }) => {
 /* ==========================================================
    ADMIN - REPORTS
    ========================================================== */
-const AdminReports = () => {
+const AdminReports = ({ onExport }) => {
   return (
     <div className="p-8 max-w-6xl">
       <div className="mb-8">
@@ -2254,7 +2353,7 @@ const AdminReports = () => {
           { t: 'Auditoria LGPD',        d: 'Logs de acesso e trilha de consentimento',   i: 'shield' },
           { t: 'Relatório customizado', d: 'Crie seu próprio recorte',                    i: 'settings' },
         ].map((r, i) => (
-          <button key={i} style={{ animationDelay: `${i * 0.04}s` }} className="fade-up bg-ink-900 border border-ink-700 rounded-2xl p-6 text-left card-hover group">
+          <button key={i} onClick={() => onExport?.(r.t)} style={{ animationDelay: `${i * 0.04}s` }} className="fade-up bg-ink-900 border border-ink-700 rounded-2xl p-6 text-left card-hover group">
             <div className="flex items-start justify-between mb-4">
               <div className="w-10 h-10 rounded-xl bg-amber-glow/10 flex items-center justify-center text-amber-glow">
                 <Icon name={r.i} className="w-5 h-5" strokeWidth={1.5}/>
@@ -2287,6 +2386,38 @@ const { Icon, Logo, EquipmentCard, RENTAL_HOUSES, CATEGORIES, EQUIPMENT, MOCK_QU
 const { DemoSelector, LoginScreen, AppShell } = window.__CENA_PART2__;
 const { ACExplore, EquipmentDetail, ACCart, ACQuotations, QuotationDetail, ACProfile } = window.__CENA_AC__;
 const { StaffDashboard, StaffEquipment, NewEquipmentForm, StaffQuotations, AdminDashboard, AdminTeam, AdminRentals, AdminReports } = window.__CENA_STAFF_ADMIN__;
+
+const STORAGE_KEY = 'cena-mvp-interactive-state-v1';
+
+const defaultProfile = {
+  name: 'Carlos Menezes',
+  role: '1º Assistente de Câmera',
+  cpf: '123.456.789-00',
+  phone: '(11) 98765-4321',
+  phoneVerified: true,
+  email: 'carlos.menezes@filmes.br',
+};
+
+const loadInteractiveState = () => {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch (err) {
+    return null;
+  }
+};
+
+const makeEquipmentId = (name) => {
+  const slug = name
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 28);
+  return `eq-${slug || 'item'}-${Date.now().toString(36)}`;
+};
 
 /* ==========================================================
    TOAST
@@ -2343,23 +2474,36 @@ const SuccessModal = ({ open, onClose, quotId }) => {
    MAIN APP
    ========================================================== */
 const App = () => {
+  const saved = useMemo(loadInteractiveState, []);
   const [stage, setStage] = useState('selector'); // selector | login | app
   const [role, setRole] = useState(null);
   const [view, setView] = useState('home');
-  const [cart, setCart] = useState([]);
+  const [cart, setCart] = useState(saved?.cart || []);
   const [detailEq, setDetailEq] = useState(null);
   const [detailQuot, setDetailQuot] = useState(null);
-  const [quotations, setQuotations] = useState(MOCK_QUOTATIONS);
+  const [quotations, setQuotations] = useState(saved?.quotations || MOCK_QUOTATIONS);
+  const [equipment, setEquipment] = useState(saved?.equipment || EQUIPMENT);
+  const [team, setTeam] = useState(saved?.team || TEAM_MEMBERS);
+  const [profile, setProfile] = useState(saved?.profile || defaultProfile);
   const [initialCat, setInitialCat] = useState(null);
   const [showNewEq, setShowNewEq] = useState(false);
+  const [editingEq, setEditingEq] = useState(null);
   const [toast, setToast] = useState(null);
   const [success, setSuccess] = useState(null);
 
   const users = {
-    ac:    { name: 'Carlos Menezes', role: '1º Assistente de Câmera', company: null },
+    ac:    { name: profile.name, role: profile.role, company: null },
     staff: { name: 'Beatriz Oliveira', role: 'Check-out · Cinestúdio SP', company: 'Cinestúdio SP' },
     admin: { name: 'André Silveira',   role: 'Gerente · Cinestúdio SP',  company: 'Cinestúdio SP' },
   };
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ cart, quotations, equipment, team, profile }));
+    } catch (err) {
+      setToast({ title: 'Sessão local cheia', desc: 'As alterações continuam ativas enquanto a página ficar aberta.' });
+    }
+  }, [cart, quotations, equipment, team, profile]);
 
   const handleSelectRole = (r) => { setRole(r); setStage('login'); };
   const handleLogin = () => {
@@ -2396,39 +2540,144 @@ const App = () => {
   const removeFromCart = (id) => setCart(prev => prev.filter(c => c.id !== id));
 
   const submitQuotation = (data) => {
-    const newId = `COT-${2042 + Math.floor(Math.random() * 10)}`;
-    const newQ = {
-      id: newId,
-      client: users.ac.name,
-      clientRole: users.ac.role,
-      rhId: 'rh1',
-      rhName: 'Cinestúdio SP',
-      items: cart,
-      pickupDate: data.pickupDate,
-      pickupTime: data.pickupTime,
-      returnDate: data.returnDate,
-      status: 'aguardando',
-      createdAt: new Date().toISOString().split('T')[0],
-      project: data.project || 'Projeto sem nome',
-      total: null,
-    };
-    setQuotations(prev => [newQ, ...prev]);
+    const groups = new Map();
+    cart.forEach(item => {
+      const eq = equipment.find(e => e.id === item.id);
+      if (!eq) return;
+      if (!groups.has(eq.rhId)) groups.set(eq.rhId, []);
+      groups.get(eq.rhId).push(item);
+    });
+    const created = Array.from(groups.entries()).map(([rhId, items], index) => {
+      const rh = RENTAL_HOUSES.find(r => r.id === rhId);
+      const newId = `COT-${Math.floor(3000 + Math.random() * 6000)}${index ? `-${index + 1}` : ''}`;
+      return {
+        id: newId,
+        client: users.ac.name,
+        clientRole: users.ac.role,
+        rhId,
+        rhName: rh?.name || 'Locadora',
+        items,
+        pickupDate: data.pickupDate,
+        pickupTime: data.pickupTime,
+        returnDate: data.returnDate,
+        status: 'aguardando',
+        createdAt: new Date().toISOString().split('T')[0],
+        project: data.project || 'Projeto sem nome',
+        notes: data.notes || '',
+        total: null,
+      };
+    });
+    setQuotations(prev => [...created, ...prev]);
     setCart([]);
-    setSuccess(newId);
+    setSuccess(created.map(q => q.id).join(' · '));
   };
 
-  const handleQuotAction = (action, quot) => {
+  const handleQuotAction = (action, quot, payload = {}) => {
     if (action === 'approve') {
       setQuotations(prev => prev.map(q => q.id === quot.id ? { ...q, status: 'aprovada' } : q));
+      setEquipment(prev => prev.map(eq => {
+        const requested = quot.items.find(item => item.id === eq.id);
+        return requested ? { ...eq, qtyAvail: Math.max(0, eq.qtyAvail - requested.qty) } : eq;
+      }));
       setToast({ title: 'Cotação aprovada', desc: 'A locadora foi notificada.' });
     } else if (action === 'reject') {
       setQuotations(prev => prev.map(q => q.id === quot.id ? { ...q, status: 'recusada' } : q));
       setToast({ title: 'Cotação recusada' });
     } else if (action === 'quote') {
-      setQuotations(prev => prev.map(q => q.id === quot.id ? { ...q, status: 'cotada', total: 8500 + Math.floor(Math.random() * 12000) } : q));
+      setQuotations(prev => prev.map(q => q.id === quot.id ? { ...q, status: 'cotada', total: payload.total || 8500 + Math.floor(Math.random() * 12000) } : q));
       setToast({ title: 'Cotação enviada ao cliente' });
+    } else if (action === 'schedulePickup') {
+      setQuotations(prev => prev.map(q => q.id === quot.id ? { ...q, status: 'confirmada' } : q));
+      setToast({ title: 'Retirada agendada', desc: `${quot.pickupDate} às ${quot.pickupTime}` });
+    } else if (action === 'confirmPickup') {
+      setQuotations(prev => prev.map(q => q.id === quot.id ? { ...q, status: 'confirmada' } : q));
+      setToast({ title: 'Retirada confirmada', desc: 'Kit liberado para transporte.' });
+    } else if (action === 'finishRental') {
+      setQuotations(prev => prev.map(q => q.id === quot.id ? { ...q, status: 'finalizada' } : q));
+      setEquipment(prev => prev.map(eq => {
+        const requested = quot.items.find(item => item.id === eq.id);
+        return requested ? { ...eq, qtyAvail: Math.min(eq.qty, eq.qtyAvail + requested.qty) } : eq;
+      }));
+      setToast({ title: 'Check-out finalizado', desc: 'Estoque devolvido e protocolo encerrado.' });
     }
     setDetailQuot(null);
+  };
+
+  const saveEquipment = (form) => {
+    const qty = Math.max(1, Number(form.qty) || 1);
+    if (editingEq) {
+      setEquipment(prev => prev.map(eq => eq.id === editingEq.id ? {
+        ...eq,
+        name: form.name.trim(),
+        cat: form.cat,
+        desc: form.desc.trim(),
+        tech: form.tech.trim(),
+        qty,
+        qtyAvail: Math.min(qty, Math.max(0, Number(eq.qtyAvail) + (qty - Number(eq.qty)))),
+      } : eq));
+      setToast({ title: 'Equipamento atualizado', desc: form.name.trim() });
+    } else {
+      const newEquipment = {
+        id: makeEquipmentId(form.name),
+        rhId: 'rh1',
+        name: form.name.trim(),
+        cat: form.cat,
+        desc: form.desc.trim(),
+        tech: form.tech.trim(),
+        qty,
+        qtyAvail: qty,
+      };
+      setEquipment(prev => [newEquipment, ...prev]);
+      setToast({ title: 'Equipamento cadastrado', desc: 'Agora está disponível no catálogo.' });
+    }
+    setEditingEq(null);
+    setShowNewEq(false);
+  };
+
+  const editEquipment = (eq) => {
+    setEditingEq(eq);
+    setShowNewEq(true);
+  };
+
+  const deleteEquipment = (eq) => {
+    const used = quotations.some(q => q.items.some(item => item.id === eq.id) && !['finalizada', 'recusada'].includes(q.status));
+    if (used) {
+      setToast({ title: 'Equipamento vinculado', desc: 'Finalize ou recuse as cotações antes de remover.' });
+      return;
+    }
+    setEquipment(prev => prev.filter(item => item.id !== eq.id));
+    setToast({ title: 'Equipamento removido', desc: eq.name });
+  };
+
+  const inviteTeamMember = (form) => {
+    setTeam(prev => [{ id: `u-${Date.now().toString(36)}`, name: form.name.trim(), email: form.email.trim(), role: form.role, active: true }, ...prev]);
+    setToast({ title: 'Convite enviado', desc: form.email.trim(), icon: 'mail' });
+  };
+
+  const toggleTeamMember = (member) => {
+    setTeam(prev => prev.map(item => item.id === member.id ? { ...item, active: !item.active } : item));
+    setToast({ title: member.active ? 'Acesso pausado' : 'Acesso reativado', desc: member.name });
+  };
+
+  const removeTeamMember = (member) => {
+    setTeam(prev => prev.filter(item => item.id !== member.id));
+    setToast({ title: 'Funcionário removido', desc: member.name });
+  };
+
+  const exportReport = (name) => {
+    const rows = [
+      ['id', 'projeto', 'cliente', 'locadora', 'status', 'retirada', 'devolucao', 'valor'],
+      ...quotations.map(q => [q.id, q.project, q.client, q.rhName, q.status, q.pickupDate, q.returnDate, q.total || 0]),
+    ];
+    const csv = rows.map(row => row.map(cell => `"${String(cell).replaceAll('"', '""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-') || 'relatorio'}-cena.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    setToast({ title: 'Relatório exportado', desc: `${name} baixado em CSV.` });
   };
 
   /* -------- Render by stage -------- */
@@ -2443,30 +2692,32 @@ const App = () => {
   const cartCount = cart.reduce((s, c) => s + c.qty, 0);
   let currentScreen;
   if (role === 'ac') {
-    const acQuots = quotations.filter(q => q.client === users.ac.name);
+    const acNames = new Set([users.ac.name, defaultProfile.name]);
+    const acQuots = quotations.filter(q => acNames.has(q.client));
     switch (view) {
-      case 'home':       currentScreen = <ACExplore initialCat={initialCat} onOpenItem={setDetailEq} onAdd={addToCart}/>; break;
-      case 'cart':       currentScreen = <ACCart cart={cart} onUpdate={updateCart} onRemove={removeFromCart} onSubmit={submitQuotation} onBack={() => setView('home')}/>; break;
+      case 'home':       currentScreen = <ACExplore equipment={equipment} initialCat={initialCat} onOpenItem={setDetailEq} onAdd={addToCart}/>; break;
+      case 'cart':       currentScreen = <ACCart cart={cart} equipment={equipment} onUpdate={updateCart} onRemove={removeFromCart} onSubmit={submitQuotation} onBack={() => setView('home')}/>; break;
       case 'quotations': currentScreen = <ACQuotations quotations={acQuots} onOpen={setDetailQuot}/>; break;
-      case 'profile':    currentScreen = <ACProfile/>; break;
-      default:            currentScreen = <ACExplore onOpenItem={setDetailEq} onAdd={addToCart}/>;
+      case 'profile':    currentScreen = <ACProfile profile={profile} onSave={(next) => { setProfile(next); setToast({ title: 'Perfil atualizado', desc: 'Dados salvos nesta demo.' }); }} onSecurityAction={(message) => setToast({ title: message, icon: 'shield' })}/>; break;
+      default:            currentScreen = <ACExplore equipment={equipment} onOpenItem={setDetailEq} onAdd={addToCart}/>;
     }
   } else if (role === 'staff') {
+    const staffQuots = quotations.filter(q => q.rhId === 'rh1');
     switch (view) {
-      case 'dashboard':  currentScreen = <StaffDashboard onNav={setView} onOpenQuot={setDetailQuot}/>; break;
-      case 'equipment':  currentScreen = <StaffEquipment onNew={() => setShowNewEq(true)}/>; break;
-      case 'quotations': currentScreen = <StaffQuotations onOpen={setDetailQuot}/>; break;
-      case 'schedule':   currentScreen = <StaffDashboard onNav={setView} onOpenQuot={setDetailQuot}/>; break;
-      default:           currentScreen = <StaffDashboard onNav={setView} onOpenQuot={setDetailQuot}/>;
+      case 'dashboard':  currentScreen = <StaffDashboard quotations={staffQuots} equipment={equipment} onNav={setView} onOpenQuot={setDetailQuot}/>; break;
+      case 'equipment':  currentScreen = <StaffEquipment equipment={equipment} onNew={() => { setEditingEq(null); setShowNewEq(true); }} onView={setDetailEq} onEdit={editEquipment} onDelete={deleteEquipment}/>; break;
+      case 'quotations': currentScreen = <StaffQuotations quotations={staffQuots} onOpen={setDetailQuot}/>; break;
+      case 'schedule':   currentScreen = <StaffDashboard quotations={staffQuots} equipment={equipment} onNav={setView} onOpenQuot={setDetailQuot}/>; break;
+      default:           currentScreen = <StaffDashboard quotations={staffQuots} equipment={equipment} onNav={setView} onOpenQuot={setDetailQuot}/>;
     }
   } else if (role === 'admin') {
     switch (view) {
-      case 'dashboard':  currentScreen = <AdminDashboard/>; break;
-      case 'rentals':    currentScreen = <AdminRentals onOpen={setDetailQuot}/>; break;
-      case 'equipment':  currentScreen = <StaffEquipment onNew={() => setShowNewEq(true)}/>; break;
-      case 'team':       currentScreen = <AdminTeam/>; break;
-      case 'reports':    currentScreen = <AdminReports/>; break;
-      default:           currentScreen = <AdminDashboard/>;
+      case 'dashboard':  currentScreen = <AdminDashboard quotations={quotations} equipment={equipment} team={team}/>; break;
+      case 'rentals':    currentScreen = <AdminRentals quotations={quotations} onOpen={setDetailQuot}/>; break;
+      case 'equipment':  currentScreen = <StaffEquipment equipment={equipment} onNew={() => { setEditingEq(null); setShowNewEq(true); }} onView={setDetailEq} onEdit={editEquipment} onDelete={deleteEquipment}/>; break;
+      case 'team':       currentScreen = <AdminTeam team={team} onInvite={inviteTeamMember} onToggle={toggleTeamMember} onRemove={removeTeamMember} onEdit={(member) => setToast({ title: 'Edição rápida', desc: `${member.name} selecionado.` })}/>; break;
+      case 'reports':    currentScreen = <AdminReports onExport={exportReport}/>; break;
+      default:           currentScreen = <AdminDashboard quotations={quotations} equipment={equipment} team={team}/>;
     }
   }
 
@@ -2478,16 +2729,17 @@ const App = () => {
         onNav={handleNav}
         cartCount={cartCount}
         onLogout={handleLogout}
+        onNotify={() => setToast({ title: 'Notificações', desc: 'Sem novas pendências críticas no momento.', icon: 'bell' })}
         user={users[role]}
       >
         {currentScreen}
       </AppShell>
 
       {/* Modals */}
-      <EquipmentDetail eq={detailEq} onClose={() => setDetailEq(null)} onAdd={addToCart}/>
-      <QuotationDetail quot={detailQuot} onClose={() => setDetailQuot(null)} onAction={handleQuotAction} viewerRole={role}/>
+      {detailEq && <EquipmentDetail eq={detailEq} onClose={() => setDetailEq(null)} onAdd={role === 'ac' ? addToCart : null}/>}
+      {detailQuot && <QuotationDetail quot={detailQuot} equipment={equipment} onClose={() => setDetailQuot(null)} onAction={handleQuotAction} viewerRole={role}/>}
 
-      {showNewEq && <NewEquipmentForm onClose={() => setShowNewEq(false)} onSave={() => { setShowNewEq(false); setToast({ title: 'Equipamento cadastrado', desc: 'Agora está disponível no catálogo.' }); }}/>}
+      {showNewEq && <NewEquipmentForm initial={editingEq} onClose={() => { setShowNewEq(false); setEditingEq(null); }} onSave={saveEquipment}/>}
 
       <SuccessModal open={!!success} quotId={success} onClose={() => { setSuccess(null); setView('quotations'); }}/>
 
