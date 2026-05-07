@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta name="robots" content="index, follow, noarchive, noimageindex">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests" />
 <meta name="referrer" content="strict-origin-when-cross-origin" />
 <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), payment=(), usb=(), clipboard-read=(), clipboard-write=(self)" />
@@ -583,6 +585,109 @@ const CHECKOUT_ITEMS = [
   ['signatureReturn', 'Assinatura de devolução'],
 ];
 
+const DEMO_JOBS = [
+  {
+    id: 'JOB-01',
+    os: 'OS-0001',
+    title: 'Comercial Natura — Solstício',
+    status: 'em_producao',
+    producer: 'Matteus Sesoko',
+    dop: 'Canequinha',
+    firstAc: 'Alice Sesoko',
+    contact: '(11) 91234-5678',
+    email: 'matteus@gmail.com',
+    pickupDate: '2026-05-14',
+    returnDate: '2026-05-17',
+    shootStart: '2026-05-15',
+    shootEnd: '2026-05-16',
+    address: 'Rua Bela Aliança, 75 · São Paulo/SP',
+    cep: '00000-000',
+    transport: 'VAN confirmada · Rodrigo',
+    payment: 'Pix pendente',
+    quoteLines: [
+      'R$ 650,00/dia · R$ 1.300,00 · Cinestúdio SP',
+      'R$ 250,00/dia · R$ 500,00 · FilmeHouse',
+      'R$ 300,00/dia · R$ 600,00 · Luz & Câmera Rental',
+    ],
+    items: [
+      { area: 'Câmera', kit: 'KIT Sony A7SIII', accessories: ['5x baterias NP-FW100', '2x SDXC 128GB', 'Cage SmallRig', 'Case de transporte'] },
+      { area: 'Lente', kit: 'KIT Sony 24-105mm', accessories: ['Filtro UV 82mm', 'Parassol', 'Tampas frontal/traseira'] },
+      { area: 'Suporte', kit: 'KIT Ronin RSC2', accessories: ['Placa base', 'Cabo USB-C', 'Tripé dobrável'] },
+    ],
+    custody: { saida: true, checagem: true, devolucao: false, entrega: false, recebimento: false },
+  },
+  {
+    id: 'JOB-02',
+    os: 'OS-0002',
+    title: 'Curta "Horizonte Azul"',
+    status: 'orcamento',
+    producer: 'Carlos Menezes',
+    dop: 'Mariana Ribeiro',
+    firstAc: 'Pedro Alvim',
+    contact: '(11) 99888-1122',
+    email: 'carlos@filmes.br',
+    pickupDate: '2026-05-21',
+    returnDate: '2026-05-24',
+    shootStart: '2026-05-22',
+    shootEnd: '2026-05-23',
+    address: 'Rua dos Pinheiros, 120 · São Paulo/SP',
+    cep: '05422-000',
+    transport: 'Aguardando motorista',
+    payment: 'Aguardando fechamento',
+    quoteLines: ['Aguardando retorno das locadoras'],
+    items: [
+      { area: 'Câmera', kit: 'KIT Sony FX6', accessories: ['4x baterias BP-U', 'Monitor 7"', 'Cartões CFexpress'] },
+      { area: 'Lente', kit: 'KIT Sigma Cine 18-35mm', accessories: ['Follow focus', 'Matte box'] },
+    ],
+    custody: { saida: false, checagem: false, devolucao: false, entrega: false, recebimento: false },
+  },
+  {
+    id: 'JOB-03',
+    os: 'OS-0003',
+    title: 'Série Documental "Raízes"',
+    status: 'bo',
+    producer: 'Luiza Fontes',
+    dop: 'Canequinha',
+    firstAc: 'Neto Ramos',
+    contact: '(21) 97777-0000',
+    email: 'producao@raizes.doc',
+    pickupDate: '2026-05-02',
+    returnDate: '2026-05-06',
+    shootStart: '2026-05-03',
+    shootEnd: '2026-05-05',
+    address: 'Estrada do Joá, 48 · Rio de Janeiro/RJ',
+    cep: '22611-020',
+    transport: 'Retorno pendente',
+    payment: 'Boleto emitido',
+    quoteLines: ['R$ 980,00/dia · R$ 3.920,00 · Pauta Rental'],
+    items: [
+      { area: 'Câmera', kit: 'KIT Blackmagic URSA Mini Pro', accessories: ['Viewfinder', 'Bateria V-Lock', 'Mídias BRAW'] },
+      { area: 'Maquinaria', kit: 'KIT Tripé Manfrotto', accessories: ['Cabeça fluida', 'Bolsa', 'Sapata extra'] },
+    ],
+    custody: { saida: true, checagem: true, devolucao: true, entrega: false, recebimento: false },
+  },
+];
+
+const KNOWN_COLLABORATORS = [
+  { id: 'col-1', name: 'Matteus Sesoko', role: 'Produtor', city: 'São Paulo', trusted: true },
+  { id: 'col-2', name: 'Canequinha', role: 'Diretor de Fotografia', city: 'São Paulo', trusted: true },
+  { id: 'col-3', name: 'Alice Sesoko', role: '1º AC', city: 'São Paulo', trusted: true },
+  { id: 'col-4', name: 'Enrico Minouro', role: 'Logger', city: 'Rio de Janeiro', trusted: false },
+  { id: 'col-5', name: 'Sophia Ramos', role: 'Videoassist', city: 'Curitiba', trusted: false },
+  { id: 'col-6', name: 'Caio Neto', role: 'Operador de Câmera', city: 'São Paulo', trusted: false },
+];
+
+const FORUM_TOPICS = [
+  { id: 'forum-1', title: 'Sony A7SIII em diária externa', tag: 'Câmera', answers: 12, summary: 'Kits recomendados, cartões, bateria e pontos de atenção na checagem.' },
+  { id: 'forum-2', title: 'Diferença entre FX3, FX6 e FX9 para publicidade', tag: 'Comparativo', answers: 8, summary: 'Discussão técnica sobre codec, ergonomia e disponibilidade em locadoras.' },
+  { id: 'forum-3', title: 'Checklist de devolução com BO', tag: 'Operação', answers: 5, summary: 'Boas práticas para fotos, assinatura e registro de item danificado.' },
+];
+
+const INCIDENTS = [
+  { id: 'BO-104', os: 'OS-0003', client: 'Luiza Fontes', reason: 'Item retornou danificado', detail: 'Filtro UV 82mm da lente 24-105 voltou trincado.', severity: 'alto', status: 'aberto' },
+  { id: 'BO-103', os: 'OS-0001', client: 'Matteus Sesoko', reason: 'Faltou item não essencial', detail: 'Cabo USB-C extra não localizado na mesa de saída.', severity: 'médio', status: 'em análise' },
+];
+
 const statusConfig = {
   aguardando:  { label: 'Aguardando cotação', color: '#e8c468', bg: 'rgba(232,196,104,0.1)' },
   cotada:      { label: 'Cotação enviada',    color: '#6ba8ff', bg: 'rgba(107,168,255,0.1)' },
@@ -709,7 +814,7 @@ const EquipmentCard = ({ eq, onClick, onAdd, compact = false }) => {
 };
 
 /* placeholder for the rest of the app - loaded by next chunks */
-window.__CENA_BASE__ = { Icon, Logo, EquipmentCard, RENTAL_HOUSES, CATEGORIES, EQUIPMENT, MOCK_QUOTATIONS, TEAM_MEMBERS, currency, fmtDate, fmtDateShort, fmtDateTime, formatPhone, formatCPF, maskCPF, maskPhone, isValidPhone, isValidCPF, QUOTE_AREAS, CHECKOUT_ITEMS, StatusBadge, statusConfig, AppContext, useApp };
+window.__CENA_BASE__ = { Icon, Logo, EquipmentCard, RENTAL_HOUSES, CATEGORIES, EQUIPMENT, MOCK_QUOTATIONS, TEAM_MEMBERS, DEMO_JOBS, KNOWN_COLLABORATORS, FORUM_TOPICS, INCIDENTS, currency, fmtDate, fmtDateShort, fmtDateTime, formatPhone, formatCPF, maskCPF, maskPhone, isValidPhone, isValidCPF, QUOTE_AREAS, CHECKOUT_ITEMS, StatusBadge, statusConfig, AppContext, useApp };
 </script>
 
 <script type="text/babel" data-type="module">
@@ -717,7 +822,7 @@ window.__CENA_BASE__ = { Icon, Logo, EquipmentCard, RENTAL_HOUSES, CATEGORIES, E
    PART 2 — Screens & App
    ============================================================ */
 const { useState, useEffect, useMemo, useRef, createContext, useContext } = React;
-const { Icon, Logo, EquipmentCard, RENTAL_HOUSES, CATEGORIES, EQUIPMENT, MOCK_QUOTATIONS, TEAM_MEMBERS, currency, fmtDate, fmtDateShort, formatPhone, formatCPF, isValidPhone, isValidCPF, StatusBadge, statusConfig, AppContext, useApp } = window.__CENA_BASE__;
+const { Icon, Logo, EquipmentCard, RENTAL_HOUSES, CATEGORIES, EQUIPMENT, MOCK_QUOTATIONS, TEAM_MEMBERS, DEMO_JOBS, KNOWN_COLLABORATORS, FORUM_TOPICS, INCIDENTS, currency, fmtDate, fmtDateShort, formatPhone, formatCPF, isValidPhone, isValidCPF, StatusBadge, statusConfig, AppContext, useApp } = window.__CENA_BASE__;
 
 /* ==========================================================
    DEMO SELECTOR (entry)
@@ -917,13 +1022,20 @@ const AppShell = ({ role, currentView, onNav, cartCount, onLogout, onNotify, use
   const navConfig = {
     ac: [
       { id: 'home',       label: 'Explorar',      icon: 'search' },
+      { id: 'jobs',       label: 'Jobs / OS',      icon: 'clipboard' },
       { id: 'quotations', label: 'Minhas cotações', icon: 'fileText' },
+      { id: 'collaborators', label: 'Colaboradores', icon: 'users' },
+      { id: 'forum',      label: 'Fórum',         icon: 'fileText' },
       { id: 'profile',    label: 'Meu perfil',    icon: 'user' },
     ],
     staff: [
       { id: 'dashboard',  label: 'Dashboard',     icon: 'dashboard' },
+      { id: 'orders',     label: 'OS',            icon: 'clipboard' },
       { id: 'equipment',  label: 'Equipamentos',  icon: 'box' },
       { id: 'quotations', label: 'Cotações',      icon: 'fileText' },
+      { id: 'incidents',  label: 'BO',            icon: 'shield' },
+      { id: 'ads',        label: 'Anúncios',      icon: 'eye' },
+      { id: 'house',      label: 'Minha locadora', icon: 'user' },
       { id: 'schedule',   label: 'Agenda',        icon: 'calendar' },
     ],
     admin: [
@@ -1071,7 +1183,7 @@ window.__CENA_PART2__ = { DemoSelector, LoginScreen, AppShell };
    PART 3 — AC / Client screens
    ============================================================ */
 const { useState, useEffect, useMemo, useRef } = React;
-const { Icon, Logo, EquipmentCard, RENTAL_HOUSES, CATEGORIES, EQUIPMENT, MOCK_QUOTATIONS, currency, fmtDate, fmtDateShort, fmtDateTime, formatPhone, formatCPF, maskCPF, maskPhone, isValidPhone, isValidCPF, QUOTE_AREAS, CHECKOUT_ITEMS, StatusBadge, statusConfig } = window.__CENA_BASE__;
+const { Icon, Logo, EquipmentCard, RENTAL_HOUSES, CATEGORIES, EQUIPMENT, MOCK_QUOTATIONS, DEMO_JOBS, KNOWN_COLLABORATORS, FORUM_TOPICS, INCIDENTS, currency, fmtDate, fmtDateShort, fmtDateTime, formatPhone, formatCPF, maskCPF, maskPhone, isValidPhone, isValidCPF, QUOTE_AREAS, CHECKOUT_ITEMS, StatusBadge, statusConfig } = window.__CENA_BASE__;
 
 /* ==========================================================
    AC - EXPLORAR / HOME
@@ -2055,7 +2167,210 @@ const ACProfile = ({ profile, onSave, onSecurityAction }) => {
   );
 };
 
-window.__CENA_AC__ = { ACExplore, EquipmentDetail, ACCart, ACQuotations, QuotationDetail, ACProfile };
+/* ==========================================================
+   AC - JOBS / OS
+   ========================================================== */
+const ACJobs = ({ jobs = DEMO_JOBS, onOpenCollaborators }) => {
+  const [selectedId, setSelectedId] = useState(jobs[0]?.id);
+  const [osConfirmed, setOsConfirmed] = useState(false);
+  const job = jobs.find(item => item.id === selectedId) || jobs[0];
+  const custody = [
+    ['S', 'Saída', job.custody.saida],
+    ['C', 'Checagem', job.custody.checagem],
+    ['D', 'Devolução', job.custody.devolucao],
+    ['E', 'Entrega', job.custody.entrega],
+    ['R', 'Recebimento', job.custody.recebimento],
+  ];
+
+  return (
+    <div className="p-8 max-w-7xl">
+      <div className="mb-8 fade-up">
+        <div className="eyebrow text-amber-glow mb-2">Jobs · listas · OS</div>
+        <h1 className="serif-display text-4xl text-ink-50 mb-2">Monte listas e transforme em OS.</h1>
+        <p className="text-ink-300 max-w-3xl">Fluxo inspirado no mockup do cliente: lista de equipamentos por job, colaboradores, dados de retirada/devolução, valores por locadora e geração de ordem de serviço.</p>
+      </div>
+
+      <div className="grid lg:grid-cols-4 gap-6">
+        <div className="lg:col-span-1 space-y-3">
+          {jobs.map(item => (
+            <button key={item.id} onClick={() => setSelectedId(item.id)} className={`w-full text-left bg-ink-900 border rounded-2xl p-4 transition-all ${selectedId === item.id ? 'border-amber-glow/50 amber-glow' : 'border-ink-700 hover:border-ink-500'}`}>
+              <div className="eyebrow text-ink-400 mb-1">{item.os}</div>
+              <div className="serif-display text-lg text-ink-50 leading-tight">{item.title}</div>
+              <div className="text-xs text-ink-400 mt-2">{fmtDateShort(item.pickupDate)} → {fmtDateShort(item.returnDate)}</div>
+            </button>
+          ))}
+        </div>
+
+        <div className="lg:col-span-3 bg-ink-900 border border-ink-700 rounded-2xl overflow-hidden fade-up">
+          <div className="p-5 border-b border-ink-700 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <div className="eyebrow text-amber-glow mb-1">{job.id} · {job.os}</div>
+              <h2 className="serif-display text-2xl text-ink-50">{job.title}</h2>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <button onClick={onOpenCollaborators} className="btn-ghost px-4 py-2.5 rounded-xl text-sm flex items-center gap-2"><Icon name="users" className="w-4 h-4"/> Colaboradores</button>
+              <button onClick={() => setOsConfirmed(true)} className="btn-primary px-4 py-2.5 rounded-xl text-sm flex items-center gap-2"><Icon name="fileText" className="w-4 h-4"/> {osConfirmed ? 'OS gerada' : 'Gerar OS'}</button>
+            </div>
+          </div>
+
+          <div className="p-5 grid lg:grid-cols-3 gap-5">
+            <div className="lg:col-span-2 space-y-4">
+              {job.items.map(section => (
+                <div key={section.area} className="bg-ink-950 border border-ink-700 rounded-xl p-4">
+                  <div className="flex items-center justify-between gap-3 mb-3">
+                    <div>
+                      <div className="eyebrow text-ink-400 mb-1">{section.area}</div>
+                      <div className="serif-display text-xl text-ink-50">{section.kit}</div>
+                    </div>
+                    <button className="btn-ghost w-9 h-9 rounded-xl flex items-center justify-center" title="Adicionar alternativa"><Icon name="plus" className="w-4 h-4"/></button>
+                  </div>
+                  <div className="grid md:grid-cols-2 gap-2">
+                    {section.accessories.map(acc => (
+                      <div key={acc} className="text-xs text-ink-300 bg-ink-900 border border-ink-800 rounded-lg px-3 py-2">{acc}</div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="space-y-4">
+              <div className="bg-ink-950 border border-ink-700 rounded-xl p-4">
+                <div className="eyebrow text-ink-400 mb-3">Produção</div>
+                {[
+                  ['Produtor', job.producer],
+                  ['Diretor de fotografia', job.dop],
+                  ['1º AC', job.firstAc],
+                  ['Contato', job.contact],
+                  ['E-mail', job.email],
+                ].map(([label, value]) => (
+                  <div key={label} className="flex justify-between gap-3 py-2 border-b border-ink-800 last:border-b-0 text-sm">
+                    <span className="text-ink-400">{label}</span>
+                    <span className="text-ink-100 text-right">{value}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="bg-ink-950 border border-ink-700 rounded-xl p-4">
+                <div className="eyebrow text-ink-400 mb-3">Datas e endereço</div>
+                <div className="text-xs text-ink-300 leading-relaxed space-y-2">
+                  <div>Retirada: <span className="font-mono text-ink-100">{fmtDate(job.pickupDate)}</span></div>
+                  <div>Devolução: <span className="font-mono text-ink-100">{fmtDate(job.returnDate)}</span></div>
+                  <div>Gravação: <span className="font-mono text-ink-100">{fmtDateShort(job.shootStart)} → {fmtDateShort(job.shootEnd)}</span></div>
+                  <div>{job.address}</div>
+                </div>
+              </div>
+
+              <div className="bg-ink-950 border border-ink-700 rounded-xl p-4">
+                <div className="eyebrow text-ink-400 mb-3">Status operacional</div>
+                <div className="grid grid-cols-5 gap-2 mb-4">
+                  {custody.map(([letter, label, done]) => (
+                    <div key={letter} className={`rounded-xl border px-2 py-2 text-center ${done ? 'border-amber-glow/50 bg-amber-glow/10 text-amber-glow' : 'border-ink-700 text-ink-400'}`}>
+                      <div className="serif-display text-lg">{letter}</div>
+                      <div className="text-[10px]">{label}</div>
+                    </div>
+                  ))}
+                </div>
+                <div className="text-xs text-ink-300">{job.transport}</div>
+                <div className="text-xs text-ink-400 mt-1">{job.payment}</div>
+              </div>
+
+              <div className="space-y-2">
+                {job.quoteLines.map(line => (
+                  <div key={line} className="text-xs text-ink-300 bg-amber-glow/5 border border-amber-glow/20 rounded-lg px-3 py-2">{line}</div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ==========================================================
+   AC - COLLABORATORS
+   ========================================================== */
+const ACCollaborators = ({ collaborators = KNOWN_COLLABORATORS }) => {
+  const [query, setQuery] = useState('');
+  const [roles, setRoles] = useState(['Produtor', 'Diretor de Fotografia', '1º AC', '2º AC']);
+  const filtered = collaborators.filter(item => `${item.name} ${item.role} ${item.city}`.toLowerCase().includes(query.toLowerCase()));
+  return (
+    <div className="p-8 max-w-6xl">
+      <div className="mb-8 fade-up">
+        <div className="eyebrow text-amber-glow mb-2">Colaboradores</div>
+        <h1 className="serif-display text-4xl text-ink-50 mb-2">Equipe do job em um só lugar.</h1>
+        <p className="text-ink-300">Busque colaboradores conhecidos, associe funções ao job e mantenha as aprovações organizadas antes de gerar a OS.</p>
+      </div>
+      <div className="grid lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 bg-ink-900 border border-ink-700 rounded-2xl p-5">
+          <div className="relative mb-5">
+            <Icon name="search" className="w-4 h-4 text-ink-400 absolute left-3 top-1/2 -translate-y-1/2"/>
+            <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Pesquisar novos colaboradores" className="input-field w-full pl-9 pr-3 py-3 rounded-xl text-sm"/>
+          </div>
+          <div className="space-y-3">
+            {filtered.map(item => (
+              <div key={item.id} className="flex items-center justify-between gap-4 bg-ink-950 border border-ink-700 rounded-xl p-4">
+                <div>
+                  <div className="text-sm text-ink-50 font-medium">{item.name}</div>
+                  <div className="text-xs text-ink-400">{item.role} · {item.city}</div>
+                </div>
+                <button className={`px-3 py-2 rounded-xl text-xs ${item.trusted ? 'btn-primary' : 'btn-ghost'}`}>{item.trusted ? 'Validado' : 'Adicionar'}</button>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="bg-ink-900 border border-ink-700 rounded-2xl p-5">
+          <div className="eyebrow text-ink-400 mb-3">Funções do job</div>
+          <div className="space-y-2 mb-4">
+            {roles.map(role => (
+              <div key={role} className="flex items-center justify-between gap-3 bg-ink-950 border border-ink-700 rounded-xl px-3 py-2.5">
+                <span className="text-sm text-ink-100">{role}</span>
+                <button onClick={() => setRoles(prev => prev.filter(item => item !== role))} className="text-ink-400 hover:text-red-400"><Icon name="x" className="w-4 h-4"/></button>
+              </div>
+            ))}
+          </div>
+          <button onClick={() => setRoles(prev => [...prev, `Função ${prev.length + 1}`])} className="btn-ghost w-full py-3 rounded-xl text-sm flex items-center justify-center gap-2"><Icon name="plus" className="w-4 h-4"/> Adicionar função</button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ==========================================================
+   AC - FORUM
+   ========================================================== */
+const ACForum = ({ topics = FORUM_TOPICS }) => {
+  const [query, setQuery] = useState('');
+  const filtered = topics.filter(topic => `${topic.title} ${topic.tag} ${topic.summary}`.toLowerCase().includes(query.toLowerCase()));
+  return (
+    <div className="p-8 max-w-6xl">
+      <div className="mb-8 fade-up">
+        <div className="eyebrow text-amber-glow mb-2">Fórum técnico</div>
+        <h1 className="serif-display text-4xl text-ink-50 mb-2">Aprendizado compartilhado sobre equipamentos.</h1>
+        <p className="text-ink-300">Página dedicada a dúvidas, comentários e informações técnicas, como solicitado no fluxo do cliente.</p>
+      </div>
+      <div className="bg-ink-900 border border-ink-700 rounded-2xl p-2 flex flex-col sm:flex-row gap-2 mb-6">
+        <div className="flex-1 flex items-center gap-3 px-4">
+          <Icon name="search" className="w-5 h-5 text-ink-400"/>
+          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Pesquisar equipamento, pergunta ou tema" className="flex-1 bg-transparent border-0 outline-none py-3 text-ink-100 placeholder:text-ink-400"/>
+        </div>
+        <button className="btn-primary px-5 py-3 rounded-xl text-sm">Nova pergunta</button>
+      </div>
+      <div className="grid md:grid-cols-3 gap-4">
+        {filtered.map(topic => (
+          <div key={topic.id} className="bg-ink-900 border border-ink-700 rounded-2xl p-5">
+            <div className="eyebrow text-amber-glow mb-3">{topic.tag}</div>
+            <h3 className="serif-display text-xl text-ink-50 mb-2">{topic.title}</h3>
+            <p className="text-sm text-ink-300 leading-relaxed mb-4">{topic.summary}</p>
+            <div className="text-xs text-ink-400">{topic.answers} respostas · comentários abertos</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+window.__CENA_AC__ = { ACExplore, EquipmentDetail, ACCart, ACQuotations, QuotationDetail, ACProfile, ACJobs, ACCollaborators, ACForum };
 </script>
 
 <script type="text/babel" data-type="module">
@@ -2063,7 +2378,7 @@ window.__CENA_AC__ = { ACExplore, EquipmentDetail, ACCart, ACQuotations, Quotati
    PART 4 — Staff & Admin screens
    ============================================================ */
 const { useState, useEffect, useMemo } = React;
-const { Icon, Logo, EquipmentCard, RENTAL_HOUSES, CATEGORIES, EQUIPMENT, MOCK_QUOTATIONS, TEAM_MEMBERS, currency, fmtDate, fmtDateShort, formatPhone, formatCPF, isValidPhone, isValidCPF, QUOTE_AREAS, CHECKOUT_ITEMS, StatusBadge, statusConfig } = window.__CENA_BASE__;
+const { Icon, Logo, EquipmentCard, RENTAL_HOUSES, CATEGORIES, EQUIPMENT, MOCK_QUOTATIONS, TEAM_MEMBERS, DEMO_JOBS, KNOWN_COLLABORATORS, FORUM_TOPICS, INCIDENTS, currency, fmtDate, fmtDateShort, formatPhone, formatCPF, isValidPhone, isValidCPF, QUOTE_AREAS, CHECKOUT_ITEMS, StatusBadge, statusConfig } = window.__CENA_BASE__;
 
 /* ==========================================================
    STAFF - DASHBOARD
@@ -2973,7 +3288,225 @@ const AdminReports = ({ onExport }) => {
   );
 };
 
-window.__CENA_STAFF_ADMIN__ = { StaffDashboard, StaffEquipment, NewEquipmentForm, StaffQuotations, AdminDashboard, AdminTeam, AdminRentals, AdminFinance, AdminReports };
+/* ==========================================================
+   STAFF - ORDERS / OS
+   ========================================================== */
+const StaffOrders = ({ jobs = DEMO_JOBS }) => {
+  const [selectedId, setSelectedId] = useState(jobs[0]?.id);
+  const [progress, setProgress] = useState(jobs.reduce((acc, job) => ({ ...acc, [job.id]: { ...job.custody } }), {}));
+  const job = jobs.find(item => item.id === selectedId) || jobs[0];
+  const current = progress[job.id] || job.custody;
+  const steps = [
+    ['saida', 'Confirmar saída'],
+    ['entrega', 'Confirmar entrega'],
+    ['checagem', 'Confirmar checagem'],
+    ['devolucao', 'Confirmar devolução'],
+    ['recebimento', 'Confirmar recebimento'],
+  ];
+  const toggle = (key) => setProgress(prev => ({ ...prev, [job.id]: { ...(prev[job.id] || {}), [key]: !(prev[job.id] || {})[key] } }));
+
+  return (
+    <div className="p-8 max-w-7xl">
+      <div className="mb-8 fade-up">
+        <div className="eyebrow text-amber-glow mb-2">Minha locadora · OS</div>
+        <h1 className="serif-display text-4xl text-ink-50 mb-2">Produção, devolução e pendências.</h1>
+        <p className="text-ink-300">Controle de OS conforme o fluxo real: produzir, confirmar saída, entrega, checagem, devolução, recebimento e BO.</p>
+      </div>
+
+      <div className="grid lg:grid-cols-4 gap-6">
+        <div className="space-y-3">
+          {jobs.map(item => (
+            <button key={item.id} onClick={() => setSelectedId(item.id)} className={`w-full text-left bg-ink-900 border rounded-2xl p-4 ${selectedId === item.id ? 'border-amber-glow/50 amber-glow' : 'border-ink-700 hover:border-ink-500'}`}>
+              <div className="eyebrow text-ink-400 mb-1">{item.os}</div>
+              <div className="text-sm text-ink-50 font-medium">{item.title}</div>
+              <div className={`text-xs mt-2 ${item.status === 'bo' ? 'text-red-400' : 'text-ink-400'}`}>{item.status === 'bo' ? 'Com BO aberto' : item.status === 'orcamento' ? 'A produzir' : 'Em andamento'}</div>
+            </button>
+          ))}
+        </div>
+
+        <div className="lg:col-span-3 bg-ink-900 border border-ink-700 rounded-2xl overflow-hidden">
+          <div className="p-5 border-b border-ink-700 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <div className="eyebrow text-amber-glow mb-1">{job.os}</div>
+              <h2 className="serif-display text-2xl text-ink-50">{job.title}</h2>
+            </div>
+            <button className="btn-ghost px-4 py-2.5 rounded-xl text-sm flex items-center gap-2"><Icon name="shield" className="w-4 h-4"/> Abrir BO</button>
+          </div>
+
+          <div className="p-5 grid lg:grid-cols-3 gap-5">
+            <div className="lg:col-span-2 bg-ink-950 border border-ink-700 rounded-xl p-4">
+              <div className="eyebrow text-ink-400 mb-4">Itens da OS</div>
+              <div className="space-y-3">
+                {job.items.map(item => (
+                  <div key={item.kit} className="border border-ink-800 bg-ink-900 rounded-xl p-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <div className="eyebrow text-ink-400 mb-1">{item.area}</div>
+                        <div className="serif-display text-lg text-ink-50">{item.kit}</div>
+                      </div>
+                      <span className="text-xs text-amber-glow font-mono">#{String(item.accessories.length).padStart(2, '0')}</span>
+                    </div>
+                    <div className="grid md:grid-cols-2 gap-2 mt-3">
+                      {item.accessories.map(acc => <div key={acc} className="text-xs text-ink-300">{acc}</div>)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="bg-ink-950 border border-ink-700 rounded-xl p-4">
+                <div className="eyebrow text-ink-400 mb-3">Fluxo S C D E R</div>
+                <div className="space-y-2">
+                  {steps.map(([key, label]) => (
+                    <button key={key} onClick={() => toggle(key)} className={`w-full px-3 py-2.5 rounded-xl text-sm flex items-center justify-between gap-3 ${current[key] ? 'btn-primary' : 'btn-ghost'}`}>
+                      <span>{current[key] ? label.replace('Confirmar', 'Cancelar') : label}</span>
+                      <Icon name={current[key] ? 'check' : 'clock'} className="w-4 h-4"/>
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="bg-ink-950 border border-ink-700 rounded-xl p-4 text-sm">
+                <div className="eyebrow text-ink-400 mb-3">Logística</div>
+                <div className="text-ink-100">{job.transport}</div>
+                <div className="text-xs text-ink-400 mt-2">{job.address}</div>
+              </div>
+              <div className="bg-ink-950 border border-ink-700 rounded-xl p-4 text-sm">
+                <div className="eyebrow text-ink-400 mb-3">Pagamento</div>
+                <div className="text-ink-100">{job.payment}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ==========================================================
+   STAFF - INCIDENTS / BO
+   ========================================================== */
+const StaffIncidents = ({ incidents = INCIDENTS }) => {
+  const [filter, setFilter] = useState('todos');
+  const filtered = incidents.filter(item => filter === 'todos' || item.status === filter);
+  return (
+    <div className="p-8 max-w-6xl">
+      <div className="mb-8 fade-up">
+        <div className="eyebrow text-amber-glow mb-2">BO operacional</div>
+        <h1 className="serif-display text-4xl text-ink-50 mb-2">Registre faltas, danos e pendências.</h1>
+        <p className="text-ink-300">Central para BO de itens essenciais, itens não essenciais e devolução com dano.</p>
+      </div>
+      <div className="flex flex-wrap gap-2 mb-6">
+        {['todos', 'aberto', 'em análise'].map(item => (
+          <button key={item} onClick={() => setFilter(item)} className={`px-4 py-2 rounded-full text-sm border ${filter === item ? 'bg-ink-100 text-ink-950 border-ink-100' : 'border-ink-700 text-ink-200'}`}>{item}</button>
+        ))}
+      </div>
+      <div className="space-y-3">
+        {filtered.map(item => (
+          <div key={item.id} className="bg-ink-900 border border-ink-700 rounded-2xl p-5">
+            <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+              <div>
+                <div className="eyebrow text-red-400 mb-1">{item.id} · {item.os}</div>
+                <h3 className="serif-display text-xl text-ink-50 mb-2">{item.reason}</h3>
+                <p className="text-sm text-ink-300">{item.detail}</p>
+              </div>
+              <span className={`text-xs px-3 py-1 rounded-full ${item.severity === 'alto' ? 'text-red-400 bg-red-400/10' : 'text-amber-warm bg-amber-glow/10'}`}>{item.severity}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+/* ==========================================================
+   STAFF - ADS / PUBLIC CATALOG
+   ========================================================== */
+const StaffAds = ({ equipment = EQUIPMENT }) => {
+  const [active, setActive] = useState(() => equipment.reduce((acc, eq) => ({ ...acc, [eq.id]: eq.qtyAvail > 0 }), {}));
+  const localItems = equipment.filter(eq => eq.rhId === 'rh1');
+  return (
+    <div className="p-8 max-w-6xl">
+      <div className="mb-8 fade-up">
+        <div className="eyebrow text-amber-glow mb-2">Anúncios</div>
+        <h1 className="serif-display text-4xl text-ink-50 mb-2">Controle o que aparece na vitrine.</h1>
+        <p className="text-ink-300">Cada item pode ficar ativo ou inativo para locação pública, como nos mockups de anúncios.</p>
+      </div>
+      <div className="bg-ink-900 border border-ink-700 rounded-2xl overflow-hidden">
+        <table className="w-full">
+          <thead>
+            <tr className="border-b border-ink-700">
+              <th className="text-left px-5 py-3 eyebrow text-ink-400">Item</th>
+              <th className="text-left px-5 py-3 eyebrow text-ink-400 hidden md:table-cell">Nº de série</th>
+              <th className="text-left px-5 py-3 eyebrow text-ink-400">#</th>
+              <th className="text-right px-5 py-3 eyebrow text-ink-400">Disponível</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-ink-800">
+            {localItems.map((eq, index) => (
+              <tr key={eq.id}>
+                <td className="px-5 py-4">
+                  <div className="text-sm text-ink-50 font-medium">{eq.name}</div>
+                  <div className="text-xs text-ink-400">{eq.desc}</div>
+                </td>
+                <td className="px-5 py-4 hidden md:table-cell font-mono text-xs text-ink-300">SN-{String(index + 123456).padStart(8, '0')}</td>
+                <td className="px-5 py-4 font-mono text-xs text-amber-glow">#{String(index + 1).padStart(2, '0')}</td>
+                <td className="px-5 py-4 text-right">
+                  <button onClick={() => setActive(prev => ({ ...prev, [eq.id]: !prev[eq.id] }))} className={`px-3 py-2 rounded-xl text-xs ${active[eq.id] ? 'btn-primary' : 'btn-ghost'}`}>{active[eq.id] ? 'Ativa' : 'Não ativa'}</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
+/* ==========================================================
+   STAFF - HOUSE PROFILE
+   ========================================================== */
+const StaffHouseProfile = () => {
+  const [editing, setEditing] = useState(false);
+  return (
+    <div className="p-8 max-w-5xl">
+      <div className="mb-8 fade-up">
+        <div className="eyebrow text-amber-glow mb-2">Minha locadora</div>
+        <h1 className="serif-display text-4xl text-ink-50 mb-2">Perfil público e parcerias.</h1>
+        <p className="text-ink-300">Dados de vitrine, contatos, biografia, parceiros e colaboradores da locadora.</p>
+      </div>
+      <div className="bg-ink-900 border border-ink-700 rounded-3xl p-8">
+        <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-8">
+          <div className="flex items-center gap-4">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-glow to-amber-gold flex items-center justify-center text-ink-950 serif-display text-3xl">C</div>
+            <div>
+              <h2 className="serif-display text-2xl text-ink-50">Locadora de Equipamentos Cinematográficos</h2>
+              <p className="text-sm text-ink-300">Dono: Cristiano W. · São Paulo/SP</p>
+            </div>
+          </div>
+          <button onClick={() => setEditing(v => !v)} className={editing ? 'btn-primary px-5 py-3 rounded-xl' : 'btn-ghost px-5 py-3 rounded-xl'}>{editing ? 'Confirmar alterações' : 'Editar perfil'}</button>
+        </div>
+        <div className="grid md:grid-cols-2 gap-4">
+          {[
+            ['Endereço', 'Rua Bela Aliança, 75 · São Paulo/SP'],
+            ['E-mail', 'locadora@gmail.com'],
+            ['Telefone', '(11) 91234-5678 · (11) 90000-0000'],
+            ['Parceiros', 'RedMamut · FilmeHouse · Pauta Rental'],
+            ['Colaboradores', 'Rodrigo · Gustavo · Akemi · Karina'],
+            ['Sobre', 'Locadora especializada em kits de câmera, lentes, luz e maquinaria para publicidade, cinema e documentário.'],
+          ].map(([label, value]) => (
+            <div key={label} className="bg-ink-950 border border-ink-700 rounded-xl p-4">
+              <div className="eyebrow text-ink-400 mb-1">{label}</div>
+              <div className="text-sm text-ink-100">{value}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+window.__CENA_STAFF_ADMIN__ = { StaffDashboard, StaffEquipment, NewEquipmentForm, StaffQuotations, StaffOrders, StaffIncidents, StaffAds, StaffHouseProfile, AdminDashboard, AdminTeam, AdminRentals, AdminFinance, AdminReports };
 </script>
 
 <script type="text/babel" data-type="module">
@@ -2981,10 +3514,10 @@ window.__CENA_STAFF_ADMIN__ = { StaffDashboard, StaffEquipment, NewEquipmentForm
    PART 5 — Main App orchestration
    ============================================================ */
 const { useState, useEffect, useMemo } = React;
-const { Icon, Logo, EquipmentCard, RENTAL_HOUSES, CATEGORIES, EQUIPMENT, MOCK_QUOTATIONS, TEAM_MEMBERS, currency, fmtDate, fmtDateShort, formatPhone, formatCPF, maskCPF, maskPhone, isValidPhone, isValidCPF, QUOTE_AREAS, StatusBadge, statusConfig } = window.__CENA_BASE__;
+const { Icon, Logo, EquipmentCard, RENTAL_HOUSES, CATEGORIES, EQUIPMENT, MOCK_QUOTATIONS, TEAM_MEMBERS, DEMO_JOBS, KNOWN_COLLABORATORS, FORUM_TOPICS, INCIDENTS, currency, fmtDate, fmtDateShort, formatPhone, formatCPF, maskCPF, maskPhone, isValidPhone, isValidCPF, QUOTE_AREAS, StatusBadge, statusConfig } = window.__CENA_BASE__;
 const { DemoSelector, LoginScreen, AppShell } = window.__CENA_PART2__;
-const { ACExplore, EquipmentDetail, ACCart, ACQuotations, QuotationDetail, ACProfile } = window.__CENA_AC__;
-const { StaffDashboard, StaffEquipment, NewEquipmentForm, StaffQuotations, AdminDashboard, AdminTeam, AdminRentals, AdminFinance, AdminReports } = window.__CENA_STAFF_ADMIN__;
+const { ACExplore, EquipmentDetail, ACCart, ACQuotations, QuotationDetail, ACProfile, ACJobs, ACCollaborators, ACForum } = window.__CENA_AC__;
+const { StaffDashboard, StaffEquipment, NewEquipmentForm, StaffQuotations, StaffOrders, StaffIncidents, StaffAds, StaffHouseProfile, AdminDashboard, AdminTeam, AdminRentals, AdminFinance, AdminReports } = window.__CENA_STAFF_ADMIN__;
 
 const STORAGE_KEY = 'cena-mvp-interactive-state-v1';
 const SESSION_STORAGE_KEY = 'cena-mvp-secure-session-v2';
@@ -3650,8 +4183,11 @@ const App = () => {
     const acQuots = quotations.filter(q => acNames.has(q.client));
     switch (view) {
       case 'home':       currentScreen = <ACExplore equipment={equipment} initialCat={initialCat} onOpenItem={setDetailEq} onAdd={addToCart}/>; break;
+      case 'jobs':       currentScreen = <ACJobs jobs={DEMO_JOBS} onOpenCollaborators={() => setView('collaborators')}/>; break;
       case 'cart':       currentScreen = <ACCart cart={cart} equipment={equipment} onUpdate={updateCart} onRemove={removeFromCart} onSubmit={submitQuotation} onBack={() => setView('home')}/>; break;
       case 'quotations': currentScreen = <ACQuotations quotations={acQuots} onOpen={setDetailQuot}/>; break;
+      case 'collaborators': currentScreen = <ACCollaborators collaborators={KNOWN_COLLABORATORS}/>; break;
+      case 'forum':      currentScreen = <ACForum topics={FORUM_TOPICS}/>; break;
       case 'profile':    currentScreen = <ACProfile profile={profile} onSave={(next) => { setProfile(next); setToast({ title: 'Perfil atualizado', desc: 'Dados salvos nesta demo.' }); recordAudit('perfil_atualizado', 'perfil_ac', 'privacy'); }} onSecurityAction={handleSecurityAction}/>; break;
       default:            currentScreen = <ACExplore equipment={equipment} onOpenItem={setDetailEq} onAdd={addToCart}/>;
     }
@@ -3659,8 +4195,12 @@ const App = () => {
     const staffQuots = quotations.filter(q => q.rhId === 'rh1');
     switch (view) {
       case 'dashboard':  currentScreen = <StaffDashboard quotations={staffQuots} equipment={equipment} onNav={setView} onOpenQuot={setDetailQuot}/>; break;
+      case 'orders':     currentScreen = <StaffOrders jobs={DEMO_JOBS}/>; break;
       case 'equipment':  currentScreen = <StaffEquipment equipment={equipment} onNew={() => { setEditingEq(null); setShowNewEq(true); }} onView={setDetailEq} onEdit={editEquipment} onDelete={deleteEquipment}/>; break;
       case 'quotations': currentScreen = <StaffQuotations quotations={staffQuots} onOpen={setDetailQuot}/>; break;
+      case 'incidents':  currentScreen = <StaffIncidents incidents={INCIDENTS}/>; break;
+      case 'ads':        currentScreen = <StaffAds equipment={equipment}/>; break;
+      case 'house':      currentScreen = <StaffHouseProfile/>; break;
       case 'schedule':   currentScreen = <StaffDashboard quotations={staffQuots} equipment={equipment} onNav={setView} onOpenQuot={setDetailQuot}/>; break;
       default:           currentScreen = <StaffDashboard quotations={staffQuots} equipment={equipment} onNav={setView} onOpenQuot={setDetailQuot}/>;
     }

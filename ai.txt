@@ -1,0 +1,7 @@
+Use of this site content, source code, screenshots, flows, product descriptions,
+visual design, business logic, or related materials for model training,
+dataset creation, scraping, reproduction, reverse engineering, or derivative
+commercial products is not authorized.
+
+Copyright (c) 2026 Caio Cesar Silva Santos / CaioANQ / CCSS.
+All rights reserved.
