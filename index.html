@@ -8,7 +8,7 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests" />
 <meta name="referrer" content="strict-origin-when-cross-origin" />
 <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), payment=(), usb=(), clipboard-read=(), clipboard-write=(self)" />
-<title>Cena — Locação Inteligente de Equipamentos Audiovisuais</title>
+<title>Vitrine — Locação Inteligente de Equipamentos Audiovisuais</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -179,6 +179,90 @@
   /* Selection */
   ::selection { background: rgba(255, 122, 46, 0.35); color: #fff; }
 
+  /* Light theme */
+  body.theme-light {
+    background: #f6f1e8;
+    color: #171411;
+  }
+  body.theme-light.grain::before {
+    opacity: 0.018;
+    mix-blend-mode: multiply;
+  }
+  body.theme-light .spotlight-bg {
+    background:
+      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(255, 122, 46, 0.16), transparent 60%),
+      radial-gradient(ellipse 60% 40% at 90% 100%, rgba(232, 196, 104, 0.16), transparent 60%),
+      #f6f1e8;
+  }
+  body.theme-light ::-webkit-scrollbar-track { background: #f6f1e8; }
+  body.theme-light ::-webkit-scrollbar-thumb { background: #d3c5b4; border-color: #f6f1e8; }
+  body.theme-light .bg-ink-950 { background-color: #f6f1e8 !important; }
+  body.theme-light .bg-ink-900 { background-color: #fffaf1 !important; }
+  body.theme-light .bg-ink-800 { background-color: #f0e7da !important; }
+  body.theme-light .bg-ink-700 { background-color: #e4d8c9 !important; }
+  body.theme-light .bg-ink-600 { background-color: #d4c7b6 !important; }
+  body.theme-light .bg-ink-500 { background-color: #b6a997 !important; }
+  body.theme-light .bg-ink-400 { background-color: #9b8f80 !important; }
+  body.theme-light .bg-ink-100 { background-color: #171411 !important; }
+  body.theme-light .bg-ink-50 { background-color: #0a0908 !important; }
+  body.theme-light .border-ink-100 { border-color: #171411 !important; }
+  body.theme-light .bg-ink-100.text-ink-950 { color: #f6f1e8 !important; }
+  body.theme-light .bg-ink-950\/85 { background-color: rgba(246, 241, 232, 0.88) !important; }
+  body.theme-light .bg-ink-950\/80 { background-color: rgba(246, 241, 232, 0.84) !important; }
+  body.theme-light .bg-ink-900\/95 { background-color: rgba(255, 250, 241, 0.96) !important; }
+  body.theme-light .bg-ink-900\/80 { background-color: rgba(255, 250, 241, 0.86) !important; }
+  body.theme-light .bg-ink-800\/40 { background-color: rgba(240, 231, 218, 0.58) !important; }
+  body.theme-light .from-ink-800 { --tw-gradient-from: #eadfce var(--tw-gradient-from-position) !important; --tw-gradient-to: rgba(234, 223, 206, 0) var(--tw-gradient-to-position) !important; --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important; }
+  body.theme-light .to-ink-950 { --tw-gradient-to: #d7c8b6 var(--tw-gradient-to-position) !important; }
+  body.theme-light .text-ink-50 { color: #171411 !important; }
+  body.theme-light .text-ink-100 { color: #262019 !important; }
+  body.theme-light .text-ink-200 { color: #3f362c !important; }
+  body.theme-light .text-ink-300 { color: #5f5549 !important; }
+  body.theme-light .text-ink-400 { color: #7e7163 !important; }
+  body.theme-light .text-ink-500 { color: #9a8c7b !important; }
+  body.theme-light .text-ink-600 { color: #b4a794 !important; }
+  body.theme-light .text-ink-700 { color: #cabca9 !important; }
+  body.theme-light .text-ink-950 { color: #0a0908 !important; }
+  body.theme-light .border-ink-800,
+  body.theme-light .border-ink-800\/60 { border-color: #ddd1c1 !important; }
+  body.theme-light .border-ink-700 { border-color: #d3c5b4 !important; }
+  body.theme-light .border-ink-600 { border-color: #c3b4a1 !important; }
+  body.theme-light .divide-ink-800 > :not([hidden]) ~ :not([hidden]) { border-color: #ddd1c1 !important; }
+  body.theme-light .btn-ghost {
+    border-color: rgba(23, 20, 17, 0.12);
+    color: #2b251d;
+    background: rgba(255,255,255,0.46);
+  }
+  body.theme-light .btn-ghost:hover {
+    background: rgba(255,255,255,0.82);
+    border-color: rgba(23,20,17,0.22);
+    color: #171411;
+  }
+  body.theme-light .input-field {
+    background: rgba(255,255,255,0.68);
+    border-color: rgba(23,20,17,0.12);
+    color: #171411;
+  }
+  body.theme-light .input-field:focus {
+    background: rgba(255,255,255,0.92);
+    border-color: rgba(255,122,46,0.62);
+  }
+  body.theme-light .input-field::placeholder { color: #9a8c7b; }
+  body.theme-light .card-hover:hover { border-color: rgba(255, 122, 46, 0.52); }
+  .theme-switcher {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  body.theme-light .theme-switcher {
+    background: rgba(255,255,255,0.58);
+    border-color: rgba(23,20,17,0.12);
+  }
+  body.theme-light .mobile-nav-backdrop { background: rgba(23, 20, 17, 0.34); }
+  body.theme-light aside.mobile-sidebar {
+    background: rgba(255, 250, 241, 0.96) !important;
+    box-shadow: 28px 0 70px rgba(72, 57, 38, 0.2);
+  }
+
   /* Mobile hardening - iPhone 15 Pro baseline */
   html, body, #root { min-width: 0; overflow-x: hidden; }
   *, *::before, *::after { box-sizing: border-box; }
@@ -335,7 +419,7 @@
 
 <script type="text/babel" data-type="module">
 /*  ================================================================
-    CENA — MVP Interativo
+    VITRINE — MVP Interativo
     Sistema de locação de equipamentos audiovisuais
     ================================================================ */
 const { useState, useEffect, useMemo, useRef, createContext, useContext } = React;
@@ -383,6 +467,8 @@ const Icon = ({ name, className = "w-5 h-5", strokeWidth = 1.5 }) => {
     send: <><path d="m22 2-7 20-4-9-9-4 20-7z"/></>,
     fileText: <><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h4"/></>,
     sparkles: <><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8"/></>,
+    sun: <><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></>,
+    moon: <><path d="M21 12.8A8.5 8.5 0 1 1 11.2 3a6.5 6.5 0 0 0 9.8 9.8z"/></>,
     aperture: <><circle cx="12" cy="12" r="9"/><path d="m9.7 14.4 5.4-9.4M7 10.3h10.9M12.6 22.9 8.2 13m7.5 2.2L7.3 17.1m13.4-5.3L9.8 11.3m7.5 2.2-6.9 7.6"/></>,
   };
   return (
@@ -409,7 +495,7 @@ const Logo = ({ size = "md", showText = true }) => {
       </svg>
       {showText && (
         <div className="flex flex-col leading-none">
-          <span className="serif-display text-[22px] text-ink-50 font-medium">Cena</span>
+          <span className="serif-display text-[22px] text-ink-50 font-medium">Vitrine</span>
           <span className="eyebrow text-ink-400 -mt-0.5" style={{fontSize: '9px'}}>LOCAÇÃO · 2026</span>
         </div>
       )}
@@ -1017,7 +1103,35 @@ const LoginScreen = ({ role, onLogin, onBack }) => {
 /* ==========================================================
    LAYOUT (app shell with sidebar + top bar)
    ========================================================== */
-const AppShell = ({ role, currentView, onNav, cartCount, onLogout, onNotify, user, children }) => {
+const ThemeToggle = ({ theme = 'dark', onThemeChange, className = '' }) => {
+  const options = [
+    { id: 'dark', label: 'Escura', icon: 'moon' },
+    { id: 'light', label: 'Clara', icon: 'sun' },
+  ];
+  return (
+    <div className={`theme-switcher rounded-xl p-1 flex items-center gap-1 ${className}`}>
+      {options.map(option => (
+        <button
+          key={option.id}
+          type="button"
+          aria-pressed={theme === option.id}
+          title={`Tema ${option.label.toLowerCase()}`}
+          onClick={() => onThemeChange?.(option.id)}
+          className={`h-8 px-3 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-all ${
+            theme === option.id
+              ? 'btn-primary'
+              : 'text-ink-300 hover:text-ink-50 hover:bg-ink-800'
+          }`}
+        >
+          <Icon name={option.icon} className="w-3.5 h-3.5" strokeWidth={1.7}/>
+          <span>{option.label}</span>
+        </button>
+      ))}
+    </div>
+  );
+};
+
+const AppShell = ({ role, currentView, onNav, cartCount, onLogout, onNotify, user, theme, onThemeChange, children }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navConfig = {
     ac: [
@@ -1133,7 +1247,7 @@ const AppShell = ({ role, currentView, onNav, cartCount, onLogout, onNotify, use
               <Icon name="menu" className="w-4 h-4" strokeWidth={1.8}/>
             </button>
             <div className="flex items-center gap-4 text-sm min-w-0">
-              <span className="text-ink-400">{user?.company || 'Cena'}</span>
+              <span className="text-ink-400">{user?.company || 'Vitrine'}</span>
               <span className="text-ink-600">/</span>
               <span className="text-ink-100 font-medium capitalize">
                 {nav.find(n => n.id === (currentView.split(':')[0]))?.label || currentView}
@@ -1141,6 +1255,7 @@ const AppShell = ({ role, currentView, onNav, cartCount, onLogout, onNotify, use
             </div>
           </div>
           <div className="flex items-center gap-3">
+            <ThemeToggle theme={theme} onThemeChange={onThemeChange}/>
             {role === 'ac' && (
               <button onClick={() => onNav('cart')} className="relative btn-ghost h-10 px-4 rounded-xl flex items-center gap-2 text-sm">
                 <Icon name="cart" className="w-4 h-4" strokeWidth={1.6}/>
@@ -1175,7 +1290,7 @@ const AppShell = ({ role, currentView, onNav, cartCount, onLogout, onNotify, use
   );
 };
 
-window.__CENA_PART2__ = { DemoSelector, LoginScreen, AppShell };
+window.__CENA_PART2__ = { DemoSelector, LoginScreen, ThemeToggle, AppShell };
 </script>
 
 <script type="text/babel" data-type="module">
@@ -3107,7 +3222,7 @@ const AdminFinance = ({ quotations = MOCK_QUOTATIONS }) => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `extrato-financeiro-cena-${date || 'filtrado'}.csv`;
+    a.download = `extrato-financeiro-vitrine-${date || 'filtrado'}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -3515,12 +3630,13 @@ window.__CENA_STAFF_ADMIN__ = { StaffDashboard, StaffEquipment, NewEquipmentForm
    ============================================================ */
 const { useState, useEffect, useMemo } = React;
 const { Icon, Logo, EquipmentCard, RENTAL_HOUSES, CATEGORIES, EQUIPMENT, MOCK_QUOTATIONS, TEAM_MEMBERS, DEMO_JOBS, KNOWN_COLLABORATORS, FORUM_TOPICS, INCIDENTS, currency, fmtDate, fmtDateShort, formatPhone, formatCPF, maskCPF, maskPhone, isValidPhone, isValidCPF, QUOTE_AREAS, StatusBadge, statusConfig } = window.__CENA_BASE__;
-const { DemoSelector, LoginScreen, AppShell } = window.__CENA_PART2__;
+const { DemoSelector, LoginScreen, ThemeToggle, AppShell } = window.__CENA_PART2__;
 const { ACExplore, EquipmentDetail, ACCart, ACQuotations, QuotationDetail, ACProfile, ACJobs, ACCollaborators, ACForum } = window.__CENA_AC__;
 const { StaffDashboard, StaffEquipment, NewEquipmentForm, StaffQuotations, StaffOrders, StaffIncidents, StaffAds, StaffHouseProfile, AdminDashboard, AdminTeam, AdminRentals, AdminFinance, AdminReports } = window.__CENA_STAFF_ADMIN__;
 
 const STORAGE_KEY = 'cena-mvp-interactive-state-v1';
 const SESSION_STORAGE_KEY = 'cena-mvp-secure-session-v2';
+const THEME_STORAGE_KEY = 'vitrine-theme-v1';
 const SECURITY_MODE = true;
 const SESSION_TIMEOUT_MS = 30 * 60 * 1000;
 
@@ -3604,6 +3720,15 @@ const parseStorage = (store, key) => {
     return raw ? JSON.parse(raw) : null;
   } catch (err) {
     return null;
+  }
+};
+
+const loadTheme = () => {
+  try {
+    const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+    return savedTheme === 'light' ? 'light' : 'dark';
+  } catch (err) {
+    return 'dark';
   }
 };
 
@@ -3734,6 +3859,7 @@ const SuccessModal = ({ open, onClose, quotId }) => {
 const App = () => {
   const saved = useMemo(loadInteractiveState, []);
   const [stage, setStage] = useState('selector'); // selector | login | app
+  const [theme, setTheme] = useState(loadTheme);
   const [role, setRole] = useState(null);
   const [view, setView] = useState('home');
   const [cart, setCart] = useState(saved?.cart || []);
@@ -3755,6 +3881,14 @@ const App = () => {
     staff: { name: 'Beatriz Oliveira', role: 'Check-out · Cinestúdio SP', company: 'Cinestúdio SP' },
     admin: { name: 'André Silveira',   role: 'Gerente · Cinestúdio SP',  company: 'Cinestúdio SP' },
   };
+
+  useEffect(() => {
+    document.body.classList.toggle('theme-light', theme === 'light');
+    document.body.classList.toggle('theme-dark', theme !== 'light');
+    try {
+      localStorage.setItem(THEME_STORAGE_KEY, theme);
+    } catch (err) {}
+  }, [theme]);
 
   const recordAudit = (action, target = '', risk = 'info') => {
     setAuditLog(prev => [{
@@ -4104,7 +4238,7 @@ const App = () => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'meus-dados-cena-demo.json';
+    a.download = 'meus-dados-vitrine-demo.json';
     a.click();
     URL.revokeObjectURL(url);
     setToast({ title: 'Dados exportados', desc: 'Arquivo JSON baixado localmente.' });
@@ -4160,7 +4294,7 @@ const App = () => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-') || 'relatorio'}-cena.csv`;
+    a.download = `${name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-') || 'relatorio'}-vitrine.csv`;
     a.click();
     URL.revokeObjectURL(url);
     setToast({ title: 'Relatório exportado', desc: `${name} baixado em CSV.` });
@@ -4169,10 +4303,20 @@ const App = () => {
 
   /* -------- Render by stage -------- */
   if (stage === 'selector') {
-    return <DemoSelector onSelect={handleSelectRole}/>;
+    return (
+      <>
+        <ThemeToggle theme={theme} onThemeChange={setTheme} className="fixed bottom-4 right-4 z-40 shadow-2xl"/>
+        <DemoSelector onSelect={handleSelectRole}/>
+      </>
+    );
   }
   if (stage === 'login') {
-    return <LoginScreen role={role} onLogin={handleLogin} onBack={() => setStage('selector')}/>;
+    return (
+      <>
+        <ThemeToggle theme={theme} onThemeChange={setTheme} className="fixed bottom-4 right-4 z-40 shadow-2xl"/>
+        <LoginScreen role={role} onLogin={handleLogin} onBack={() => setStage('selector')}/>
+      </>
+    );
   }
 
   /* -------- App shell -------- */
@@ -4226,6 +4370,8 @@ const App = () => {
         onLogout={handleLogout}
         onNotify={() => setToast({ title: 'Notificações', desc: 'Sem novas pendências críticas no momento.', icon: 'bell' })}
         user={users[role]}
+        theme={theme}
+        onThemeChange={setTheme}
       >
         {currentScreen}
       </AppShell>
